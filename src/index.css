@@ -518,6 +518,115 @@ a  { color: inherit; text-decoration: none; }
   overflow-x: auto;
 }
 
+/* ── Songs panel ── */
+.cc-songs-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  overflow: hidden;
+}
+.cc-songs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+.cc-songs-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.cc-new-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--primary);
+  transition: all 0.15s;
+}
+.cc-new-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.cc-songs-empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.cc-song-list {
+  list-style: none;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.cc-song-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.cc-song-item:last-child { border-bottom: none; }
+.cc-song-item:hover { background: var(--bg-subtle); }
+.cc-song-item.active { background: rgba(108,92,231,0.08); }
+
+.cc-song-name {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cc-song-time {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.cc-song-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: 0.1rem 0.25rem;
+  border-radius: 3px;
+  line-height: 1;
+  transition: all 0.15s;
+  opacity: 0;
+}
+.cc-song-item:hover .cc-song-delete { opacity: 1; }
+.cc-song-delete:hover { background: #fee2e2; color: #e74c3c; }
+
+.cc-save-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+.cc-save-btn { font-size: 0.82rem; padding: 0.4rem 1rem; }
+.cc-save-btn--clean { opacity: 0.5; }
+.cc-save-msg {
+  font-size: 0.8rem;
+  color: #1DD1A1;
+  font-weight: 600;
+}
+.cc-unsaved {
+  font-size: 0.78rem;
+  color: var(--orange);
+  font-weight: 500;
+}
+
 .cc-hint {
   font-size: 0.78rem;
   color: var(--text-muted);
