@@ -34,63 +34,6 @@ function getSectionLabel(line) {
   return null
 }
 
-export function parseChordMark(text) {
-  const lines = text.split('\n').map(l => l.trimEnd())
-  const sections = []
-  const sectionCounts = {}
-  let currentSection = null
-
-  const addSection = (label) => {
-    sectionCounts[label] = (sectionCounts[label] || 0) + 1
-    currentSection = { label, count: sectionCounts[label], rows: [] }
-    sections.push(currentSection)
-  }
-
-  let i = 0
-  while (i < lines.length) {
-    const line = lines[i]
-    const trimmed = line.trim()
-
-    if (!trimmed) { i++; continue }
-
-    const sectionLabel = getSectionLabel(trimmed)
-    if (sectionLabel) {
-const SECTION_LABELS = {
-  '#intro':          'Intro',
-  '#v':              'Verse',
-  '#verse':          'Verse',
-  '#c':              'Chorus',
-  '#chorus':         'Chorus',
-  '#b':              'Bridge',
-  '#bridge':         'Bridge',
-  '#pre':            'Pre-Chorus',
-  '#prechorus':      'Pre-Chorus',
-  '#inst':           'Instrumental',
-  '#instrumental':   'Instrumental',
-  '#outro':          'Outro',
-  '#tag':            'Tag',
-  '#solo':           'Solo',
-}
-
-const CHORD_TOKEN = /^[A-G][b#]?(maj|min|m|M|aug|dim|sus|add|no)?[0-9]*(\/[A-G][b#]?)?[^\s]*$/
-
-function isChordToken(t) {
-  return t === '%' || CHORD_TOKEN.test(t)
-}
-
-function isChordLine(line) {
-  const tokens = line.trim().split(/\s+/).filter(Boolean)
-  return tokens.length > 0 && tokens.every(isChordToken)
-}
-
-function getSectionLabel(line) {
-  const lower = line.trim().toLowerCase()
-  for (const [key, label] of Object.entries(SECTION_LABELS)) {
-    if (lower === key || lower.startsWith(key + ' ')) return label
-  }
-  return null
-}
-
 // Underscore placement:
 // In the lyric, an underscore marks the syllable each chord lands on.
 //   chord line:  Am G
