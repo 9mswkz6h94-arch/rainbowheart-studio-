@@ -1,12 +1,13 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const tools = [
   {
     emoji: '🎸',
     title: 'Chord Chart Builder',
-    description: 'Generate print-ready chord charts in the Rainbow Hearts style.',
+    description: 'Generate print-ready chord charts in the Rainbow Hearts style — full chart, bass/chords, and lyrics sheets.',
     status: 'ready',
-    href: '#chord-charts',
+    href: '/studio/chord-charts',
   },
   {
     emoji: '🎵',
@@ -39,9 +40,7 @@ export default function Dashboard() {
               <h3>{tool.title}</h3>
               <p>{tool.description}</p>
               {tool.status === 'ready' ? (
-                <a href={tool.href} className="btn btn-primary">
-                  Open Tool
-                </a>
+                <Link to={tool.href} className="btn btn-primary">Open Tool</Link>
               ) : (
                 <span className="coming-soon-badge">Coming Soon</span>
               )}

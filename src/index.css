@@ -411,3 +411,311 @@ a  { color: inherit; text-decoration: none; }
   .footer-inner { flex-direction: column; text-align: center; }
   .nav-links a:not(.btn-nav-login):not(.nav-link-studio) { display: none; }
 }
+
+/* ════════════════════════════════════════
+   CHORD CHART BUILDER
+   ════════════════════════════════════════ */
+
+/* ── Page layout ── */
+.cc-page {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  min-height: calc(100vh - 65px);
+}
+
+.cc-input {
+  background: var(--bg-subtle);
+  border-right: 1px solid var(--border);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 65px);
+  position: sticky;
+  top: 65px;
+}
+
+.cc-preview {
+  padding: 2rem;
+  background: #e5e7eb;
+  overflow-y: auto;
+}
+
+.cc-input-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.cc-input-header h2 { font-size: 1.1rem; }
+
+/* ── Metadata form ── */
+.cc-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.cc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.cc-field.span2 { grid-column: span 2; }
+.cc-field.cc-field-full { grid-column: span 2; flex: 1; }
+.cc-field input,
+.cc-field textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.cc-field input:focus,
+.cc-field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(108,92,231,0.1);
+}
+
+/* ── Variant buttons ── */
+.cc-variants {
+  display: flex;
+  gap: 0.5rem;
+}
+.cc-variant-btn {
+  flex: 1;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.cc-variant-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* ── Song textarea ── */
+.cc-textarea {
+  flex: 1;
+  resize: vertical;
+  min-height: 240px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.cc-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.cc-hint code {
+  background: var(--border);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85em;
+}
+
+/* ════════════════════════════════════════
+   CHART PREVIEW (screen)
+   ════════════════════════════════════════ */
+
+.chart-preview {
+  background: #fff;
+  width: 8.5in;
+  min-height: 11in;
+  margin: 0 auto;
+  padding: 0.6in 0.65in 0.75in;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+  font-family: 'Atkinson Hyperlegible', 'Inter', sans-serif;
+  color: #000;
+  position: relative;
+}
+
+/* ── Masthead ── */
+.chart-masthead {
+  border-bottom: 3px solid #000;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.chart-title {
+  font-family: 'Rye', 'Georgia', serif;
+  font-size: 2.4rem;
+  line-height: 1.1;
+  text-align: center;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #000;
+  margin-bottom: 0.15rem;
+}
+
+.chart-band {
+  font-size: 0.8rem;
+  text-align: center;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #555;
+  margin-bottom: 0.6rem;
+}
+
+.chart-spec-strip {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid #000;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+}
+.chart-spec-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.2rem 0.4rem;
+  border-right: 1.5px solid #000;
+}
+.chart-spec-item:last-child { border-right: none; }
+.chart-spec-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #777;
+  text-transform: uppercase;
+}
+.chart-spec-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #000;
+}
+
+.chart-capo {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #444;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.chart-roadmap {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: #555;
+  text-align: center;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.chart-variant-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: right;
+  color: #999;
+}
+
+/* ── Body ── */
+.chart-body { column-count: 2; column-gap: 1.5rem; }
+
+.chart-section {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+
+.chart-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #555;
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 2px;
+  margin-bottom: 0.35rem;
+}
+
+.chart-section-body { display: flex; flex-direction: column; gap: 0.1rem; }
+
+.chart-pair { margin-bottom: 0.4rem; break-inside: avoid; }
+
+.chart-chords {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #000;
+  white-space: pre;
+  line-height: 1.4;
+}
+
+.chart-lyric-line {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #111;
+}
+
+.chart-chord-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.chart-chord-cue {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #666;
+}
+
+.chart-empty {
+  grid-column: span 2;
+  text-align: center;
+  color: #aaa;
+  font-size: 0.9rem;
+  padding: 3rem 0;
+}
+
+/* ════════════════════════════════════════
+   PRINT STYLES
+   ════════════════════════════════════════ */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body > * { display: none !important; }
+  #chart-print-area { display: block !important; }
+
+  .chart-preview {
+    box-shadow: none;
+    width: 100%;
+    min-height: unset;
+    padding: 0.5in 0.6in;
+    margin: 0;
+  }
+
+  @page { size: Letter; margin: 0; }
+}
+
+/* ── Chord chart responsive ── */
+@media (max-width: 900px) {
+  .cc-page { grid-template-columns: 1fr; }
+  .cc-input { position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
+  .chart-preview { width: 100%; min-height: unset; padding: 1.5rem; }
+  .chart-body { column-count: 1; }
+  .chart-title { font-size: 1.6rem; }
+}
