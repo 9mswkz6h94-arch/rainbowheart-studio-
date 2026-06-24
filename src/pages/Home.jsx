@@ -117,25 +117,13 @@ const services = [
     cta: 'Book a Lesson',
   },
   {
-    emoji: '🎨',
-    title: 'Art Parties',
-    description: 'Bring the group — we bring the creativity. Perfect for birthdays, team events, or just a fun night out. All supplies included, no experience needed.',
-    gradient: 'linear-gradient(135deg, #FF9F43, #FECA57)',
-    cta: 'Book a Party',
-  },
-  {
     emoji: '🖌️',
     title: 'Murals',
     description: 'Custom hand-painted murals for homes, businesses, and public spaces. Bold, lasting, and uniquely yours.',
     gradient: 'linear-gradient(135deg, #1DD1A1, #48DBFB)',
-    cta: 'Get a Quote',
-  },
-  {
-    emoji: '🖼️',
-    title: 'Art Shows',
-    description: 'A home for local artists to exhibit and connect. We host regular shows celebrating the creative community of Central Texas.',
-    gradient: 'linear-gradient(135deg, #54A0FF, #A29BFE)',
-    cta: 'See Events',
+    cta: 'See Our Work',
+    ctaHref: 'MURAL_ALBUM_URL',
+    ctaExternal: true,
   },
   {
     emoji: '🥁',
@@ -185,7 +173,7 @@ export default function Home() {
             Where <span className="rainbow-text">creativity</span><br />comes alive.
           </h1>
           <p className="hero-sub">
-            Lessons, art parties, murals, shows, and a kids performance band —
+            Lessons, murals, shows, and a kids performance band —
             all under one colorful roof. Everyone welcome. Always. 🏳️‍🌈
           </p>
           <div className="hero-ctas">
@@ -224,7 +212,7 @@ export default function Home() {
       <section id="about" className="about">
         <div className="container about-inner">
           <div className="about-text">
-            <h2>Built on community,<br />powered by color.</h2>
+            <h2>Built on community,<br />powered by creativity.</h2>
             <p>
               Rainbow Heart Studio started from a belief that art and music belong to
               everyone. We're a multidisciplinary creative space in the heart of Central
@@ -232,9 +220,8 @@ export default function Home() {
               and help them discover what they're capable of.
             </p>
             <p>
-              Whether you're picking up an instrument for the first time, throwing a
-              birthday party with a paintbrush, or looking for a mural that'll stop people
-              in their tracks — you found the right place.
+              Whether you're picking up an instrument for the first time or looking for
+              a mural that'll stop people in their tracks — you found the right place.
             </p>
             <p className="about-inclusive">
               🏳️‍🌈 Rainbow Heart Studio is a safe, affirming space for everyone — LGBTQ+ folks,
@@ -258,9 +245,16 @@ export default function Home() {
               a hair salon, massage therapy, and a charming boutique. Grab a frappe before
               your lesson and treat yourself on the way out.
             </p>
-            <p className="find-us-hours">
-              Mon–Sat: 9 am – 6 pm  ·  Sun: 12 pm – 6 pm
-            </p>
+            <div className="find-us-hours-block">
+              <div>
+                <span className="hours-label">The House on Main</span>
+                <span className="hours-value">Mon–Sat 9 am – 6 pm · Sun 12–6 pm</span>
+              </div>
+              <div>
+                <span className="hours-label">Rainbow Heart Studio</span>
+                <span className="hours-value">By appointment only</span>
+              </div>
+            </div>
           </div>
           <div className="find-us-map">
             <a

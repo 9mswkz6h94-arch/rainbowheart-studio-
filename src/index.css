@@ -313,9 +313,26 @@ a  { color: inherit; text-decoration: none; }
   color: var(--primary);
   margin-bottom: 1rem;
 }
-.find-us-hours {
-  margin-top: 1rem;
-  font-size: 0.9rem;
+.find-us-hours-block {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.find-us-hours-block > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.hours-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+}
+.hours-value {
+  font-size: 0.95rem;
   color: var(--text-muted);
 }
 .find-us-map-card {
