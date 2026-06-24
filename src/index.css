@@ -1168,6 +1168,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
   html, body { background: #fff; }
   .navbar          { display: none !important; }
+  .footer          { display: none !important; }
   .cc-input        { display: none !important; }
   .cc-input-header { display: none !important; }
   .cc-page    { display: block !important; }
