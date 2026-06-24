@@ -17,9 +17,11 @@ const tools = [
   },
   {
     emoji: '📚',
-    title: 'Student Practice App',
-    description: 'Lesson tracking, session recordings, and progress notes.',
-    status: 'coming-soon',
+    title: 'Heart Beats Practice App',
+    description: 'Daily practice cards, streaks, badges, and lesson tracking for your students.',
+    status: 'ready',
+    href: 'https://heartbeats-practice-app.netlify.app',
+    external: true,
   },
 ]
 
@@ -40,7 +42,11 @@ export default function Dashboard() {
               <h3>{tool.title}</h3>
               <p>{tool.description}</p>
               {tool.status === 'ready' ? (
-                <Link to={tool.href} className="btn btn-primary">Open Tool</Link>
+                tool.external ? (
+                  <a href={tool.href} target="_blank" rel="noopener noreferrer" className="btn btn-primary">Open Tool</a>
+                ) : (
+                  <Link to={tool.href} className="btn btn-primary">Open Tool</Link>
+                )
               ) : (
                 <span className="coming-soon-badge">Coming Soon</span>
               )}
