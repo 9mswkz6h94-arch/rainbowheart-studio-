@@ -145,6 +145,24 @@ const services = [
     cta: 'Learn More',
   },
   {
+    emoji: '🎤',
+    title: '4th Saturday Open Mic',
+    description: 'Live music every 4th Saturday at Nelson Brew Works in Copperas Cove. All performers welcome — come play, come listen, come be part of something.',
+    gradient: 'linear-gradient(135deg, #FF9F43, #FF6B6B)',
+    cta: 'See Upcoming Shows',
+    ctaHref: 'https://www.facebook.com/p/Brother-Jon-and-the-Rainbow-Hearts-61560281233918/',
+    ctaExternal: true,
+  },
+  {
+    emoji: '📻',
+    title: "Brother Jon's Songwriter Session",
+    description: 'A monthly songwriter radio show on KTCP 98.7 — The Voice of Bell County. Featured artists perform live and share the stories behind their songs. Streaming live every 4th Saturday.',
+    gradient: 'linear-gradient(135deg, #48DBFB, #6C5CE7)',
+    cta: 'Follow for Updates',
+    ctaHref: 'https://www.facebook.com/p/Brother-Jon-and-the-Rainbow-Hearts-61560281233918/',
+    ctaExternal: true,
+  },
+  {
     emoji: '🎙️',
     title: 'Brother Jon & The Rainbow Hearts',
     description: 'Central Texas roots rock with soul. Catch them live across the area or stream their music — and look for them right here at Rainbow Heart Studio.',
@@ -237,11 +255,11 @@ export default function Home() {
             <p>
               We're inside <strong>The House on Main</strong> — a one-of-a-kind spot right in the
               heart of downtown Copperas Cove. Under one roof you'll find a cozy coffee shop,
-              a hair salon, massage therapy, nail tech, and a boutique. Grab a frappe before
+              a hair salon, massage therapy, and a charming boutique. Grab a frappe before
               your lesson and treat yourself on the way out.
             </p>
             <p className="find-us-hours">
-              Mon–Sat: 9 am – 6 pm &nbsp;·&nbsp; Sun: 12 pm – 6 pm
+              Mon–Sat: 9 am – 6 pm  ·  Sun: 12 pm – 6 pm
             </p>
           </div>
           <div className="find-us-map">
@@ -266,11 +284,11 @@ export default function Home() {
       <section className="fb-feed-section">
         <div className="container fb-feed-inner">
           <h2>What's happening</h2>
-          <p className="fb-feed-sub">Follow us on <a href="https://www.facebook.com/profile.php?id=61560281233918" target="_blank" rel="noopener noreferrer">Facebook</a> to stay in the loop.</p>
+          <p className="fb-feed-sub">Follow us on <a href="https://www.facebook.com/jowensrainbowheartstudio/" target="_blank" rel="noopener noreferrer">Facebook</a> to stay in the loop.</p>
           <div className="fb-embed-wrap">
             <iframe
               title="Rainbow Heart Studio Facebook feed"
-              src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid%3D61560281233918&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&lazy=true"
+              src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fjowensrainbowheartstudio%2F&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&lazy=true"
               width="500"
               height="600"
               style={{ border: 'none', overflow: 'hidden' }}
