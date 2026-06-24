@@ -1191,7 +1191,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   /* Constrain body content within page bounds */
   .pbody {
     overflow: hidden !important;
-    max-height: calc(11in - 1.2in) !important;
+    max-height: calc(11in - 1.5in) !important;
   }
 
   /* Prevent unwanted page breaks inside content */
