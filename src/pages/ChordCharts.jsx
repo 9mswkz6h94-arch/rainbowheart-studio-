@@ -341,16 +341,16 @@ export default function ChordCharts() {
       {/* ── Input panel ── */}
       <div className="cc-input">
 
+        {/* ── Sticky toolbar: title + save + library ── */}
         <div className="cc-input-header">
-          <h2>🎸 Chart Studio</h2>
-          <div className="cc-print-btns">
-            <button className="cc-btn-ghost" onClick={handlePrint}>Print</button>
-            <button className="cc-btn-ghost" onClick={handlePrintAll}>Print All 4</button>
+          <div className="cc-header-row">
+            <h2>🎸 Chart Studio</h2>
+            <div className="cc-print-btns">
+              <button className="cc-btn-ghost" onClick={handlePrint}>Print</button>
+              <button className="cc-btn-ghost" onClick={handlePrintAll}>Print All 4</button>
+            </div>
           </div>
-        </div>
 
-        {/* Save bar + library drawer */}
-        <div className="cc-savebar-wrap">
           <div className="cc-savebar">
             <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
               {saving ? 'Saving…' : currentId ? 'Save Changes' : 'Save Song'}
