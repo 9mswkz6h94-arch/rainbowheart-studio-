@@ -343,9 +343,19 @@ export default function ChordCharts() {
         <div className="cc-input-header">
           <h2>🎸 Chart Studio</h2>
           <div className="cc-print-btns">
-            <button className="cc-btn-ghost" onClick={handlePrint}>Print / PDF</button>
-            <button className="cc-btn-solid" onClick={handlePrintAll}>Print All 4</button>
+            <button className="cc-btn-ghost" onClick={handlePrint}>Print</button>
+            <button className="cc-btn-ghost" onClick={handlePrintAll}>Print All 4</button>
           </div>
+        </div>
+
+        {/* Save bar — always visible */}
+        <div className="cc-savebar">
+          <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving…' : currentId ? 'Save Changes' : 'Save Song'}
+          </button>
+          <button className="cc-btn-ghost" onClick={handleNew}>+ New</button>
+          {saveMsg && <span className="cc-save-msg">{saveMsg}</span>}
+          {dirty    && <span className="cc-unsaved">● unsaved</span>}
         </div>
 
         {/* Song list */}
@@ -355,12 +365,11 @@ export default function ChordCharts() {
               <span className="cc-songs-title">My Songs</span>
               {userName && <span className="cc-songs-user">{userName}</span>}
             </div>
-            <button className="cc-new-btn" onClick={handleNew}>+ New</button>
           </div>
           {loadingList ? (
             <p className="cc-songs-empty">Loading…</p>
           ) : songs.length === 0 ? (
-            <p className="cc-songs-empty">No saved songs yet.</p>
+            <p className="cc-songs-empty">No saved songs yet — fill in a song and hit Save Song above.</p>
           ) : (
             <ul className="cc-song-list">
               {songs.map(s => (
@@ -376,17 +385,6 @@ export default function ChordCharts() {
               ))}
             </ul>
           )}
-          <div className="cc-save-row">
-            <button
-              className={`cc-save-btn${dirty ? '' : ' cc-save-btn--clean'}`}
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? 'Saving…' : currentId ? 'Save Changes' : 'Save Song'}
-            </button>
-            {saveMsg && <span className="cc-save-msg">{saveMsg}</span>}
-            {dirty    && <span className="cc-unsaved">● unsaved</span>}
-          </div>
         </div>
 
         {/* Metadata */}

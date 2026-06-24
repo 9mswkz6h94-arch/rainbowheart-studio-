@@ -665,6 +665,20 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   gap: 0.5rem;
 }
 
+/* ── Save bar ── */
+.cc-savebar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.cc-btn-save {
+  flex-shrink: 0;
+}
+
 /* ── Drag splitter ── */
 .cc-splitter {
   width: 6px;
@@ -732,21 +746,6 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .cc-song-delete { background: none; border: none; cursor: pointer; font-size: 0.68rem; color: var(--text-muted); padding: 0.1rem 0.2rem; border-radius: 3px; opacity: 0; transition: all 0.15s; }
 .cc-song-item:hover .cc-song-delete { opacity: 1; }
 .cc-song-delete:hover { background: #fee2e2; color: #e74c3c; }
-.cc-save-row { display: flex; align-items: center; gap: 0.65rem; padding: 0.5rem 0.65rem; border-top: 1px solid var(--border); background: var(--bg-subtle); }
-.cc-save-btn {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.35rem 0.85rem;
-  background: var(--ink);
-  color: #fff;
-  border: 1px solid var(--ink);
-  border-radius: 5px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-.cc-save-btn--clean { opacity: 0.45; }
-.cc-save-btn:hover { opacity: 0.8; }
 .cc-save-msg  { font-size: 0.75rem; color: #1DD1A1; font-weight: 600; }
 .cc-unsaved   { font-size: 0.72rem; color: var(--orange); font-weight: 500; }
 
