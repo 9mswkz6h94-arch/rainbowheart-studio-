@@ -560,3 +560,82 @@ export default function ChordCharts() {
     </div>
   )
 }
+updateMeta('scale', parseInt(e.target.value, 10))}
+            />
+            <button className="cc-btn-ghost" onClick={handleAutoFit}>Auto-fit</button>
+          </div>
+        </div>
+
+        {/* File actions */}
+        <div className="cc-file-row">
+          <button className="cc-btn-ghost" onClick={handleSaveFile}>Save .song</button>
+          <button className="cc-btn-ghost" onClick={() => fileInputRef.current?.click()}>Load .song</button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,.song,application/json"
+            style={{ display: 'none' }}
+            onChange={e => { if (e.target.files[0]) handleLoadFile(e.target.files[0]) }}
+          />
+        </div>
+
+        {/* Syntax hint */}
+        <p className="cc-hint">
+          <b>Syntax:</b> <code>#v</code> verse · <code>#c</code> chorus · <code>#b</code> bridge ·
+          chord lines above lyrics · <code>_</code> marks chord placement ·
+          <code>%</code> = repeat bar · <code>F. G...</code> = beat dots ·
+          start lyric with <code>*</code> to bold
+        </p>
+
+      </div>
+
+      {/* ── Drag splitter ── */}
+      <div className="cc-splitter" onMouseDown={handleSplitterDown} title="Drag to resize" />
+
+      {/* ── Preview ── */}
+      <div className="cc-preview">
+        <div ref={stageRef} className="stagewrap" />
+      </div>
+
+    </div>
+  )
+}
+            />
+            <button className="cc-btn-ghost" onClick={handleAutoFit}>Auto-fit</button>
+          </div>
+        </div>
+
+        {/* File actions */}
+        <div className="cc-file-row">
+          <button className="cc-btn-ghost" onClick={handleSaveFile}>Save .song</button>
+          <button className="cc-btn-ghost" onClick={() => fileInputRef.current?.click()}>Load .song</button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,.song,application/json"
+            style={{ display: 'none' }}
+            onChange={e => { if (e.target.files[0]) handleLoadFile(e.target.files[0]) }}
+          />
+        </div>
+
+        {/* Syntax hint */}
+        <p className="cc-hint">
+          <b>Syntax:</b> <code>#v</code> verse · <code>#c</code> chorus · <code>#b</code> bridge ·
+          chord lines above lyrics · <code>_</code> marks chord placement ·
+          <code>%</code> = repeat bar · <code>F. G...</code> = beat dots ·
+          start lyric with <code>*</code> to bold
+        </p>
+
+      </div>
+
+      {/* ── Drag splitter ── */}
+      <div className="cc-splitter" onMouseDown={handleSplitterDown} title="Drag to resize" />
+
+      {/* ── Preview ── */}
+      <div className="cc-preview">
+        <div ref={stageRef} className="stagewrap" />
+      </div>
+
+    </div>
+  )
+}
