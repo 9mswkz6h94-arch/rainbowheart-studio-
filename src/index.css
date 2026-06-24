@@ -1166,15 +1166,15 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @page { size: Letter; margin: 0; }
 
-  html, body { background: #fff; }
+  html, body { background: #fff; margin: 0 !important; padding: 0 !important; }
   .navbar          { display: none !important; }
   .footer          { display: none !important; }
   .cc-input        { display: none !important; }
   .cc-input-header { display: none !important; }
   .cc-page    { display: block !important; }
-  .cc-preview { overflow: visible !important; height: auto !important; padding: 0 !important; background: #fff !important; }
-  .stagewrap  { padding: 0 !important; gap: 0 !important; }
-  .pagecount  { display: none !important; }
+  .cc-preview { overflow: visible !important; height: auto !important; padding: 0 !important; margin: 0 !important; background: #fff !important; }
+  .stagewrap  { padding: 0 !important; margin: 0 !important; gap: 0 !important; }
+  .pagecount  { display: none !important; height: 0 !important; margin: 0 !important; }
   .page {
     width: 8.5in !important;
     height: 11in !important;
