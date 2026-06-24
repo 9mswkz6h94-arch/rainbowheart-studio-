@@ -50,7 +50,8 @@ export default function ChordCharts() {
   const [tabOnFull, setTabOnFull] = useState(true)
   const [tabOnUke,  setTabOnUke]  = useState(true)
 
-  const [variant, setVariant] = useState('full')
+  const [variant,      setVariant]      = useState('full')
+  const [libraryOpen,  setLibraryOpen]  = useState(false)
 
   const [songs,       setSongs]       = useState([])
   const [currentId,   setCurrentId]   = useState(null)
@@ -348,42 +349,46 @@ export default function ChordCharts() {
           </div>
         </div>
 
-        {/* Save bar — always visible */}
-        <div className="cc-savebar">
-          <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : currentId ? 'Save Changes' : 'Save Song'}
-          </button>
-          <button className="cc-btn-ghost" onClick={handleNew}>+ New</button>
-          {saveMsg && <span className="cc-save-msg">{saveMsg}</span>}
-          {dirty    && <span className="cc-unsaved">● unsaved</span>}
-        </div>
-
-        {/* Song list */}
-        <div className="cc-songs-panel">
-          <div className="cc-songs-header">
-            <div className="cc-songs-title-group">
-              <span className="cc-songs-title">My Songs</span>
-              {userName && <span className="cc-songs-user">{userName}</span>}
-            </div>
+        {/* Save bar + library drawer */}
+        <div className="cc-savebar-wrap">
+          <div className="cc-savebar">
+            <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving…' : currentId ? 'Save Changes' : 'Save Song'}
+            </button>
+            <button className="cc-btn-ghost" onClick={handleNew}>+ New</button>
+            <button
+              className={`cc-btn-ghost cc-library-btn${libraryOpen ? ' active' : ''}`}
+              onClick={() => setLibraryOpen(o => !o)}
+            >
+              Library {songs.length > 0 && <span className="cc-song-count">{songs.length}</span>}
+            </button>
+            {saveMsg && <span className="cc-save-msg">{saveMsg}</span>}
+            {dirty    && !saveMsg && <span className="cc-unsaved">● unsaved</span>}
           </div>
-          {loadingList ? (
-            <p className="cc-songs-empty">Loading…</p>
-          ) : songs.length === 0 ? (
-            <p className="cc-songs-empty">No saved songs yet — fill in a song and hit Save Song above.</p>
-          ) : (
-            <ul className="cc-song-list">
-              {songs.map(s => (
-                <li
-                  key={s.id}
-                  className={`cc-song-item${currentId === s.id ? ' active' : ''}`}
-                  onClick={() => handleLoad(s.id)}
-                >
-                  <span className="cc-song-name">{s.title || 'Untitled'}</span>
-                  <span className="cc-song-time">{timeAgo(s.updated_at)}</span>
-                  <button className="cc-song-delete" onClick={e => handleDelete(s.id, s.title, e)} title="Delete">✕</button>
-                </li>
-              ))}
-            </ul>
+
+          {libraryOpen && (
+            <div className="cc-library-drawer">
+              {userName && <p className="cc-library-user">{userName}</p>}
+              {loadingList ? (
+                <p className="cc-songs-empty">Loading…</p>
+              ) : songs.length === 0 ? (
+                <p className="cc-songs-empty">No saved songs yet. Fill in a song and click Save Song.</p>
+              ) : (
+                <ul className="cc-song-list">
+                  {songs.map(s => (
+                    <li
+                      key={s.id}
+                      className={`cc-song-item${currentId === s.id ? ' active' : ''}`}
+                      onClick={() => { handleLoad(s.id); setLibraryOpen(false) }}
+                    >
+                      <span className="cc-song-name">{s.title || 'Untitled'}</span>
+                      <span className="cc-song-time">{timeAgo(s.updated_at)}</span>
+                      <button className="cc-song-delete" onClick={e => handleDelete(s.id, s.title, e)} title="Delete">✕</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
         </div>
 
