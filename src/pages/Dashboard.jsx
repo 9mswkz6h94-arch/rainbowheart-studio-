@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
+
+const HEARTBEATS_URL = 'https://heartbeats-practice-app.netlify.app'
 
 const tools = [
   {
@@ -20,10 +23,20 @@ const tools = [
     title: 'Heart Beats Practice App',
     description: 'Daily practice cards, streaks, badges, and lesson tracking for your students.',
     status: 'ready',
-    href: 'https://heartbeats-practice-app.netlify.app',
-    external: true,
+    sso: true,
   },
 ]
+
+async function openHeartBeatsSSO() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    window.open(HEARTBEATS_URL, '_blank', 'noopener')
+    return
+  }
+  const { access_token, refresh_token } = session
+  const url = `${HEARTBEATS_URL}/#access_token=${access_token}&refresh_token=${refresh_token}&token_type=bearer`
+  window.open(url, '_blank', 'noopener')
+}
 
 export default function Dashboard() {
   const { user } = useAuth()
@@ -42,7 +55,9 @@ export default function Dashboard() {
               <h3>{tool.title}</h3>
               <p>{tool.description}</p>
               {tool.status === 'ready' ? (
-                tool.external ? (
+                tool.sso ? (
+                  <button onClick={openHeartBeatsSSO} className="btn btn-primary">Open Tool</button>
+                ) : tool.external ? (
                   <a href={tool.href} target="_blank" rel="noopener noreferrer" className="btn btn-primary">Open Tool</a>
                 ) : (
                   <Link to={tool.href} className="btn btn-primary">Open Tool</Link>
