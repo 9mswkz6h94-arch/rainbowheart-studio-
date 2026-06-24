@@ -1186,7 +1186,9 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
     margin: 0 !important;
     padding: 0.45in 0.62in 0.6in !important;
     overflow: hidden !important;
+    page-break-before: auto;
   }
+  .page:first-child { page-break-before: avoid; }
   .page:last-child { page-break-after: auto; }
 
   /* Constrain body content within page bounds */
