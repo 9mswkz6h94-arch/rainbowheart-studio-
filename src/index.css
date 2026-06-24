@@ -1175,12 +1175,27 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   .stagewrap  { padding: 0 !important; gap: 0 !important; }
   .pagecount  { display: none !important; }
   .page {
+    width: 8.5in !important;
+    height: 11in !important;
+    box-sizing: border-box !important;
     box-shadow: none !important;
     page-break-after: always;
+    page-break-inside: avoid;
     transform: none !important;
     margin: 0 !important;
+    padding: 0.45in 0.62in 0.6in !important;
+    overflow: hidden !important;
   }
   .page:last-child { page-break-after: auto; }
+
+  /* Constrain body content within page bounds */
+  .pbody {
+    overflow: hidden !important;
+    max-height: calc(11in - 1.2in) !important;
+  }
+
+  /* Prevent unwanted page breaks inside content */
+  .section { page-break-inside: avoid; }
 }
 
 /* ── Responsive ── */
