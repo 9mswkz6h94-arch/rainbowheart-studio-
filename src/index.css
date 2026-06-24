@@ -275,6 +275,41 @@ a  { color: inherit; text-decoration: none; }
 .about-text p  { margin-bottom: 1rem; }
 .about-visual  { font-size: 6rem; line-height: 1; user-select: none; }
 
+/* ── Team ── */
+.team {
+  padding: 5rem 0;
+  background: var(--bg);
+  text-align: center;
+}
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-top: 2.5rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.staff-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.staff-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.staff-card h3 { margin: 0; font-size: 1.1rem; }
+.staff-role { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+.team-note { margin-top: 2rem; color: var(--text-muted); font-size: 0.9rem; }
+
 /* ── Contact CTA ── */
 .contact-cta {
   padding: 6rem 0;

@@ -122,7 +122,7 @@ const services = [
     description: 'Custom hand-painted murals for homes, businesses, and public spaces. Bold, lasting, and uniquely yours.',
     gradient: 'linear-gradient(135deg, #1DD1A1, #48DBFB)',
     cta: 'See Our Work',
-    ctaHref: 'MURAL_ALBUM_URL',
+    ctaHref: 'https://www.facebook.com/media/set/?set=a.996240916604165&type=3',
     ctaExternal: true,
   },
   {
@@ -158,6 +158,27 @@ const services = [
     cta: 'Visit the Band',
     ctaHref: 'https://bjrh.band',
     ctaExternal: true,
+  },
+]
+
+const staff = [
+  {
+    name: 'Jonathan Owens',
+    role: 'Founder & Instructor',
+    avatar: '🎸',
+    color: 'linear-gradient(135deg, #6C5CE7, #B146C2)',
+  },
+  {
+    name: 'Crystal Owens',
+    role: 'Co-Founder & Studio Director',
+    avatar: '🌈',
+    color: 'linear-gradient(135deg, #FF6B6B, #FD79A8)',
+  },
+  {
+    name: 'Mrs. Go',
+    role: 'Instructor',
+    avatar: '🎨',
+    color: 'linear-gradient(135deg, #1DD1A1, #48DBFB)',
   },
 ]
 
@@ -233,6 +254,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Meet the Team */}
+      <section id="team" className="team">
+        <div className="container">
+          <h2 className="section-title">Meet the Team</h2>
+          <div className="team-grid">
+            {staff.map((s) => (
+              <div key={s.name} className="staff-card">
+                <div className="staff-avatar" style={{ background: s.color }}>{s.avatar}</div>
+                <h3>{s.name}</h3>
+                <p className="staff-role">{s.role}</p>
+              </div>
+            ))}
+          </div>
+          <p className="team-note">Full bios coming soon — stay tuned!</p>
+        </div>
+      </section>
+
       {/* Find Us */}
       <section id="find-us" className="find-us">
         <div className="container find-us-inner">
@@ -252,7 +290,7 @@ export default function Home() {
               </div>
               <div>
                 <span className="hours-label">Rainbow Heart Studio</span>
-                <span className="hours-value">By appointment only</span>
+                <span className="hours-value">By appointment only · (254) 371-5051</span>
               </div>
             </div>
           </div>
