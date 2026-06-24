@@ -127,7 +127,7 @@ const services = [
   },
   {
     emoji: '🥁',
-    title: 'Kids Performance Band',
+    title: 'The Heart Beats',
     description: 'Young musicians learning to play, rehearse, and perform together. Builds confidence, teamwork, and a lifelong love of music.',
     gradient: 'linear-gradient(135deg, #A29BFE, #FD79A8)',
     cta: 'Learn More',
@@ -175,8 +175,8 @@ const staff = [
     color: 'linear-gradient(135deg, #FF6B6B, #FD79A8)',
   },
   {
-    name: 'Mrs. Go',
-    role: 'Instructor',
+    name: 'LJ Go',
+    role: 'Guitar & Ukulele Instructor',
     avatar: '🎨',
     color: 'linear-gradient(135deg, #1DD1A1, #48DBFB)',
   },
