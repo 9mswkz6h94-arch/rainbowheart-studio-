@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { parseSong, layout, fitTitles, rescale, shiftKey } from '../lib/chartEngine'
 import { fetchSongs, fetchSong, saveSong, deleteSong, timeAgo } from '../lib/songs'
+import { useAuth } from '../context/AuthContext'
 
 const VARIANTS = [
   ['full',   'Full Chart'],
@@ -34,6 +35,10 @@ const BLANK_TABS = {
 }
 
 export default function ChordCharts() {
+  /* ── Auth ── */
+  const { user } = useAuth()
+  const userName = user?.user_metadata?.full_name || user?.email || ''
+
   /* ── State ── */
   const [meta,     setMeta]     = useState(BLANK_META)
   const [songText, setSongText] = useState('')
@@ -53,6 +58,24 @@ export default function ChordCharts() {
   const [saving,      setSaving]      = useState(false)
   const [saveMsg,     setSaveMsg]     = useState(null)
   const [loadingList, setLoadingList] = useState(true)
+
+  /* ── Resizable panel ── */
+  const [panelW, setPanelW] = useState(380)
+
+  function handleSplitterDown(e) {
+    e.preventDefault()
+    const startX = e.clientX
+    const startW = panelW
+    function onMove(ev) {
+      setPanelW(Math.max(280, Math.min(700, startW + ev.clientX - startX)))
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }
 
   /* ── DOM refs ── */
   const measureRef  = useRef(null)
@@ -305,7 +328,7 @@ export default function ChordCharts() {
 
   /* ── Render ── */
   return (
-    <div className="cc-page">
+    <div className="cc-page" style={{ gridTemplateColumns: `${panelW}px 6px 1fr` }}>
 
       {/* Hidden off-screen measure div — used by layout engine for height measurements */}
       <div
@@ -328,7 +351,10 @@ export default function ChordCharts() {
         {/* Song list */}
         <div className="cc-songs-panel">
           <div className="cc-songs-header">
-            <span className="cc-songs-title">My Songs</span>
+            <div className="cc-songs-title-group">
+              <span className="cc-songs-title">My Songs</span>
+              {userName && <span className="cc-songs-user">{userName}</span>}
+            </div>
             <button className="cc-new-btn" onClick={handleNew}>+ New</button>
           </div>
           {loadingList ? (
@@ -519,6 +545,9 @@ export default function ChordCharts() {
         </p>
 
       </div>
+
+      {/* ── Drag splitter ── */}
+      <div className="cc-splitter" onMouseDown={handleSplitterDown} title="Drag to resize" />
 
       {/* ── Preview ── */}
       <div className="cc-preview">
