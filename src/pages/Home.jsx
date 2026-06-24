@@ -1,3 +1,114 @@
+import { useState } from 'react'
+
+function encode(data) {
+  return Object.keys(data)
+    .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
+    .join('&')
+}
+
+function ContactForm() {
+  const [fields, setFields] = useState({ name: '', email: '', message: '' })
+  const [status, setStatus] = useState('idle') // idle | sending | success | error
+
+  function handleChange(e) {
+    setFields(f => ({ ...f, [e.target.name]: e.target.value }))
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    const token = window.grecaptcha?.getResponse()
+    if (!token) {
+      alert('Please complete the reCAPTCHA before sending.')
+      return
+    }
+    setStatus('sending')
+    try {
+      await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: encode({ 'form-name': 'contact', 'g-recaptcha-response': token, ...fields }),
+      })
+      setStatus('success')
+      setFields({ name: '', email: '', message: '' })
+      window.grecaptcha?.reset()
+    } catch {
+      setStatus('error')
+    }
+  }
+
+  if (status === 'success') {
+    return (
+      <div className="contact-success">
+        <span className="contact-success-icon">🌈</span>
+        <h3>Got it! We'll be in touch soon.</h3>
+      </div>
+    )
+  }
+
+  return (
+    <form
+      className="contact-form"
+      onSubmit={handleSubmit}
+      data-netlify="true"
+      data-netlify-recaptcha="true"
+      name="contact"
+    >
+      {/* honeypot */}
+      <input type="hidden" name="form-name" value="contact" />
+      <p hidden><input name="bot-field" /></p>
+
+      <div className="form-row">
+        <label htmlFor="cf-name">Name</label>
+        <input
+          id="cf-name"
+          type="text"
+          name="name"
+          required
+          placeholder="Your name"
+          value={fields.name}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="form-row">
+        <label htmlFor="cf-email">Email</label>
+        <input
+          id="cf-email"
+          type="email"
+          name="email"
+          required
+          placeholder="you@example.com"
+          value={fields.email}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="form-row">
+        <label htmlFor="cf-message">Message</label>
+        <textarea
+          id="cf-message"
+          name="message"
+          required
+          rows={5}
+          placeholder="Tell us what you're looking for…"
+          value={fields.message}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div data-netlify-recaptcha="true" className="recaptcha-wrap" />
+
+      {status === 'error' && (
+        <p className="form-error">Something went wrong. Try again or email us directly at crystal@rainbowheart.studio</p>
+      )}
+
+      <button type="submit" className="btn btn-primary-inv" disabled={status === 'sending'}>
+        {status === 'sending' ? 'Sending…' : 'Send Message'}
+      </button>
+    </form>
+  )
+}
+
 const services = [
   {
     emoji: '🎸',
@@ -90,7 +201,7 @@ export default function Home() {
           <div className="about-text">
             <h2>Built on community,<br />powered by color.</h2>
             <p>
-              Rainbow Hearts Studio started from a belief that art and music belong to
+              Rainbow Heart Studio started from a belief that art and music belong to
               everyone. We're a multidisciplinary creative space in the heart of Central
               Texas — hosting lessons, events, and experiences that bring people together
               and help them discover what they're capable of.
@@ -105,14 +216,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Contact CTA ── */}
+      {/* ── Contact ── */}
       <section id="contact" className="contact-cta">
         <div className="container">
           <h2>Ready to create something?</h2>
-          <p>Reach out and we'll get you sorted.</p>
-          <a href="mailto:hello@rainbowheart.studio" className="btn btn-primary-inv">
-            Say Hello
-          </a>
+          <p>Drop us a message and we'll get back to you soon.</p>
+          <ContactForm />
         </div>
       </section>
 

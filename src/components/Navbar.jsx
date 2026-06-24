@@ -14,7 +14,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-inner">
         <Link to="/" className="nav-logo">
-          🌈 Rainbow Hearts Studio
+          🌈 Rainbow Heart Studio
         </Link>
         <div className="nav-links">
           <a href="/#services">Services</a>

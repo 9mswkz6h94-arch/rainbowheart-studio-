@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="container footer-inner">
-        <span>© {new Date().getFullYear()} Rainbow Hearts Studio · Copperas Cove, TX</span>
+        <span>© {new Date().getFullYear()} Rainbow Heart Studio · Copperas Cove, TX</span>
         <div className="footer-links">
           <a href="https://instagram.com/brotherjon_rainbowhearts/" target="_blank" rel="noreferrer">
             Instagram
