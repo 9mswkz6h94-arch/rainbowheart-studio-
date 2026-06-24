@@ -252,16 +252,19 @@ export default function Home() {
             </p>
           </div>
           <div className="find-us-map">
-            <iframe
-              title="Rainbow Heart Studio location"
-              src="https://www.google.com/maps/embed/v1/place?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&q=303+S+Main+Street,Copperas+Cove,TX+76522"
-              width="100%"
-              height="280"
-              style={{ border: 0, borderRadius: '12px' }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+            <a
+              href="https://maps.google.com/maps?q=303+S+Main+Street,Copperas+Cove,TX+76522"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="find-us-map-card"
+            >
+              <div className="find-us-map-pin">📍</div>
+              <div className="find-us-map-label">
+                <strong>303 S. Main Street</strong>
+                <span>Copperas Cove, TX 76522</span>
+              </div>
+              <div className="find-us-map-cta">Get Directions →</div>
+            </a>
           </div>
         </div>
       </section>
