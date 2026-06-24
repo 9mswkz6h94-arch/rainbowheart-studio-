@@ -284,6 +284,65 @@ a  { color: inherit; text-decoration: none; }
 .contact-cta h2 { color: #fff; margin-bottom: 0.75rem; }
 .contact-cta p  { color: rgba(255,255,255,0.8); font-size: 1.1rem; margin-bottom: 2rem; }
 
+/* ── About inclusive ── */
+.about-inclusive {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(108,92,231,0.12), rgba(253,121,168,0.12));
+  border-left: 3px solid #A29BFE;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* ── Find Us ── */
+.find-us {
+  padding: 5rem 0;
+  background: var(--surface);
+}
+.find-us-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+.find-us-text h2 { margin-bottom: 0.75rem; }
+.find-us-address {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+.find-us-hours {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+@media (max-width: 700px) {
+  .find-us-inner { grid-template-columns: 1fr; }
+}
+
+/* ── Facebook Feed ── */
+.fb-feed-section {
+  padding: 5rem 0;
+  background: var(--bg);
+  text-align: center;
+}
+.fb-feed-inner h2 { margin-bottom: 0.5rem; }
+.fb-feed-sub {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+.fb-feed-sub a { color: var(--primary); text-decoration: underline; }
+.fb-embed-wrap {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+
 /* ── Contact Form ── */
 .contact-form {
   max-width: 560px;

@@ -150,6 +150,16 @@ const services = [
     gradient: 'linear-gradient(135deg, #A29BFE, #FD79A8)',
     cta: 'Learn More',
   },
+  {
+    emoji: '🎙️',
+    title: 'Brother Jon & The Rainbow Hearts',
+    description:
+      'Central Texas roots rock with soul. Catch them live, stream their music, and look for them right here at Rainbow Heart Studio.',
+    gradient: 'linear-gradient(135deg, #6C5CE7, #B146C2)',
+    cta: 'Visit the Band',
+    ctaHref: 'https://bjrh.band',
+    ctaExternal: true,
+  },
 ]
 
 export default function Home() {
@@ -165,7 +175,7 @@ export default function Home() {
           </h1>
           <p className="hero-sub">
             Lessons, art parties, murals, shows, and a kids performance band —
-            all under one colorful roof.
+            all under one colorful roof. Everyone welcome. Always. 🏳️‍🌈
           </p>
           <div className="hero-ctas">
             <a href="#services" className="btn btn-primary">Explore Services</a>
@@ -188,7 +198,11 @@ export default function Home() {
                 <div className="card-icon">{s.emoji}</div>
                 <h3>{s.title}</h3>
                 <p>{s.description}</p>
-                <a href="#contact" className="card-cta">{s.cta} →</a>
+                {s.ctaExternal ? (
+                  <a href={s.ctaHref} target="_blank" rel="noopener noreferrer" className="card-cta">{s.cta} →</a>
+                ) : (
+                  <a href="#contact" className="card-cta">{s.cta} →</a>
+                )}
               </div>
             ))}
           </div>
@@ -211,8 +225,65 @@ export default function Home() {
               birthday party with a paintbrush, or looking for a mural that'll stop people
               in their tracks — you found the right place.
             </p>
+            <p className="about-inclusive">
+              🏳️‍🌈 Rainbow Heart Studio is a safe, affirming space for everyone — LGBTQ+ folks,
+              people of all races and ethnicities, and all spiritual paths (or none at all).
+              Come exactly as you are.
+            </p>
           </div>
           <div className="about-visual" aria-hidden="true">🌈</div>
+        </div>
+      </section>
+
+      {/* ── Find Us ── */}
+      <section id="find-us" className="find-us">
+        <div className="container find-us-inner">
+          <div className="find-us-text">
+            <h2>Come find us</h2>
+            <p className="find-us-address">📍 303 S. Main Street · Copperas Cove, TX 76522</p>
+            <p>
+              We're inside <strong>The House on Main</strong> — a one-of-a-kind spot right in the
+              heart of downtown Copperas Cove. Under one roof you'll find a cozy coffee shop,
+              a hair salon, massage therapy, nail tech, and a boutique. Grab a frappe before
+              your lesson and treat yourself on the way out.
+            </p>
+            <p className="find-us-hours">
+              Mon–Sat: 9 am – 6 pm &nbsp;·&nbsp; Sun: 12 pm – 6 pm
+            </p>
+          </div>
+          <div className="find-us-map">
+            <iframe
+              title="Rainbow Heart Studio location"
+              src="https://www.google.com/maps/embed/v1/place?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&q=303+S+Main+Street,Copperas+Cove,TX+76522"
+              width="100%"
+              height="280"
+              style={{ border: 0, borderRadius: '12px' }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Facebook Feed ── */}
+      <section className="fb-feed-section">
+        <div className="container fb-feed-inner">
+          <h2>What's happening</h2>
+          <p className="fb-feed-sub">Follow us on <a href="https://www.facebook.com/profile.php?id=61560281233918" target="_blank" rel="noopener noreferrer">Facebook</a> to stay in the loop.</p>
+          <div className="fb-embed-wrap">
+            <iframe
+              title="Rainbow Heart Studio Facebook feed"
+              src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid%3D61560281233918&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&lazy=true"
+              width="500"
+              height="600"
+              style={{ border: 'none', overflow: 'hidden' }}
+              scrolling="no"
+              frameBorder="0"
+              allowFullScreen={true}
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+            />
+          </div>
         </div>
       </section>
 
