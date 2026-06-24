@@ -37,7 +37,7 @@ export default function Dashboard() {
         </div>
         <div className="tools-grid">
           {tools.map((tool) => (
-            <div key={tool.title} className={`tool-card ${tool.status}`}>
+            <div key={tool.title} className={"tool-card " + tool.status}>
               <div className="tool-icon">{tool.emoji}</div>
               <h3>{tool.title}</h3>
               <p>{tool.description}</p>

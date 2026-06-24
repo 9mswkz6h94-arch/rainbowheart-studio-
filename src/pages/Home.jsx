@@ -8,7 +8,7 @@ function encode(data) {
 
 function ContactForm() {
   const [fields, setFields] = useState({ name: '', email: '', message: '' })
-  const [status, setStatus] = useState('idle') // idle | sending | success | error
+  const [status, setStatus] = useState('idle')
 
   function handleChange(e) {
     setFields(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -53,7 +53,6 @@ function ContactForm() {
       data-netlify-recaptcha="true"
       name="contact"
     >
-      {/* honeypot */}
       <input type="hidden" name="form-name" value="contact" />
       <p hidden><input name="bot-field" /></p>
 
@@ -90,7 +89,7 @@ function ContactForm() {
           name="message"
           required
           rows={5}
-          placeholder="Tell us what you're looking for…"
+          placeholder="Tell us what you're looking for..."
           value={fields.message}
           onChange={handleChange}
         />
@@ -99,11 +98,11 @@ function ContactForm() {
       <div data-netlify-recaptcha="true" className="recaptcha-wrap" />
 
       {status === 'error' && (
-        <p className="form-error">Something went wrong. Try again or email us directly at crystal@rainbowheart.studio</p>
+        <p className="form-error">Something went wrong. Try again or email us at crystal@rainbowheart.studio</p>
       )}
 
       <button type="submit" className="btn btn-primary-inv" disabled={status === 'sending'}>
-        {status === 'sending' ? 'Sending…' : 'Send Message'}
+        {status === 'sending' ? 'Sending...' : 'Send Message'}
       </button>
     </form>
   )
@@ -113,48 +112,42 @@ const services = [
   {
     emoji: '🎸',
     title: 'Private Lessons',
-    description:
-      'One-on-one instruction with multiple talented instructors. Guitar, vocals, piano, songwriting, and more — all ages and skill levels welcome.',
+    description: 'One-on-one instruction with multiple talented instructors. Guitar, vocals, piano, songwriting, and more — all ages and skill levels welcome.',
     gradient: 'linear-gradient(135deg, #FF6B6B, #FD79A8)',
     cta: 'Book a Lesson',
   },
   {
     emoji: '🎨',
     title: 'Art Parties',
-    description:
-      'Bring the group — we bring the creativity. Perfect for birthdays, team events, or just a fun night out. All supplies included, no experience needed.',
+    description: 'Bring the group — we bring the creativity. Perfect for birthdays, team events, or just a fun night out. All supplies included, no experience needed.',
     gradient: 'linear-gradient(135deg, #FF9F43, #FECA57)',
     cta: 'Book a Party',
   },
   {
     emoji: '🖌️',
     title: 'Murals',
-    description:
-      'Custom hand-painted murals for homes, businesses, and public spaces. Bold, lasting, and uniquely yours.',
+    description: 'Custom hand-painted murals for homes, businesses, and public spaces. Bold, lasting, and uniquely yours.',
     gradient: 'linear-gradient(135deg, #1DD1A1, #48DBFB)',
     cta: 'Get a Quote',
   },
   {
     emoji: '🖼️',
     title: 'Art Shows',
-    description:
-      'A home for local artists to exhibit and connect. We host regular shows celebrating the creative community of Central Texas.',
+    description: 'A home for local artists to exhibit and connect. We host regular shows celebrating the creative community of Central Texas.',
     gradient: 'linear-gradient(135deg, #54A0FF, #A29BFE)',
     cta: 'See Events',
   },
   {
     emoji: '🥁',
     title: 'Kids Performance Band',
-    description:
-      'Young musicians learning to play, rehearse, and perform together. Builds confidence, teamwork, and a lifelong love of music.',
+    description: 'Young musicians learning to play, rehearse, and perform together. Builds confidence, teamwork, and a lifelong love of music.',
     gradient: 'linear-gradient(135deg, #A29BFE, #FD79A8)',
     cta: 'Learn More',
   },
   {
     emoji: '🎙️',
     title: 'Brother Jon & The Rainbow Hearts',
-    description:
-      'Central Texas roots rock with soul. Catch them live, stream their music, and look for them right here at Rainbow Heart Studio.',
+    description: 'Central Texas roots rock with soul. Catch them live across the area or stream their music — and look for them right here at Rainbow Heart Studio.',
     gradient: 'linear-gradient(135deg, #6C5CE7, #B146C2)',
     cta: 'Visit the Band',
     ctaHref: 'https://bjrh.band',
@@ -166,7 +159,7 @@ export default function Home() {
   return (
     <div className="home">
 
-      {/* ── Hero ── */}
+      {/* Hero */}
       <section className="hero">
         <div className="hero-inner">
           <p className="hero-location">📍 Copperas Cove, Texas</p>
@@ -184,7 +177,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Services ── */}
+      {/* Services */}
       <section id="services" className="services">
         <div className="container">
           <h2 className="section-title">What We Do</h2>
@@ -209,7 +202,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── About ── */}
+      {/* About */}
       <section id="about" className="about">
         <div className="container about-inner">
           <div className="about-text">
@@ -235,7 +228,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Find Us ── */}
+      {/* Find Us */}
       <section id="find-us" className="find-us">
         <div className="container find-us-inner">
           <div className="find-us-text">
@@ -269,7 +262,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Facebook Feed ── */}
+      {/* Facebook Feed */}
       <section className="fb-feed-section">
         <div className="container fb-feed-inner">
           <h2>What's happening</h2>
@@ -290,7 +283,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Contact ── */}
+      {/* Contact */}
       <section id="contact" className="contact-cta">
         <div className="container">
           <h2>Ready to create something?</h2>
