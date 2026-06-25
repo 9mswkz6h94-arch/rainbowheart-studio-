@@ -412,6 +412,16 @@ export default function ChordCharts() {
                         }}
                       >
                         <span className="cc-lib-title">{s.title || 'Untitled'}</span>
+                        <button
+                          className="cc-lib-delete"
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleDelete(s.id, s.title || 'Untitled', { stopPropagation: () => {} })
+                          }}
+                          title="Delete song"
+                        >
+                          ✕
+                        </button>
                       </div>
                     ))
                   )}

@@ -980,6 +980,10 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   cursor: pointer;
   transition: background 0.1s;
   border-bottom: 1px solid #f0ede8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 .cc-lib-item:last-child {
   border-bottom: none;
@@ -996,10 +1000,32 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   cursor: default;
 }
 .cc-lib-title {
+  flex: 1;
   display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+}
+.cc-lib-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.68rem;
+  color: #ccc;
+  padding: 0 0.2rem;
+  opacity: 0;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.cc-lib-item:hover .cc-lib-delete {
+  opacity: 1;
+  color: #e74c3c;
+}
+.cc-lib-delete:hover {
+  background: #fee2e2;
+  border-radius: 3px;
+  padding: 0.1rem 0.3rem;
 }
 
 .cc-library-drawer {
