@@ -391,7 +391,7 @@ export function layout(song, key, opts, measureEl) {
   const PAD_T      = (compact ? 0.4  : 0.45) * DPI
   const PAD_B      = (compact ? 0.42 : 0.6)  * DPI
   const PBODY_GAP  = compact ? 9 : 14
-  const FOOTER_CLR = 16
+  const FOOTER_CLR = 100  // conservative: reserve space for footer + rendering headroom (measured heights often underestimate actual rendered heights)
 
   const VAR = {
     full:   ['Full Chart',    () => secFull(song, opts.collapse, opts.tabOnFull, opts.tabOnUke)],
