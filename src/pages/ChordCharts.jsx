@@ -80,10 +80,12 @@ export default function ChordCharts() {
   }
 
   /* ── DOM refs ── */
-  const measureRef  = useRef(null)
-  const stageRef    = useRef(null)
-  const debounceRef = useRef(null)
+  const measureRef   = useRef(null)
+  const stageRef     = useRef(null)
+  const debounceRef  = useRef(null)
   const fileInputRef = useRef(null)
+  const libBtnRef    = useRef(null)
+  const [libMenuPos, setLibMenuPos] = useState({ left: 0, top: 0 })
 
   /* ── Derived transpose label ── */
   const trDisplay = (() => {
@@ -381,13 +383,20 @@ export default function ChordCharts() {
             />
             <div className="cc-library-dropdown">
               <button
+                ref={libBtnRef}
                 className="cc-library-btn"
-                onClick={() => setLibDropOpen(o => !o)}
+                onClick={() => {
+                  if (!libDropOpen && libBtnRef.current) {
+                    const rect = libBtnRef.current.getBoundingClientRect()
+                    setLibMenuPos({ left: rect.left, top: rect.bottom + 4 })
+                  }
+                  setLibDropOpen(o => !o)
+                }}
               >
                 Library {songs.length > 0 && `(${songs.length})`}
               </button>
               {libDropOpen && (
-                <div className="cc-library-menu">
+                <div className="cc-library-menu" style={{ left: libMenuPos.left, top: libMenuPos.top }}>
                   {loadingList ? (
                     <div className="cc-lib-item disabled">Loading…</div>
                   ) : songs.length === 0 ? (

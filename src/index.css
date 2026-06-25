@@ -956,18 +956,18 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 
 .cc-library-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: auto;
   background: #fff;
   border: 1px solid #cdcac4;
-  border-top: none;
-  border-radius: 0 0 6px 6px;
-  max-height: calc(100vh - 280px);
+  border-radius: 6px;
+  max-height: 70vh;
   overflow-y: auto;
-  z-index: 10;
+  z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-width: 200px;
 }
 .cc-lib-item {
   padding: 0.5rem 0.6rem;
