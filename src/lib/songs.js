@@ -1,11 +1,11 @@
 import { supabase } from './supabase'
 
-/** Fetch all songs for the current user, newest first */
+/** Fetch all songs for the current user, sorted alphabetically by title */
 export async function fetchSongs() {
   const { data, error } = await supabase
     .from('songs')
     .select('id, title, updated_at')
-    .order('updated_at', { ascending: false })
+    .order('title', { ascending: true })
   if (error) throw error
   return data
 }

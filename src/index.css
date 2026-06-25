@@ -928,6 +928,29 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   color: #fff;
   border-color: var(--ink);
 }
+.cc-library-select {
+  flex: 1;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #cdcac4;
+  border-radius: 6px;
+  font-family: Space Mono, monospace;
+  font-size: 0.72rem;
+  color: var(--ink);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.cc-library-select:hover {
+  border-color: var(--primary);
+}
+.cc-library-select:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px #6c5ce71a;
+}
+
 .cc-library-drawer {
   border-top: 1px solid var(--border);
   background: var(--bg-subtle);

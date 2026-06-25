@@ -378,40 +378,37 @@ export default function ChordCharts() {
                 }
               }}
             />
-            <button
-              className={`cc-btn-ghost cc-library-btn${libraryOpen ? ' active' : ''}`}
-              onClick={() => setLibraryOpen(o => !o)}
+            <select
+              className="cc-library-select"
+              value={libraryOpen ? 'open' : ''}
+              onChange={e => {
+                if (e.target.value.startsWith('load:')) {
+                  const id = e.target.value.slice(5)
+                  handleLoad(id)
+                  e.target.value = ''
+                } else if (e.target.value.startsWith('delete:')) {
+                  const id = e.target.value.slice(7)
+                  const song = songs.find(s => s.id === id)
+                  handleDelete(id, song?.title || 'Untitled', { stopPropagation: () => {} })
+                  e.target.value = ''
+                }
+              }}
             >
-              Library {songs.length > 0 && <span className="cc-song-count">{songs.length}</span>}
-            </button>
+              <option value="">
+                Library {songs.length > 0 && `(${songs.length})`}
+              </option>
+              {!loadingList && songs.length > 0 && songs.map(s => (
+                <option key={s.id} value={`load:${s.id}`}>
+                  {s.title || 'Untitled'}
+                </option>
+              ))}
+              {!loadingList && songs.length === 0 && (
+                <option disabled>No saved songs yet</option>
+              )}
+            </select>
             {saveMsg && <span className="cc-save-msg">{saveMsg}</span>}
             {dirty    && !saveMsg && <span className="cc-unsaved">● unsaved</span>}
           </div>
-
-          {libraryOpen && (
-            <div className="cc-library-drawer">
-              {userName && <p className="cc-library-user">{userName}</p>}
-              {loadingList ? (
-                <p className="cc-songs-empty">Loading…</p>
-              ) : songs.length === 0 ? (
-                <p className="cc-songs-empty">No saved songs yet. Fill in a song and click Save Song.</p>
-              ) : (
-                <ul className="cc-song-list">
-                  {songs.map(s => (
-                    <li
-                      key={s.id}
-                      className={`cc-song-item${currentId === s.id ? ' active' : ''}`}
-                      onClick={() => { handleLoad(s.id); setLibraryOpen(false) }}
-                    >
-                      <span className="cc-song-name">{s.title || 'Untitled'}</span>
-                      <span className="cc-song-time">{timeAgo(s.updated_at)}</span>
-                      <button className="cc-song-delete" onClick={e => handleDelete(s.id, s.title, e)} title="Delete">✕</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Metadata */}
