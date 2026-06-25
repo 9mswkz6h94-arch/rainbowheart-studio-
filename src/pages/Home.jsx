@@ -159,6 +159,34 @@ const services = [
     ctaHref: 'https://bjrh.band',
     ctaExternal: true,
   },
+  {
+    emoji: '💍',
+    title: 'Micro Weddings',
+    description: 'Intimate ceremonies for the couples who want meaningful, personal celebrations. Live music, custom décor, and an unforgettable day — all scaled to what matters most to you.',
+    gradient: 'linear-gradient(135deg, #FF1493, #FF69B4)',
+    cta: 'Plan Your Day',
+  },
+  {
+    emoji: '🎭',
+    title: 'Face Painting',
+    description: 'Professional face painting for events, parties, festivals, and celebrations. Custom designs, fast turnaround, and smiles all around.',
+    gradient: 'linear-gradient(135deg, #FFD700, #FFA500)',
+    cta: 'Book Face Painting',
+  },
+  {
+    emoji: '🎉',
+    title: 'Event Packages',
+    description: 'Curated experiences for house shows, art parties, corporate events, and celebrations. Live music, creativity, and connection tailored to your vision.',
+    gradient: 'linear-gradient(135deg, #00CEC9, #74B9FF)',
+    cta: 'Explore Options',
+  },
+  {
+    emoji: '👨‍🏫',
+    title: 'Coaching Sessions',
+    description: 'Personalized instruction for adult learners and musicians honing a specific skill. Whether you\'re picking up an instrument, refining technique, or unlocking your creative voice — we meet you where you are.',
+    gradient: 'linear-gradient(135deg, #A29BFE, #74B9FF)',
+    cta: 'Start Learning',
+  },
 ]
 
 const staff = [
