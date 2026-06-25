@@ -145,6 +145,37 @@ export default function ChordCharts() {
     return () => window.removeEventListener('resize', handler)
   }, [])
 
+  /* ── Persist panel width to localStorage ── */
+  useEffect(() => {
+    const saved = localStorage.getItem('rainbowheart_panelWidth')
+    if (saved) {
+      const w = parseInt(saved, 10)
+      if (w >= 280 && w <= 700) setPanelW(w)
+    }
+  }, [])
+  useEffect(() => {
+    localStorage.setItem('rainbowheart_panelWidth', String(panelW))
+  }, [panelW])
+
+  /* ── Update browser tab title ── */
+  useEffect(() => {
+    const title = meta.title?.trim() || 'Untitled'
+    const suffix = dirty ? ' ●' : ''
+    document.title = title + suffix + ' — Rainbow Hearts Chart Studio'
+  }, [meta.title, dirty])
+
+  /* ── Keyboard shortcut: Ctrl+S / Cmd+S for save ── */
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        handleSave()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [handleSave])
+
   /* ── Meta helpers ── */
   function updateMeta(key, value) {
     setMeta(m => ({ ...m, [key]: value }))
