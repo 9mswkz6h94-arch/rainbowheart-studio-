@@ -53,12 +53,13 @@ export default function ChordCharts() {
   const [variant,      setVariant]      = useState('full')
   const [libraryOpen,  setLibraryOpen]  = useState(false)
 
-  const [songs,       setSongs]       = useState([])
-  const [currentId,   setCurrentId]   = useState(null)
-  const [dirty,       setDirty]       = useState(false)
-  const [saving,      setSaving]      = useState(false)
-  const [saveMsg,     setSaveMsg]     = useState(null)
-  const [loadingList, setLoadingList] = useState(true)
+  const [songs,        setSongs]        = useState([])
+  const [currentId,    setCurrentId]    = useState(null)
+  const [dirty,        setDirty]        = useState(false)
+  const [saving,       setSaving]       = useState(false)
+  const [saveMsg,      setSaveMsg]      = useState(null)
+  const [loadingList,  setLoadingList]  = useState(true)
+  const [libDropOpen,  setLibDropOpen]  = useState(false)
 
   /* ── Resizable panel ── */
   const [panelW, setPanelW] = useState(380)
@@ -378,34 +379,36 @@ export default function ChordCharts() {
                 }
               }}
             />
-            <select
-              className="cc-library-select"
-              value={libraryOpen ? 'open' : ''}
-              onChange={e => {
-                if (e.target.value.startsWith('load:')) {
-                  const id = e.target.value.slice(5)
-                  handleLoad(id)
-                  e.target.value = ''
-                } else if (e.target.value.startsWith('delete:')) {
-                  const id = e.target.value.slice(7)
-                  const song = songs.find(s => s.id === id)
-                  handleDelete(id, song?.title || 'Untitled', { stopPropagation: () => {} })
-                  e.target.value = ''
-                }
-              }}
-            >
-              <option value="">
+            <div className="cc-library-dropdown">
+              <button
+                className="cc-library-btn"
+                onClick={() => setLibDropOpen(o => !o)}
+              >
                 Library {songs.length > 0 && `(${songs.length})`}
-              </option>
-              {!loadingList && songs.length > 0 && songs.map(s => (
-                <option key={s.id} value={`load:${s.id}`}>
-                  {s.title || 'Untitled'}
-                </option>
-              ))}
-              {!loadingList && songs.length === 0 && (
-                <option disabled>No saved songs yet</option>
+              </button>
+              {libDropOpen && (
+                <div className="cc-library-menu">
+                  {loadingList ? (
+                    <div className="cc-lib-item disabled">Loading…</div>
+                  ) : songs.length === 0 ? (
+                    <div className="cc-lib-item disabled">No saved songs</div>
+                  ) : (
+                    songs.map(s => (
+                      <div
+                        key={s.id}
+                        className={`cc-lib-item${currentId === s.id ? ' active' : ''}`}
+                        onClick={() => {
+                          handleLoad(s.id)
+                          setLibDropOpen(false)
+                        }}
+                      >
+                        <span className="cc-lib-title">{s.title || 'Untitled'}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
-            </select>
+            </div>
             {saveMsg && <span className="cc-save-msg">{saveMsg}</span>}
             {dirty    && !saveMsg && <span className="cc-unsaved">● unsaved</span>}
           </div>
