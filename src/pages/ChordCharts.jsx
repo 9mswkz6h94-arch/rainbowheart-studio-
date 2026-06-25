@@ -356,6 +356,28 @@ export default function ChordCharts() {
               {saving ? 'Saving…' : currentId ? 'Save Changes' : 'Save Song'}
             </button>
             <button className="cc-btn-ghost" onClick={handleNew}>+ New</button>
+            <button className="cc-btn-ghost" onClick={handleSaveFile} title="Download as .song file">
+              ⬇ Export .song
+            </button>
+            <button className="cc-btn-ghost" onClick={() => fileInputRef.current?.click()} title="Load .song file">
+              ⬆ Import .song
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".song,application/json"
+              style={{ display: 'none' }}
+              onChange={e => {
+                if (e.target.files?.[0]) {
+                  if (dirty && !window.confirm('Discard unsaved changes?')) {
+                    e.target.value = ''
+                    return
+                  }
+                  handleLoadFile(e.target.files[0])
+                  e.target.value = ''
+                }
+              }}
+            />
             <button
               className={`cc-btn-ghost cc-library-btn${libraryOpen ? ' active' : ''}`}
               onClick={() => setLibraryOpen(o => !o)}
