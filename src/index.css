@@ -1308,8 +1308,9 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .cc-song-delete { background: none; border: none; cursor: pointer; font-size: 0.68rem; color: var(--text-muted); padding: 0.1rem 0.2rem; border-radius: 3px; opacity: 0; transition: all 0.15s; }
 .cc-song-item:hover .cc-song-delete { opacity: 1; }
 .cc-song-delete:hover { background: #fee2e2; color: #e74c3c; }
-.cc-save-msg  { font-size: 0.75rem; color: #1DD1A1; font-weight: 600; }
-.cc-unsaved   { font-size: 0.72rem; color: var(--orange); font-weight: 500; }
+.cc-save-msg      { font-size: 0.75rem; color: #1DD1A1; font-weight: 600; }
+.cc-unsaved       { font-size: 0.72rem; color: var(--orange); font-weight: 500; }
+.cc-editing-badge { font-size: 0.72rem; color: #888; font-style: italic; }
 
 /* ── Hint ── */
 .cc-hint { font-size: 0.72rem; color: var(--text-muted); line-height: 1.65; }

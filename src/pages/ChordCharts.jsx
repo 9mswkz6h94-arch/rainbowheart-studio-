@@ -253,12 +253,7 @@ export default function ChordCharts() {
   }
 
   /* ── Apply loaded data (from file or Supabase) ── */
-  function applyLoaded(m, src) {
-    const tabArr = m.tab || []
-    const bass   = tabArr.find(t => t.target === 'bass') || tabArr.find(t => !t.target)
-    const guitar = tabArr.find(t => t.target === 'full')
-    const uke    = tabArr.find(t => t.target === 'uke')
-
+  function applyLoaded(m, src, id = null) {
     setMeta({
       title:       m.title       || '',
       band:        m.band        || BLANK_META.band,
@@ -277,6 +272,7 @@ export default function ChordCharts() {
       scale:       m.scale || 100,
     })
     setSongText(src)
+    setCurrentId(id)
     setDirty(false)
   }
 
@@ -312,8 +308,7 @@ export default function ChordCharts() {
     if (dirty && !window.confirm('Discard unsaved changes?')) return
     try {
       const song = await fetchSong(id)
-      applyLoaded(song.meta || {}, song.song_text || '')
-      setCurrentId(song.id)
+      applyLoaded(song.meta || {}, song.song_text || '', song.id)
     } catch (e) { console.error('Failed to load song', e) }
   }
 
@@ -359,6 +354,17 @@ export default function ChordCharts() {
             <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
               {saving ? 'Saving…' : currentId ? 'Save Changes' : 'Save Song'}
             </button>
+            {currentId && (
+              <button className="cc-btn-ghost" onClick={() => {
+                setSaving(true); setSaveMsg(null)
+                saveSong({ id: null, title: meta.title || 'Untitled', song_text: songText, meta: { ...meta } })
+                  .then(saved => { setCurrentId(saved.id); setDirty(false); setSaveMsg('Saved as new!'); refreshList(); setTimeout(() => setSaveMsg(null), 2000) })
+                  .catch(e => { setSaveMsg('Error saving'); console.error(e) })
+                  .finally(() => setSaving(false))
+              }} disabled={saving} title="Create a brand-new song — does not overwrite the current one">
+                Save As New Song
+              </button>
+            )}
             <button className="cc-btn-ghost" onClick={handleNew}>+ New</button>
             <button className="cc-btn-ghost" onClick={handleSaveFile} title="Download as .song file">
               ⬇ Export .song
@@ -429,6 +435,9 @@ export default function ChordCharts() {
                 </div>
               )}
             </div>
+            {currentId && !saveMsg && !dirty && (
+              <span className="cc-editing-badge">Editing: {meta.title || 'Untitled'}</span>
+            )}
             {saveMsg && <span className="cc-save-msg">{saveMsg}</span>}
             {dirty    && !saveMsg && <span className="cc-unsaved">● unsaved</span>}
           </div>

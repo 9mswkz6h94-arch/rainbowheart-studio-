@@ -287,6 +287,51 @@ export default function SetLists() {
     window.open(`${window.location.origin}/setlist/${active.token}`, '_blank')
   }
 
+  function handlePrintSetList() {
+    const w = window.open('', '_blank')
+    if (!w) return
+    let sn = 0
+    let rows = ''
+    for (const item of items) {
+      if (item._type === 'break') {
+        rows += `<tr class="break-row"><td colspan="3">— ${item.label || 'Break'} —</td></tr>`
+      } else {
+        sn++
+        const key = item.meta?.key
+          ? `Key of ${item.meta.key}${item.meta.capo ? ` · Capo ${item.meta.capo}` : ''}`
+          : ''
+        const writer = item.meta?.writer ? item.meta.writer : ''
+        rows += `<tr><td class="num">${sn}.</td><td class="title">${item.title || 'Untitled'}${writer ? `<span class="writer"> — ${writer}</span>` : ''}</td><td class="key">${key}</td></tr>`
+      }
+    }
+    const dateStr = eventDate ? fmtDate(eventDate) : ''
+    w.document.write(`<!DOCTYPE html><html><head><title>${name}</title><style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Space Mono', 'Courier New', monospace; padding: 2rem; color: #111; }
+      h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+      .sub { color: #555; font-size: 0.85rem; margin-bottom: 0.15rem; }
+      .details { color: #555; font-size: 0.82rem; white-space: pre-wrap; margin-bottom: 1.5rem; margin-top: 0.75rem; border-left: 3px solid #ddd; padding-left: 0.75rem; }
+      table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+      tr { border-bottom: 1px solid #eee; }
+      td { padding: 0.5rem 0.5rem; vertical-align: top; }
+      .num { width: 2.5rem; font-weight: 700; color: #888; }
+      .title { font-weight: 600; font-size: 0.95rem; }
+      .writer { font-weight: 400; color: #888; font-size: 0.82rem; }
+      .key { color: #555; font-size: 0.82rem; text-align: right; white-space: nowrap; }
+      tr.break-row td { text-align: center; color: #888; font-style: italic; font-size: 0.85rem; padding: 0.6rem; border-bottom: 2px dashed #ccc; }
+      @media print { body { padding: 1rem; } }
+    </style></head><body>
+      <h1>${name}</h1>
+      ${dateStr ? `<div class="sub">📅 ${dateStr}</div>` : ''}
+      ${eventUrl ? `<div class="sub">🔗 ${eventUrl}</div>` : ''}
+      ${eventDetails ? `<div class="details">${eventDetails.replace(/</g, '&lt;')}</div>` : ''}
+      <table><tbody>${rows}</tbody></table>
+    </body></html>`)
+    w.document.close()
+    w.focus()
+    setTimeout(() => w.print(), 200)
+  }
+
   const editing = active !== null
 
   let _sn = 0
@@ -383,6 +428,11 @@ export default function SetLists() {
               <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
                 {saving ? 'Saving…' : 'Save Set List'}
               </button>
+              {items.length > 0 && (
+                <button className="cc-btn-ghost" onClick={handlePrintSetList} title="Print a song-order reference sheet">
+                  🖨 Print Set
+                </button>
+              )}
               {active?.token && <>
                 <button className="cc-btn-ghost" onClick={handleShare}>Copy Share Link</button>
                 <button className="cc-btn-ghost" onClick={handleOpenView}>Open Performer View ↗</button>
