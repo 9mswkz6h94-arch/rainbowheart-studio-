@@ -74,6 +74,7 @@ export default function SetLists() {
   const [saveMsg,     setSaveMsg]     = useState(null)
   const [shareMsg,    setShareMsg]    = useState(null)
   const [showLib,     setShowLib]     = useState(false)
+  const [showDrafts,  setShowDrafts]  = useState(false)
   const [dragIdx,     setDragIdx]     = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
 
@@ -183,12 +184,18 @@ export default function SetLists() {
   }
 
   function handleAddBreak() {
-    setItems(prev => [...prev, { _type: 'break', label: 'Break' }])
+    setItems(prev => [...prev, { _type: 'break', label: 'Break', duration: 15 }])
     setDirty(true)
   }
 
   function handleBreakLabelChange(idx, val) {
     setItems(prev => prev.map((it, i) => i === idx ? { ...it, label: val } : it))
+    setDirty(true)
+  }
+
+  function handleItemDurationChange(idx, val) {
+    const n = val === '' ? null : Math.max(1, Math.min(180, parseInt(val, 10) || 1))
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, duration: n } : it))
     setDirty(true)
   }
 
@@ -335,9 +342,24 @@ export default function SetLists() {
   const editing = active !== null
 
   let _sn = 0
-  const songNums  = items.map(it => it._type === 'break' ? null : ++_sn)
-  const songCount = _sn
+  const songNums   = items.map(it => it._type === 'break' ? null : ++_sn)
+  const songCount  = _sn
   const breakCount = items.filter(it => it._type === 'break').length
+  const totalMins  = items.reduce((s, it) => s + (parseInt(it.duration, 10) || 0), 0)
+
+  function fmtDuration(m) {
+    const h = Math.floor(m / 60), r = m % 60
+    if (h === 0) return `${r}m`
+    return r === 0 ? `${h}h` : `${h}h ${r}m`
+  }
+
+  const displayLibrary = [...library]
+    .sort((a, b) => {
+      const ad = a.meta?.draft ? 1 : 0, bd = b.meta?.draft ? 1 : 0
+      if (ad !== bd) return ad - bd
+      return (a.title || '').localeCompare(b.title || '')
+    })
+    .filter(s => showDrafts || !s.meta?.draft)
 
   return (
     <div className="sl-layout">
@@ -388,12 +410,7 @@ export default function SetLists() {
           {/* Sticky header */}
           <div className="cc-input-header" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', margin: 0, padding: '1rem 1.5rem 0.75rem', borderBottom: '1px solid var(--border)' }}>
             <div className="cc-header-row" style={{ gap: '0.75rem' }}>
-              <input
-                className="sl-name-input"
-                value={name}
-                onChange={e => { setName(e.target.value); setDirty(true) }}
-                placeholder="Set list name"
-              />
+              <span className="sl-editor-name">{name || 'Untitled Set'}</span>
               {/* Quick-jump dropdown */}
               {setlists.length > 0 && (
                 <select
@@ -447,6 +464,14 @@ export default function SetLists() {
           <div className="sl-body">
             <div className="sl-order-panel">
 
+              {/* Set list name */}
+              <input
+                className="sl-name-field"
+                value={name}
+                onChange={e => { setName(e.target.value); setDirty(true) }}
+                placeholder="Set list name…"
+              />
+
               {/* Event details card */}
               <div className="sl-event-card">
                 <div className="sl-panel-title" style={{ marginBottom: '0.75rem' }}>Event Details</div>
@@ -493,6 +518,7 @@ export default function SetLists() {
                 <span className="sl-panel-title">
                   Set Order · {songCount} song{songCount !== 1 ? 's' : ''}
                   {breakCount > 0 ? ` · ${breakCount} break${breakCount !== 1 ? 's' : ''}` : ''}
+                  {totalMins > 0 ? ` · ~${fmtDuration(totalMins)}` : ''}
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {songCount > 0 && (
@@ -549,6 +575,16 @@ export default function SetLists() {
                             onChange={e => handleBreakLabelChange(idx, e.target.value)}
                             onClick={e => e.stopPropagation()}
                           />
+                          <input
+                            type="number"
+                            className="sl-duration-input"
+                            value={song.duration ?? 15}
+                            min="1" max="180"
+                            onChange={e => handleItemDurationChange(idx, e.target.value)}
+                            onClick={e => e.stopPropagation()}
+                            title="Break length in minutes"
+                          />
+                          <span className="sl-duration-unit">min</span>
                           <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove break">✕</button>
                         </div>
                       )
@@ -566,6 +602,16 @@ export default function SetLists() {
                             </div>
                           )}
                         </div>
+                        <input
+                          type="number"
+                          className="sl-duration-input"
+                          value={song.duration ?? ''}
+                          min="1" max="60"
+                          placeholder="min"
+                          onChange={e => handleItemDurationChange(idx, e.target.value)}
+                          onClick={e => e.stopPropagation()}
+                          title="Song length in minutes (optional)"
+                        />
                         <div className="sl-song-controls">
                           <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
                         </div>
@@ -581,17 +627,25 @@ export default function SetLists() {
               <div className="sl-lib-panel">
                 <div className="sl-panel-header">
                   <span className="sl-panel-title">Your Song Library</span>
+                  <button
+                    className="cc-btn-ghost"
+                    style={{ fontSize: '0.7rem' }}
+                    onClick={() => setShowDrafts(p => !p)}
+                    title="Show or hide draft songs"
+                  >
+                    {showDrafts ? 'Hide Drafts' : 'Show Drafts'}
+                  </button>
                 </div>
                 {loadingLib ? (
                   <p className="cc-hint" style={{ padding: '0.75rem' }}>Loading…</p>
-                ) : library.length === 0 ? (
+                ) : displayLibrary.length === 0 ? (
                   <p className="cc-hint" style={{ padding: '0.75rem' }}>No saved songs yet.</p>
                 ) : (
-                  library.map(song => {
+                  displayLibrary.map(song => {
                     const inSet = items.some(it => it._songId === song.id)
                     return (
-                      <div key={song.id} className={`sl-lib-row${inSet ? ' in-set' : ''}`}>
-                        <span className="sl-lib-title">{song.title || 'Untitled'}</span>
+                      <div key={song.id} className={`sl-lib-row${inSet ? ' in-set' : ''}${song.meta?.draft ? ' draft' : ''}`}>
+                        <span className="sl-lib-title">{song.meta?.draft ? '✏ ' : ''}{song.title || 'Untitled'}</span>
                         {inSet ? (
                           <span className="sl-lib-added">✓ Added</span>
                         ) : (

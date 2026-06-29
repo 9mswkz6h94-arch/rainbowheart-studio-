@@ -1560,18 +1560,57 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   overflow: hidden;
 }
 
-.sl-name-input {
-  font-size: 1.1rem;
+/* Set name display in sticky header */
+.sl-editor-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+/* Set name as dedicated body field */
+.sl-name-field {
+  display: block;
+  width: 100%;
+  font-size: 1.5rem;
   font-weight: 700;
   font-family: inherit;
   color: var(--ink);
   border: none;
+  border-bottom: 2px solid var(--border);
   background: transparent;
   outline: none;
-  flex: 1;
-  min-width: 0;
+  padding: 0.25rem 0;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.15s;
 }
-.sl-name-input::placeholder { color: var(--text-muted); font-weight: 400; }
+.sl-name-field:focus { border-color: var(--accent); }
+.sl-name-field::placeholder { color: var(--text-muted); font-weight: 400; }
+
+/* Duration inputs */
+.sl-duration-input {
+  width: 3.2rem;
+  font-size: 0.78rem;
+  font-family: inherit;
+  text-align: center;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.sl-duration-input:focus { outline: none; border-color: var(--accent); }
+.sl-duration-input::-webkit-inner-spin-button { opacity: 0.5; }
+.sl-duration-unit { font-size: 0.72rem; color: var(--text-muted); flex-shrink: 0; }
+
+/* Draft flag styles */
+.cc-draft-label { color: #e8a945; font-style: italic; }
+.cc-lib-item.draft .cc-lib-title { color: #aaa; font-style: italic; }
+.sl-lib-row.draft .sl-lib-title { color: #aaa; font-style: italic; }
 
 .sl-body {
   display: flex;

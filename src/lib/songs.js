@@ -4,7 +4,7 @@ import { supabase } from './supabase'
 export async function fetchSongs() {
   const { data, error } = await supabase
     .from('songs')
-    .select('id, title, updated_at')
+    .select('id, title, updated_at, meta')
     .order('title', { ascending: true })
   if (error) throw error
   return data

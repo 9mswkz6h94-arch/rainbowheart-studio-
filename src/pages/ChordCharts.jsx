@@ -24,6 +24,7 @@ const BLANK_META = {
   structFull:  false,
   writeBars:   true,
   scale:       100,
+  draft:       false,
 }
 
 
@@ -409,16 +410,23 @@ export default function ChordCharts() {
                   ) : songs.length === 0 ? (
                     <div className="cc-lib-item disabled">No saved songs</div>
                   ) : (
-                    songs.map(s => (
+                    [...songs]
+                      .sort((a, b) => {
+                        const ad = a.meta?.draft ? 1 : 0
+                        const bd = b.meta?.draft ? 1 : 0
+                        if (ad !== bd) return ad - bd
+                        return (a.title || '').localeCompare(b.title || '')
+                      })
+                      .map(s => (
                       <div
                         key={s.id}
-                        className={`cc-lib-item${currentId === s.id ? ' active' : ''}`}
+                        className={`cc-lib-item${currentId === s.id ? ' active' : ''}${s.meta?.draft ? ' draft' : ''}`}
                         onClick={() => {
                           handleLoad(s.id)
                           setLibDropOpen(false)
                         }}
                       >
-                        <span className="cc-lib-title">{s.title || 'Untitled'}</span>
+                        <span className="cc-lib-title">{s.meta?.draft ? '✏ ' : ''}{s.title || 'Untitled'}</span>
                         <button
                           className="cc-lib-delete"
                           onClick={e => {
@@ -534,6 +542,7 @@ export default function ChordCharts() {
           <label><input type="checkbox" checked={meta.writeBars}  onChange={e => updateMeta('writeBars',  e.target.checked)} /> Write-in bars</label>
           <label><input type="checkbox" checked={meta.structFull} onChange={e => updateMeta('structFull', e.target.checked)} /> Spell out structure</label>
           <label><input type="checkbox" checked={meta.capoShapes} onChange={e => updateMeta('capoShapes', e.target.checked)} /> Capo changes chords</label>
+          <label className={meta.draft ? 'cc-draft-label' : ''}><input type="checkbox" checked={!!meta.draft} onChange={e => updateMeta('draft', e.target.checked)} /> Draft — work in progress</label>
         </div>
 
         {/* Text size */}
