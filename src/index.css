@@ -1225,7 +1225,8 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   transition: all 0.15s;
   flex-shrink: 0;
 }
-.cc-lib-item:hover .cc-lib-delete {
+.cc-lib-item:hover .cc-lib-delete,
+.sl-song-row:hover .cc-lib-delete {
   opacity: 1;
   color: #e74c3c;
 }
