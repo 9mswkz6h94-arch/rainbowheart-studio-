@@ -1626,7 +1626,14 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   border-radius: 8px;
   background: var(--bg-subtle);
   border: 1px solid var(--border);
+  cursor: grab;
+  transition: opacity 0.15s, border-color 0.15s, background 0.15s;
 }
+.sl-song-row:active { cursor: grabbing; }
+.sl-song-row.sl-dragging { opacity: 0.35; }
+.sl-song-row.sl-drag-over { border-color: var(--accent); background: #f0f4ff; }
+.sl-drag-handle { font-size: 1rem; color: #ccc; cursor: grab; flex-shrink: 0; user-select: none; line-height: 1; }
+.sl-song-row:hover .sl-drag-handle { color: #aaa; }
 .sl-song-num   { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); min-width: 1.5rem; }
 .sl-song-info  { flex: 1; min-width: 0; }
 .sl-song-title { font-size: 0.9rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

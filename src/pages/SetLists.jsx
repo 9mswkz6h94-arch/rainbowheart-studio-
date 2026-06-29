@@ -61,11 +61,13 @@ export default function SetLists() {
   const [items,         setItems]         = useState([])
   const [dirty,         setDirty]         = useState(false)
 
-  const [addingId,  setAddingId]  = useState(null)
-  const [saving,    setSaving]    = useState(false)
-  const [saveMsg,   setSaveMsg]   = useState(null)
-  const [shareMsg,  setShareMsg]  = useState(null)
-  const [showLib,   setShowLib]   = useState(false)
+  const [addingId,    setAddingId]    = useState(null)
+  const [saving,      setSaving]      = useState(false)
+  const [saveMsg,     setSaveMsg]     = useState(null)
+  const [shareMsg,    setShareMsg]    = useState(null)
+  const [showLib,     setShowLib]     = useState(false)
+  const [dragIdx,     setDragIdx]     = useState(null)
+  const [dragOverIdx, setDragOverIdx] = useState(null)
 
   /* ── Load data ── */
   const refreshLists = useCallback(async () => {
@@ -142,6 +144,34 @@ export default function SetLists() {
     ;[next[idx], next[target]] = [next[target], next[idx]]
     setItems(next)
     setDirty(true)
+  }
+
+  function handleDragStart(e, idx) {
+    setDragIdx(idx)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  function handleDragOver(e, idx) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIdx(idx)
+  }
+
+  function handleDrop(e, idx) {
+    e.preventDefault()
+    if (dragIdx === null || dragIdx === idx) { setDragIdx(null); setDragOverIdx(null); return }
+    const next = [...items]
+    const [moved] = next.splice(dragIdx, 1)
+    next.splice(idx, 0, moved)
+    setItems(next)
+    setDirty(true)
+    setDragIdx(null)
+    setDragOverIdx(null)
+  }
+
+  function handleDragEnd() {
+    setDragIdx(null)
+    setDragOverIdx(null)
   }
 
   async function handleSyncAll() {
@@ -396,7 +426,16 @@ export default function SetLists() {
               ) : (
                 <div className="sl-song-list">
                   {items.map((song, idx) => (
-                    <div key={idx} className="sl-song-row">
+                    <div
+                      key={idx}
+                      className={`sl-song-row${dragIdx === idx ? ' sl-dragging' : ''}${dragOverIdx === idx && dragIdx !== idx ? ' sl-drag-over' : ''}`}
+                      draggable
+                      onDragStart={e => handleDragStart(e, idx)}
+                      onDragOver={e => handleDragOver(e, idx)}
+                      onDrop={e => handleDrop(e, idx)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
                       <span className="sl-song-num">{idx + 1}.</span>
                       <div className="sl-song-info">
                         <div className="sl-song-title">{song.title || 'Untitled'}</div>
@@ -408,8 +447,6 @@ export default function SetLists() {
                         )}
                       </div>
                       <div className="sl-song-controls">
-                        <button className="cc-step-btn" onClick={() => handleMove(idx, -1)} disabled={idx === 0} title="Move up">↑</button>
-                        <button className="cc-step-btn" onClick={() => handleMove(idx, 1)} disabled={idx === items.length - 1} title="Move down">↓</button>
                         <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
                       </div>
                     </div>
