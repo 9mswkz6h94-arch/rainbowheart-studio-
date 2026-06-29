@@ -144,6 +144,30 @@ export default function SetLists() {
     setDirty(true)
   }
 
+  async function handleSyncAll() {
+    if (items.length === 0) return
+    setSaving(true); setSaveMsg('Syncing…')
+    try {
+      const updated = await Promise.all(
+        items.map(async item => {
+          if (!item._songId) return item
+          try {
+            const s = await fetchSong(item._songId)
+            return { ...item, title: s.title, song_text: s.song_text, meta: s.meta }
+          } catch { return item }
+        })
+      )
+      setItems(updated)
+      setDirty(true)
+      setSaveMsg('Charts synced — save to keep')
+      setTimeout(() => setSaveMsg(null), 3000)
+    } catch (e) {
+      setSaveMsg('Sync failed: ' + (e?.message || 'unknown'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   /* ── Save ── */
   async function handleSave() {
     setSaving(true); setSaveMsg(null)
@@ -343,13 +367,26 @@ export default function SetLists() {
               {/* Set order */}
               <div className="sl-panel-header" style={{ marginTop: '1.25rem' }}>
                 <span className="sl-panel-title">Set Order · {items.length} song{items.length !== 1 ? 's' : ''}</span>
-                <button
-                  className="cc-btn-ghost"
-                  style={{ fontSize: '0.75rem' }}
-                  onClick={() => setShowLib(p => !p)}
-                >
-                  {showLib ? 'Hide Library' : '+ Add Songs'}
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {items.length > 0 && (
+                    <button
+                      className="cc-btn-ghost"
+                      style={{ fontSize: '0.75rem' }}
+                      onClick={handleSyncAll}
+                      disabled={saving}
+                      title="Pull latest edits from your chord chart library"
+                    >
+                      ↻ Sync Charts
+                    </button>
+                  )}
+                  <button
+                    className="cc-btn-ghost"
+                    style={{ fontSize: '0.75rem' }}
+                    onClick={() => setShowLib(p => !p)}
+                  >
+                    {showLib ? 'Hide Library' : '+ Add Songs'}
+                  </button>
+                </div>
               </div>
 
               {items.length === 0 ? (
