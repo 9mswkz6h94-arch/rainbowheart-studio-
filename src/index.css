@@ -1566,6 +1566,78 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   font-size: 0.95rem;
 }
 
+/* Date badge in sidebar */
+.sl-date-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+  color: var(--primary);
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+.sl-date-badge.past { color: var(--text-muted); }
+.sl-list-item.past  { opacity: 0.75; }
+
+/* Event details card */
+.sl-event-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.125rem;
+}
+.sl-event-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+.sl-event-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.sl-event-input {
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.sl-event-input:focus { border-color: var(--primary); }
+.sl-event-textarea {
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  outline: none;
+  width: 100%;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+}
+.sl-event-textarea:focus { border-color: var(--primary); }
+.sl-event-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+}
+.sl-event-link:hover { text-decoration: underline; }
+
 /* ══════════════════════════════════════════════
    Set List Performer View  (/setlist/:token)
    ══════════════════════════════════════════════ */

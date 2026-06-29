@@ -2,7 +2,18 @@ import { useState, useEffect, useCallback } from 'react'
 import { fetchSetLists, saveSetList, deleteSetList } from '../lib/setlists'
 import { fetchSongs, fetchSong } from '../lib/songs'
 
-const EMPTY = { id: null, token: null, name: '', songs: [] }
+const EMPTY_ACTIVE = { id: null, token: null }
+
+function fmtDate(d) {
+  if (!d) return null
+  const [y, m, day] = d.split('-')
+  return new Date(+y, +m - 1, +day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function isPast(d) {
+  if (!d) return false
+  return new Date(d) < new Date(new Date().toDateString())
+}
 
 export default function SetLists() {
   const [setlists,    setSetlists]    = useState([])
@@ -11,10 +22,13 @@ export default function SetLists() {
   const [loadingLib,  setLoadingLib]  = useState(true)
 
   /* Active set list being edited */
-  const [active,  setActive]  = useState(null)   // null = nothing selected
-  const [name,    setName]    = useState('')
-  const [items,   setItems]   = useState([])      // [{_songId, title, song_text, meta}]
-  const [dirty,   setDirty]   = useState(false)
+  const [active,        setActive]        = useState(null)
+  const [name,          setName]          = useState('')
+  const [eventDate,     setEventDate]     = useState('')
+  const [eventUrl,      setEventUrl]      = useState('')
+  const [eventDetails,  setEventDetails]  = useState('')
+  const [items,         setItems]         = useState([])
+  const [dirty,         setDirty]         = useState(false)
 
   const [addingId,  setAddingId]  = useState(null)
   const [saving,    setSaving]    = useState(false)
@@ -41,8 +55,11 @@ export default function SetLists() {
 
   /* ── New / load for edit ── */
   function startNew() {
-    setActive(EMPTY)
+    setActive(EMPTY_ACTIVE)
     setName('New Set List')
+    setEventDate('')
+    setEventUrl('')
+    setEventDetails('')
     setItems([])
     setDirty(false)
     setShowLib(true)
@@ -51,6 +68,9 @@ export default function SetLists() {
   function openForEdit(sl) {
     setActive({ id: sl.id, token: sl.share_token })
     setName(sl.name)
+    setEventDate(sl.event_date || '')
+    setEventUrl(sl.event_url || '')
+    setEventDetails(sl.event_details || '')
     setItems(sl.songs || [])
     setDirty(false)
     setShowLib(false)
@@ -86,7 +106,14 @@ export default function SetLists() {
   async function handleSave() {
     setSaving(true); setSaveMsg(null)
     try {
-      const saved = await saveSetList({ id: active?.id || null, name, songs: items })
+      const saved = await saveSetList({
+        id: active?.id || null,
+        name,
+        songs: items,
+        event_date:    eventDate    || null,
+        event_url:     eventUrl     || null,
+        event_details: eventDetails || null,
+      })
       setActive({ id: saved.id, token: saved.share_token })
       setDirty(false)
       setSaveMsg('Saved!')
@@ -106,7 +133,9 @@ export default function SetLists() {
     if (!window.confirm(`Delete "${slName}"?`)) return
     try {
       await deleteSetList(id)
-      if (active?.id === id) { setActive(null); setName(''); setItems([]) }
+      if (active?.id === id) {
+        setActive(null); setName(''); setEventDate(''); setEventUrl(''); setEventDetails(''); setItems([])
+      }
       await refreshLists()
     } catch (e) { console.error(e) }
   }
@@ -131,7 +160,7 @@ export default function SetLists() {
   return (
     <div className="sl-layout">
 
-      {/* ── Left: set list directory ── */}
+      {/* ── Left: performance history sidebar ── */}
       <div className="sl-sidebar">
         <div className="cc-input-header" style={{ margin: '-1.25rem -1.25rem 0', padding: '1rem 1.25rem 0.75rem' }}>
           <div className="cc-header-row">
@@ -148,23 +177,34 @@ export default function SetLists() {
           ) : setlists.length === 0 ? (
             <p className="cc-hint">No set lists yet — create one!</p>
           ) : (
-            setlists.map(sl => (
-              <div
-                key={sl.id}
-                className={`sl-list-item${active?.id === sl.id ? ' active' : ''}`}
-                onClick={() => openForEdit(sl)}
-              >
-                <div>
-                  <div className="sl-list-name">{sl.name}</div>
-                  <div className="sl-list-meta">{(sl.songs || []).length} song{(sl.songs || []).length !== 1 ? 's' : ''}</div>
+            setlists.map(sl => {
+              const past = isPast(sl.event_date)
+              return (
+                <div
+                  key={sl.id}
+                  className={`sl-list-item${active?.id === sl.id ? ' active' : ''}${past ? ' past' : ''}`}
+                  onClick={() => openForEdit(sl)}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {sl.event_date && (
+                      <div className={`sl-date-badge${past ? ' past' : ''}`}>
+                        {past ? '✓ ' : '📅 '}{fmtDate(sl.event_date)}
+                      </div>
+                    )}
+                    <div className="sl-list-name">{sl.name}</div>
+                    <div className="sl-list-meta">
+                      {(sl.songs || []).length} song{(sl.songs || []).length !== 1 ? 's' : ''}
+                      {!sl.event_date && <span style={{ color: 'var(--text-muted)', opacity: 0.6 }}> · no date</span>}
+                    </div>
+                  </div>
+                  <button
+                    className="cc-lib-delete"
+                    onClick={e => handleDelete(sl.id, sl.name, e)}
+                    title="Delete set list"
+                  >✕</button>
                 </div>
-                <button
-                  className="cc-lib-delete"
-                  onClick={e => handleDelete(sl.id, sl.name, e)}
-                  title="Delete set list"
-                >✕</button>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       </div>
@@ -197,12 +237,58 @@ export default function SetLists() {
             </div>
           </div>
 
-          {/* Body: set order + library */}
+          {/* Body */}
           <div className="sl-body">
-
-            {/* Set order */}
             <div className="sl-order-panel">
-              <div className="sl-panel-header">
+
+              {/* Event details card */}
+              <div className="sl-event-card">
+                <div className="sl-panel-title" style={{ marginBottom: '0.75rem' }}>Event Details</div>
+                <div className="sl-event-fields">
+                  <label className="sl-event-label">
+                    <span>Date</span>
+                    <input
+                      type="date"
+                      className="sl-event-input"
+                      value={eventDate}
+                      onChange={e => { setEventDate(e.target.value); setDirty(true) }}
+                    />
+                  </label>
+                  <label className="sl-event-label">
+                    <span>Event Page URL</span>
+                    <input
+                      type="url"
+                      className="sl-event-input"
+                      value={eventUrl}
+                      onChange={e => { setEventUrl(e.target.value); setDirty(true) }}
+                      placeholder="https://facebook.com/events/..."
+                    />
+                  </label>
+                </div>
+                <label className="sl-event-label" style={{ marginTop: '0.5rem' }}>
+                  <span>Notes / Venue Details</span>
+                  <textarea
+                    className="sl-event-textarea"
+                    value={eventDetails}
+                    onChange={e => { setEventDetails(e.target.value); setDirty(true) }}
+                    placeholder="Venue name, address, door time, notes for the band..."
+                    rows={3}
+                  />
+                </label>
+                {eventUrl && (
+                  <a
+                    href={eventUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="sl-event-link"
+                  >
+                    Open Event Page ↗
+                  </a>
+                )}
+              </div>
+
+              {/* Set order */}
+              <div className="sl-panel-header" style={{ marginTop: '1.25rem' }}>
                 <span className="sl-panel-title">Set Order · {items.length} song{items.length !== 1 ? 's' : ''}</span>
                 <button
                   className="cc-btn-ghost"
@@ -225,27 +311,16 @@ export default function SetLists() {
                       <div className="sl-song-info">
                         <div className="sl-song-title">{song.title || 'Untitled'}</div>
                         {song.meta?.key && (
-                          <div className="sl-song-key">Key: {song.meta.key}{song.meta.capo ? ` · Capo ${song.meta.capo}` : ''}</div>
+                          <div className="sl-song-key">
+                            Key: {song.meta.key}{song.meta.capo ? ` · Capo ${song.meta.capo}` : ''}
+                            {song.meta?.writer ? ` · ${song.meta.writer}` : ''}
+                          </div>
                         )}
                       </div>
                       <div className="sl-song-controls">
-                        <button
-                          className="cc-step-btn"
-                          onClick={() => handleMove(idx, -1)}
-                          disabled={idx === 0}
-                          title="Move up"
-                        >↑</button>
-                        <button
-                          className="cc-step-btn"
-                          onClick={() => handleMove(idx, 1)}
-                          disabled={idx === items.length - 1}
-                          title="Move down"
-                        >↓</button>
-                        <button
-                          className="cc-lib-delete"
-                          onClick={() => handleRemove(idx)}
-                          title="Remove from set"
-                        >✕</button>
+                        <button className="cc-step-btn" onClick={() => handleMove(idx, -1)} disabled={idx === 0} title="Move up">↑</button>
+                        <button className="cc-step-btn" onClick={() => handleMove(idx, 1)} disabled={idx === items.length - 1} title="Move down">↓</button>
+                        <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
                       </div>
                     </div>
                   ))}
@@ -262,7 +337,7 @@ export default function SetLists() {
                 {loadingLib ? (
                   <p className="cc-hint" style={{ padding: '0.75rem' }}>Loading…</p>
                 ) : library.length === 0 ? (
-                  <p className="cc-hint" style={{ padding: '0.75rem' }}>No saved songs yet — build some in the Chord Chart Studio first.</p>
+                  <p className="cc-hint" style={{ padding: '0.75rem' }}>No saved songs yet.</p>
                 ) : (
                   library.map(song => {
                     const inSet = items.some(it => it._songId === song.id)

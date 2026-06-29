@@ -1,10 +1,11 @@
 import { supabase } from './supabase'
 
-/** Fetch all setlists for the current user, newest first */
+/** Fetch all setlists for the current user, sorted by event date then updated */
 export async function fetchSetLists() {
   const { data, error } = await supabase
     .from('setlists')
-    .select('id, name, share_token, updated_at, songs')
+    .select('id, name, share_token, updated_at, songs, event_date, event_url, event_details')
+    .order('event_date', { ascending: false, nullsFirst: false })
     .order('updated_at', { ascending: false })
   if (error) throw error
   return data
@@ -22,14 +23,23 @@ export async function fetchSetListByToken(token) {
 }
 
 /** Save (insert or update) a setlist. Returns the saved record. */
-export async function saveSetList({ id, name, songs }) {
+export async function saveSetList({ id, name, songs, event_date, event_url, event_details }) {
   const { data: authData } = await supabase.auth.getUser()
   const user = authData?.user
+
+  const fields = {
+    name,
+    songs,
+    event_date:    event_date    || null,
+    event_url:     event_url     || null,
+    event_details: event_details || null,
+    updated_at:    new Date().toISOString(),
+  }
 
   if (id) {
     const { data, error } = await supabase
       .from('setlists')
-      .update({ name, songs, updated_at: new Date().toISOString() })
+      .update(fields)
       .eq('id', id)
       .select()
       .single()
@@ -38,7 +48,7 @@ export async function saveSetList({ id, name, songs }) {
   } else {
     const { data, error } = await supabase
       .from('setlists')
-      .insert({ name, songs, user_id: user.id })
+      .insert({ ...fields, user_id: user.id })
       .select()
       .single()
     if (error) throw error
