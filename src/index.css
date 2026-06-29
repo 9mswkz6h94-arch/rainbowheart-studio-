@@ -1640,6 +1640,40 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .sl-song-key   { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
 .sl-song-controls { display: flex; gap: 0.25rem; flex-shrink: 0; }
 
+/* Break row in builder */
+.sl-break-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  background: #fdf6ec;
+  border: 1px dashed #e8c97a;
+  cursor: grab;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+.sl-break-row:active { cursor: grabbing; }
+.sl-break-row.sl-dragging { opacity: 0.35; }
+.sl-break-row.sl-drag-over { border-color: var(--accent); background: #f0f4ff; }
+.sl-break-row:hover .sl-drag-handle { color: #aaa; }
+.sl-break-row:hover .cc-lib-delete { opacity: 1; color: #e74c3c; }
+.sl-break-icon { font-size: 1rem; flex-shrink: 0; }
+.sl-break-label-input {
+  flex: 1; border: none; background: transparent; font-size: 0.85rem;
+  font-weight: 600; color: #8a6c1a; font-family: inherit; cursor: text;
+  min-width: 0;
+}
+.sl-break-label-input:focus { outline: none; }
+
+/* Duplicate button on sidebar items */
+.sl-dup-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 0.8rem; color: #ccc; padding: 0 0.2rem;
+  opacity: 0; transition: all 0.15s; flex-shrink: 0;
+}
+.sl-list-item:hover .sl-dup-btn { opacity: 1; color: #888; }
+.sl-dup-btn:hover { color: var(--accent) !important; }
+
 .sl-lib-row {
   display: flex;
   align-items: center;
@@ -1864,6 +1898,28 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 .slv-dot.active { background: var(--primary); transform: scale(1.35); }
 .slv-dot:hover:not(.active) { background: #888; }
+.slv-dot.break { border-radius: 2px; width: 14px; height: 6px; background: #e8a945; }
+.slv-dot.break.active { background: #f5c842; }
+
+/* Break screen in performer view */
+.slv-break-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1.25rem;
+  color: #ccc;
+}
+.slv-break-screen .slv-break-icon { font-size: 4rem; }
+.slv-break-screen .slv-break-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #e8a945;
+}
 
 .slv-loading {
   display: flex;

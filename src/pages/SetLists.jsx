@@ -15,33 +15,41 @@ function isPast(d) {
   return new Date(d) < new Date(new Date().toDateString())
 }
 
-function SidebarSection({ title, items, activeId, onOpen, onDelete }) {
+function SidebarSection({ title, items, activeId, onOpen, onDelete, onDuplicate }) {
   if (items.length === 0) return null
   return (
     <div className="sl-section">
       <div className="sl-section-label">{title}</div>
-      {items.map(sl => (
-        <div
-          key={sl.id}
-          className={`sl-list-item${activeId === sl.id ? ' active' : ''}`}
-          onClick={() => onOpen(sl)}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {sl.event_date && (
-              <div className="sl-date-badge">{fmtDate(sl.event_date)}</div>
-            )}
-            <div className="sl-list-name">{sl.name}</div>
-            <div className="sl-list-meta">
-              {(sl.songs || []).length} song{(sl.songs || []).length !== 1 ? 's' : ''}
+      {items.map(sl => {
+        const songCount = (sl.songs || []).filter(s => s._type !== 'break').length
+        return (
+          <div
+            key={sl.id}
+            className={`sl-list-item${activeId === sl.id ? ' active' : ''}`}
+            onClick={() => onOpen(sl)}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {sl.event_date && (
+                <div className="sl-date-badge">{fmtDate(sl.event_date)}</div>
+              )}
+              <div className="sl-list-name">{sl.name}</div>
+              <div className="sl-list-meta">
+                {songCount} song{songCount !== 1 ? 's' : ''}
+              </div>
             </div>
+            <button
+              className="sl-dup-btn"
+              onClick={e => { e.stopPropagation(); onDuplicate(sl) }}
+              title="Duplicate set list"
+            >⧉</button>
+            <button
+              className="cc-lib-delete"
+              onClick={e => { e.stopPropagation(); onDelete(sl.id, sl.name, e) }}
+              title="Delete"
+            >✕</button>
           </div>
-          <button
-            className="cc-lib-delete"
-            onClick={e => { e.stopPropagation(); onDelete(sl.id, sl.name, e) }}
-            title="Delete"
-          >✕</button>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -174,6 +182,35 @@ export default function SetLists() {
     setDragOverIdx(null)
   }
 
+  function handleAddBreak() {
+    setItems(prev => [...prev, { _type: 'break', label: 'Break' }])
+    setDirty(true)
+  }
+
+  function handleBreakLabelChange(idx, val) {
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, label: val } : it))
+    setDirty(true)
+  }
+
+  async function handleDuplicate(sl) {
+    try {
+      const saved = await saveSetList({
+        id: null,
+        name: sl.name + ' (copy)',
+        songs: sl.songs || [],
+        event_date:    null,
+        event_url:     null,
+        event_details: sl.event_details || null,
+      })
+      await refreshLists()
+      openForEdit({
+        id: saved.id, share_token: saved.share_token, name: saved.name,
+        songs: sl.songs || [], event_date: null, event_url: null,
+        event_details: sl.event_details || null,
+      })
+    } catch (e) { console.error(e) }
+  }
+
   async function handleSyncAll() {
     if (items.length === 0) return
     setSaving(true); setSaveMsg('Syncing…')
@@ -252,6 +289,11 @@ export default function SetLists() {
 
   const editing = active !== null
 
+  let _sn = 0
+  const songNums  = items.map(it => it._type === 'break' ? null : ++_sn)
+  const songCount = _sn
+  const breakCount = items.filter(it => it._type === 'break').length
+
   return (
     <div className="sl-layout">
 
@@ -279,6 +321,7 @@ export default function SetLists() {
                 activeId={active?.id}
                 onOpen={openForEdit}
                 onDelete={handleDelete}
+                onDuplicate={handleDuplicate}
               />
               <SidebarSection
                 title="✓ Past Performances"
@@ -286,6 +329,7 @@ export default function SetLists() {
                 activeId={active?.id}
                 onOpen={openForEdit}
                 onDelete={handleDelete}
+                onDuplicate={handleDuplicate}
               />
             </>
           )}
@@ -396,9 +440,12 @@ export default function SetLists() {
 
               {/* Set order */}
               <div className="sl-panel-header" style={{ marginTop: '1.25rem' }}>
-                <span className="sl-panel-title">Set Order · {items.length} song{items.length !== 1 ? 's' : ''}</span>
+                <span className="sl-panel-title">
+                  Set Order · {songCount} song{songCount !== 1 ? 's' : ''}
+                  {breakCount > 0 ? ` · ${breakCount} break${breakCount !== 1 ? 's' : ''}` : ''}
+                </span>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {items.length > 0 && (
+                  {songCount > 0 && (
                     <button
                       className="cc-btn-ghost"
                       style={{ fontSize: '0.75rem' }}
@@ -409,6 +456,13 @@ export default function SetLists() {
                       ↻ Sync Charts
                     </button>
                   )}
+                  <button
+                    className="cc-btn-ghost"
+                    style={{ fontSize: '0.75rem' }}
+                    onClick={handleAddBreak}
+                  >
+                    ☕ Add Break
+                  </button>
                   <button
                     className="cc-btn-ghost"
                     style={{ fontSize: '0.75rem' }}
@@ -425,32 +479,49 @@ export default function SetLists() {
                 </div>
               ) : (
                 <div className="sl-song-list">
-                  {items.map((song, idx) => (
-                    <div
-                      key={idx}
-                      className={`sl-song-row${dragIdx === idx ? ' sl-dragging' : ''}${dragOverIdx === idx && dragIdx !== idx ? ' sl-drag-over' : ''}`}
-                      draggable
-                      onDragStart={e => handleDragStart(e, idx)}
-                      onDragOver={e => handleDragOver(e, idx)}
-                      onDrop={e => handleDrop(e, idx)}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
-                      <span className="sl-song-num">{idx + 1}.</span>
-                      <div className="sl-song-info">
-                        <div className="sl-song-title">{song.title || 'Untitled'}</div>
-                        {song.meta?.key && (
-                          <div className="sl-song-key">
-                            Key: {song.meta.key}{song.meta.capo ? ` · Capo ${song.meta.capo}` : ''}
-                            {song.meta?.writer ? ` · ${song.meta.writer}` : ''}
-                          </div>
-                        )}
+                  {items.map((song, idx) => {
+                    const dragClass = `${dragIdx === idx ? ' sl-dragging' : ''}${dragOverIdx === idx && dragIdx !== idx ? ' sl-drag-over' : ''}`
+                    const dragProps = {
+                      draggable: true,
+                      onDragStart: e => handleDragStart(e, idx),
+                      onDragOver:  e => handleDragOver(e, idx),
+                      onDrop:      e => handleDrop(e, idx),
+                      onDragEnd:   handleDragEnd,
+                    }
+                    if (song._type === 'break') {
+                      return (
+                        <div key={idx} className={`sl-break-row${dragClass}`} {...dragProps}>
+                          <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
+                          <span className="sl-break-icon">☕</span>
+                          <input
+                            className="sl-break-label-input"
+                            value={song.label || 'Break'}
+                            onChange={e => handleBreakLabelChange(idx, e.target.value)}
+                            onClick={e => e.stopPropagation()}
+                          />
+                          <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove break">✕</button>
+                        </div>
+                      )
+                    }
+                    return (
+                      <div key={idx} className={`sl-song-row${dragClass}`} {...dragProps}>
+                        <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
+                        <span className="sl-song-num">{songNums[idx]}.</span>
+                        <div className="sl-song-info">
+                          <div className="sl-song-title">{song.title || 'Untitled'}</div>
+                          {song.meta?.key && (
+                            <div className="sl-song-key">
+                              Key: {song.meta.key}{song.meta.capo ? ` · Capo ${song.meta.capo}` : ''}
+                              {song.meta?.writer ? ` · ${song.meta.writer}` : ''}
+                            </div>
+                          )}
+                        </div>
+                        <div className="sl-song-controls">
+                          <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
+                        </div>
                       </div>
-                      <div className="sl-song-controls">
-                        <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>

@@ -35,7 +35,7 @@ export default function SetListView() {
   const renderSong = useCallback(async (idx) => {
     if (!setlist || !measureRef.current || !stageRef.current) return
     const song = setlist.songs[idx]
-    if (!song) return
+    if (!song || song._type === 'break') return
 
     await document.fonts.ready
 
@@ -63,15 +63,19 @@ export default function SetListView() {
   /* ── Update tab title ── */
   useEffect(() => {
     if (setlist) {
-      const song = setlist.songs[songIdx]
-      document.title = song
-        ? `${song.title} — ${setlist.name}`
-        : setlist.name
+      const item = setlist.songs[songIdx]
+      if (item?._type === 'break') {
+        document.title = `${item.label || 'Break'} — ${setlist.name}`
+      } else if (item) {
+        document.title = `${item.title} — ${setlist.name}`
+      } else {
+        document.title = setlist.name
+      }
     }
     return () => { document.title = 'Rainbow Hearts Chart Studio' }
   }, [setlist, songIdx])
 
-  /* ── Print all charts ── */
+  /* ── Print all charts (skip breaks) ── */
   async function handlePrintAll() {
     if (!setlist || !measureRef.current || !stageRef.current) return
     setPrinting(true)
@@ -79,6 +83,7 @@ export default function SetListView() {
 
     let allHtml = ''
     for (const song of setlist.songs) {
+      if (song._type === 'break') continue
       const parsed = parseSong(song.song_text || '', song.meta || {})
       const opts   = { compact: true, collapse: true, writeBars: true }
       allHtml += layout(parsed, 'full', opts, measureRef.current).html
@@ -133,6 +138,12 @@ export default function SetListView() {
   const songs   = setlist?.songs || []
   const total   = songs.length
   const current = songs[songIdx]
+  const isBreak = current?._type === 'break'
+
+  const songsOnly    = songs.filter(s => s._type !== 'break')
+  const songPosition = isBreak
+    ? null
+    : songs.slice(0, songIdx + 1).filter(s => s._type !== 'break').length
 
   return (
     <div className="slv-root">
@@ -148,12 +159,16 @@ export default function SetListView() {
       <div className="slv-topbar">
         <div className="slv-set-name">{setlist.name}</div>
         <div className="slv-position">
-          {current ? `${songIdx + 1} / ${total}` : '—'}
+          {isBreak
+            ? (current.label || 'Break')
+            : songPosition != null
+              ? `${songPosition} / ${songsOnly.length}`
+              : '—'}
         </div>
         <button
           className="slv-print-btn"
           onClick={handlePrintAll}
-          disabled={printing || total === 0}
+          disabled={printing || songsOnly.length === 0}
         >
           {printing ? 'Preparing…' : '🖨 Print Full Set'}
         </button>
@@ -163,6 +178,11 @@ export default function SetListView() {
       <div className="slv-stage-wrap">
         {total === 0 ? (
           <div className="slv-no-songs">This set list has no songs yet.</div>
+        ) : isBreak ? (
+          <div className="slv-break-screen">
+            <div className="slv-break-icon">☕</div>
+            <div className="slv-break-label">{current.label || 'Break'}</div>
+          </div>
         ) : (
           <div ref={stageRef} className="stagewrap compact" />
         )}
@@ -183,9 +203,9 @@ export default function SetListView() {
             {songs.map((s, i) => (
               <button
                 key={i}
-                className={`slv-dot${i === songIdx ? ' active' : ''}`}
+                className={`slv-dot${i === songIdx ? ' active' : ''}${s._type === 'break' ? ' break' : ''}`}
                 onClick={() => setSongIdx(i)}
-                title={s.title}
+                title={s._type === 'break' ? (s.label || 'Break') : s.title}
               />
             ))}
           </div>
