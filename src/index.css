@@ -1647,6 +1647,20 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   color: var(--text-muted);
 }
 
+.sl-time-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.75rem;
+}
+.sl-time-icon { font-size: 1rem; }
+.sl-time-total { font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+.sl-time-detail { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-left: auto; }
+
 .sl-empty {
   text-align: center;
   padding: 3rem 2rem;
