@@ -4,9 +4,7 @@ import { fetchSongs, fetchSong, saveSong, deleteSong, timeAgo } from '../lib/son
 import { useAuth } from '../context/AuthContext'
 
 const VARIANTS = [
-  ['full',   'Full Chart'],
-  ['bass',   'Bass + Tab'],
-  ['chords', 'Chords'],
+  ['full',   'Full Chart'],  ['chords', 'Chords'],
   ['lyrics', 'Lyrics'],
 ]
 
@@ -28,11 +26,6 @@ const BLANK_META = {
   scale:       100,
 }
 
-const BLANK_TABS = {
-  bass:   { text: '', label: 'Bass Tab' },
-  guitar: { text: '', label: 'Guitar Tab' },
-  uke:    { text: '', label: 'Ukulele Tab' },
-}
 
 export default function ChordCharts() {
   /* ── Auth ── */
@@ -42,14 +35,8 @@ export default function ChordCharts() {
   /* ── State ── */
   const [meta,     setMeta]     = useState(BLANK_META)
   const [songText, setSongText] = useState('')
-  const [tabs,     setTabs]     = useState(BLANK_TABS)
-
   const [compact,  setCompact]  = useState(true)
   const [collapse, setCollapse] = useState(true)
-  const [tabOnBass, setTabOnBass] = useState(true)
-  const [tabOnFull, setTabOnFull] = useState(true)
-  const [tabOnUke,  setTabOnUke]  = useState(true)
-
   const [variant,      setVariant]      = useState('full')
   const [libraryOpen,  setLibraryOpen]  = useState(false)
 
@@ -103,14 +90,6 @@ export default function ChordCharts() {
   }, [])
   useEffect(() => { refreshList() }, [refreshList])
 
-  /* ── Build tab array for engine ── */
-  function buildTabArr(t) {
-    const arr = []
-    if (t.bass.text.trim())   arr.push({ label: t.bass.label   || 'Bass Tab',    target: 'bass', lines: t.bass.text.split('\n') })
-    if (t.guitar.text.trim()) arr.push({ label: t.guitar.label || 'Guitar Tab',  target: 'full', lines: t.guitar.text.split('\n') })
-    if (t.uke.text.trim())    arr.push({ label: t.uke.label    || 'Ukulele Tab', target: 'uke',  lines: t.uke.text.split('\n') })
-    return arr
-  }
 
   /* ── Render engine (runs every render, debounced 160 ms) ── */
   useEffect(() => {
@@ -119,9 +98,9 @@ export default function ChordCharts() {
       if (!measureRef.current || !stageRef.current) return
       await document.fonts.ready
 
-      const fullMeta = { ...meta, tab: buildTabArr(tabs) }
+      const fullMeta = { ...meta }
       const song     = parseSong(songText || '', fullMeta)
-      const opts     = { compact, collapse, tabOnBass, tabOnFull, tabOnUke, writeBars: meta.writeBars }
+      const opts     = { compact, collapse, writeBars: meta.writeBars }
 
       document.documentElement.style.setProperty('--bscale', (meta.scale || 100) / 100)
 
@@ -181,10 +160,6 @@ export default function ChordCharts() {
     setMeta(m => ({ ...m, [key]: value }))
     setDirty(true)
   }
-  function updateTab(which, key, value) {
-    setTabs(t => ({ ...t, [which]: { ...t[which], [key]: value } }))
-    setDirty(true)
-  }
   function setTranspose(n) {
     updateMeta('transpose', Math.max(-11, Math.min(11, n)))
   }
@@ -192,9 +167,9 @@ export default function ChordCharts() {
   /* ── Auto-fit ── */
   function handleAutoFit() {
     if (!measureRef.current) return
-    const fullMeta = { ...meta, tab: buildTabArr(tabs) }
+    const fullMeta = { ...meta }
     const song     = parseSong(songText || '', fullMeta)
-    const opts     = { compact, collapse, tabOnBass, tabOnFull, tabOnUke, writeBars: meta.writeBars }
+    const opts     = { compact, collapse, writeBars: meta.writeBars }
 
     const pagesAt = p => {
       document.documentElement.style.setProperty('--bscale', p / 100)
@@ -227,9 +202,9 @@ export default function ChordCharts() {
     if (!measureRef.current || !stageRef.current) return
     await document.fonts.ready
 
-    const fullMeta = { ...meta, tab: buildTabArr(tabs) }
+    const fullMeta = { ...meta }
     const song     = parseSong(songText || '', fullMeta)
-    const opts     = { compact, collapse, tabOnBass, tabOnFull, tabOnUke, writeBars: meta.writeBars }
+    const opts     = { compact, collapse, writeBars: meta.writeBars }
 
     document.documentElement.style.setProperty('--bscale', (meta.scale || 100) / 100)
 
@@ -256,7 +231,7 @@ export default function ChordCharts() {
     const data = {
       app: 'Rainbow Hearts Chart Studio',
       savedAt: new Date().toISOString(),
-      meta: { ...meta, tab: buildTabArr(tabs) },
+      meta: { ...meta },
       source: songText,
     }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -301,11 +276,6 @@ export default function ChordCharts() {
       writeBars:   m.writeBars !== false,
       scale:       m.scale || 100,
     })
-    setTabs({
-      bass:   bass   ? { text: (bass.lines   || []).join('\n'), label: bass.label   || 'Bass Tab' }   : { text: '', label: 'Bass Tab' },
-      guitar: guitar ? { text: (guitar.lines || []).join('\n'), label: guitar.label || 'Guitar Tab' } : { text: '', label: 'Guitar Tab' },
-      uke:    uke    ? { text: (uke.lines    || []).join('\n'), label: uke.label    || 'Ukulele Tab' } : { text: '', label: 'Ukulele Tab' },
-    })
     setSongText(src)
     setDirty(false)
   }
@@ -313,7 +283,7 @@ export default function ChordCharts() {
   /* ── New song ── */
   function handleNew() {
     if (dirty && !window.confirm('Discard unsaved changes?')) return
-    setMeta(BLANK_META); setTabs(BLANK_TABS); setSongText('')
+    setMeta(BLANK_META); setSongText('')
     setCurrentId(null); setDirty(false); setSaveMsg(null)
   }
 
@@ -325,7 +295,7 @@ export default function ChordCharts() {
         id:        currentId,
         title:     meta.title || 'Untitled',
         song_text: songText,
-        meta:      { ...meta, tab: buildTabArr(tabs) },
+        meta:      { ...meta },
       })
       setCurrentId(saved.id); setDirty(false); setSaveMsg('Saved!')
       await refreshList()
@@ -354,7 +324,7 @@ export default function ChordCharts() {
     try {
       await deleteSong(id)
       if (currentId === id) {
-        setMeta(BLANK_META); setTabs(BLANK_TABS); setSongText('')
+        setMeta(BLANK_META); setSongText('')
         setCurrentId(null); setDirty(false)
       }
       await refreshList()
@@ -548,31 +518,6 @@ export default function ChordCharts() {
           />
         </label>
 
-        {/* Tab inputs */}
-        <details className="cc-tabs-section">
-          <summary className="cc-tabs-summary">Tab inputs (bass · guitar · ukulele)</summary>
-          <div className="cc-tabs-grid">
-            <label className="cc-field span2"><span>Bass tab label</span>
-              <input value={tabs.bass.label} onChange={e => updateTab('bass', 'label', e.target.value)} placeholder="Bass Tab" />
-            </label>
-            <label className="cc-field span2 cc-field-tab"><span>Bass tab · 4-string</span>
-              <textarea className="cc-textarea cc-tab-textarea" value={tabs.bass.text} onChange={e => updateTab('bass', 'text', e.target.value)} spellCheck={false} />
-            </label>
-            <label className="cc-field span2"><span>Guitar tab label</span>
-              <input value={tabs.guitar.label} onChange={e => updateTab('guitar', 'label', e.target.value)} placeholder="Guitar Tab" />
-            </label>
-            <label className="cc-field span2 cc-field-tab"><span>Guitar tab · 6-string</span>
-              <textarea className="cc-textarea cc-tab-textarea" value={tabs.guitar.text} onChange={e => updateTab('guitar', 'text', e.target.value)} spellCheck={false} />
-            </label>
-            <label className="cc-field span2"><span>Ukulele tab label</span>
-              <input value={tabs.uke.label} onChange={e => updateTab('uke', 'label', e.target.value)} placeholder="Ukulele Tab" />
-            </label>
-            <label className="cc-field span2 cc-field-tab"><span>Ukulele tab · GCEA</span>
-              <textarea className="cc-textarea cc-tab-textarea" value={tabs.uke.text} onChange={e => updateTab('uke', 'text', e.target.value)} spellCheck={false} />
-            </label>
-          </div>
-        </details>
-
         {/* Options checkboxes */}
         <div className="cc-checks">
           <label><input type="checkbox" checked={compact}     onChange={e => setCompact(e.target.checked)} /> Compact</label>
@@ -580,9 +525,6 @@ export default function ChordCharts() {
           <label><input type="checkbox" checked={meta.writeBars}  onChange={e => updateMeta('writeBars',  e.target.checked)} /> Write-in bars</label>
           <label><input type="checkbox" checked={meta.structFull} onChange={e => updateMeta('structFull', e.target.checked)} /> Spell out structure</label>
           <label><input type="checkbox" checked={meta.capoShapes} onChange={e => updateMeta('capoShapes', e.target.checked)} /> Capo changes chords</label>
-          <label><input type="checkbox" checked={tabOnBass}   onChange={e => setTabOnBass(e.target.checked)} /> Bass tab on bass chart</label>
-          <label><input type="checkbox" checked={tabOnFull}   onChange={e => setTabOnFull(e.target.checked)} /> Guitar tab on full chart</label>
-          <label><input type="checkbox" checked={tabOnUke}    onChange={e => setTabOnUke(e.target.checked)} /> Uke tab on full chart</label>
         </div>
 
         {/* Text size */}

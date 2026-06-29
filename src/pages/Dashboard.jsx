@@ -14,6 +14,13 @@ const tools = [
   },
   {
     emoji: '🎵',
+    title: 'Set Lists',
+    description: 'Build shareable set lists from your song library. Share a link with your band — anyone can pull up the full chord charts on a tablet at the gig.',
+    status: 'ready',
+    href: '/studio/setlists',
+  },
+  {
+    emoji: '🎼',
     title: 'Tab Builder',
     description: 'Build and export guitar tabs.',
     status: 'coming-soon',
