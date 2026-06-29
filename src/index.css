@@ -1670,6 +1670,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 .sl-empty strong { color: var(--text); }
 
+.sl-dur-badge { font-size: 0.72rem; color: var(--text-muted); min-width: 2.5rem; text-align: center; flex-shrink: 0; }
 .sl-song-list { display: flex; flex-direction: column; gap: 0.4rem; }
 
 .sl-song-row {

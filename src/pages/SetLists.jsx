@@ -135,7 +135,7 @@ export default function SetLists() {
     setAddingId(songId)
     try {
       const s = await fetchSong(songId)
-      setItems(prev => [...prev, { _songId: s.id, title: s.title, song_text: s.song_text, meta: s.meta, duration: parseInt(s.meta?.duration, 10) || null }])
+      setItems(prev => [...prev, { _songId: s.id, title: s.title, song_text: s.song_text, meta: s.meta, duration: parseFloat(s.meta?.duration) || null }])
       setDirty(true)
     } catch (e) { console.error(e) }
     finally { setAddingId(null) }
@@ -194,7 +194,8 @@ export default function SetLists() {
   }
 
   function handleItemDurationChange(idx, val) {
-    const n = val === '' ? null : Math.max(1, Math.min(180, parseInt(val, 10) || 1))
+    const n = val === '' ? null : Math.round(parseFloat(val) * 4) / 4
+    if (n !== null && (isNaN(n) || n <= 0)) return
     setItems(prev => prev.map((it, i) => i === idx ? { ...it, duration: n } : it))
     setDirty(true)
   }
@@ -227,7 +228,8 @@ export default function SetLists() {
           if (!item._songId) return item
           try {
             const s = await fetchSong(item._songId)
-            return { ...item, title: s.title, song_text: s.song_text, meta: s.meta, duration: parseInt(s.meta?.duration, 10) || item.duration || null }
+            const syncDur = (s.meta?.duration != null && s.meta.duration !== '') ? parseFloat(s.meta.duration) : item.duration
+            return { ...item, title: s.title, song_text: s.song_text, meta: s.meta, duration: syncDur ?? null }
           } catch { return item }
         })
       )
@@ -299,17 +301,19 @@ export default function SetLists() {
     if (!w) return
     let sn = 0, printTotal = 0, rows = ''
     for (const item of items) {
-      const dur = parseInt(item.duration, 10) || 0
+      const dur = parseFloat(item.duration) || 0
       printTotal += dur
       if (item._type === 'break') {
-        rows += `<tr class="break-row"><td colspan="3">— ${item.label || 'Break'} —</td><td class="dur">${dur ? dur + 'm' : ''}</td></tr>`
+        const durStr = dur ? fmtSongDur(dur) : ''
+        rows += `<tr class="break-row"><td colspan="3">— ${item.label || 'Break'} —</td><td class="dur">${durStr}</td></tr>`
       } else {
         sn++
         const key = item.meta?.key
           ? `Key of ${item.meta.key}${item.meta.capo ? ` · Capo ${item.meta.capo}` : ''}`
           : ''
         const writer = item.meta?.writer ? item.meta.writer : ''
-        rows += `<tr><td class="num">${sn}.</td><td class="title">${item.title || 'Untitled'}${writer ? `<span class="writer"> — ${writer}</span>` : ''}</td><td class="key">${key}</td><td class="dur">${dur ? dur + 'm' : ''}</td></tr>`
+        const durStr = dur ? fmtSongDur(dur) : ''
+        rows += `<tr><td class="num">${sn}.</td><td class="title">${item.title || 'Untitled'}${writer ? `<span class="writer"> — ${writer}</span>` : ''}</td><td class="key">${key}</td><td class="dur">${durStr}</td></tr>`
       }
     }
     const totalStr = printTotal > 0 ? fmtDuration(printTotal) : ''
@@ -352,12 +356,23 @@ export default function SetLists() {
   const songNums   = items.map(it => it._type === 'break' ? null : ++_sn)
   const songCount  = _sn
   const breakCount = items.filter(it => it._type === 'break').length
-  const totalMins  = items.reduce((s, it) => s + (parseInt(it.duration, 10) || 0), 0)
+  const totalMins = items.reduce((s, it) => s + (parseFloat(it.duration) || 0), 0)
 
   function fmtDuration(m) {
-    const h = Math.floor(m / 60), r = m % 60
-    if (h === 0) return `${r}m`
-    return r === 0 ? `${h}h` : `${h}h ${r}m`
+    const totalSecs = Math.round(m * 60)
+    const h    = Math.floor(totalSecs / 3600)
+    const mins = Math.floor((totalSecs % 3600) / 60)
+    const secs = totalSecs % 60
+    if (h > 0) return mins > 0 ? `${h}h ${mins}m` : `${h}h`
+    return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`
+  }
+
+  function fmtSongDur(m) {
+    if (!m) return ''
+    const totalSecs = Math.round(parseFloat(m) * 60)
+    const mins = Math.floor(totalSecs / 60)
+    const secs = totalSecs % 60
+    return secs > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${mins}:00`
   }
 
   const displayLibrary = [...library]
@@ -596,10 +611,10 @@ export default function SetLists() {
                             type="number"
                             className="sl-duration-input"
                             value={song.duration ?? 15}
-                            min="1" max="180"
+                            min="0.25" max="180" step="0.25"
                             onChange={e => handleItemDurationChange(idx, e.target.value)}
                             onClick={e => e.stopPropagation()}
-                            title="Break length in minutes"
+                            title="Break length in minutes (0.25 = 15 sec)"
                           />
                           <span className="sl-duration-unit">min</span>
                           <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove break">✕</button>
@@ -623,12 +638,13 @@ export default function SetLists() {
                           type="number"
                           className="sl-duration-input"
                           value={song.duration ?? ''}
-                          min="1" max="60"
+                          min="0.25" max="20" step="0.25"
                           placeholder="min"
                           onChange={e => handleItemDurationChange(idx, e.target.value)}
                           onClick={e => e.stopPropagation()}
-                          title="Song length in minutes (optional)"
+                          title="Song length in minutes (0.25 = 15 sec)"
                         />
+                        {song.duration ? <span className="sl-dur-badge">{fmtSongDur(song.duration)}</span> : null}
                         <div className="sl-song-controls">
                           <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
                         </div>

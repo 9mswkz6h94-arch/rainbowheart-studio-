@@ -484,7 +484,7 @@ export default function ChordCharts() {
           </label>
           <label className="cc-field">
             <span>Duration (min)</span>
-            <input type="number" min="1" max="60" value={meta.duration || ''} onChange={e => updateMeta('duration', e.target.value ? parseInt(e.target.value, 10) : '')} placeholder="4" />
+            <input type="number" min="0.25" max="20" step="0.25" value={meta.duration || ''} onChange={e => updateMeta('duration', e.target.value ? parseFloat(e.target.value) : '')} placeholder="3.5" title="Minutes · 0.25 = 15 sec, 0.5 = 30 sec" />
           </label>
           <label className="cc-field">
             <span>Beat unit</span>
