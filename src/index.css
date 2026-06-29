@@ -1566,6 +1566,33 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   font-size: 0.95rem;
 }
 
+/* Sidebar sections */
+.sl-section        { margin-bottom: 0.5rem; }
+.sl-section-label  {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  padding: 0.5rem 0.1rem 0.3rem;
+}
+
+/* Quick-jump dropdown in editor header */
+.sl-jump-select {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #c0bdb8;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  max-width: 220px;
+  flex-shrink: 0;
+}
+.sl-jump-select:focus { outline: none; border-color: var(--primary); }
+
 /* Date badge in sidebar */
 .sl-date-badge {
   font-size: 0.7rem;

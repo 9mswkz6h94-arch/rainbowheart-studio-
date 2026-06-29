@@ -15,6 +15,37 @@ function isPast(d) {
   return new Date(d) < new Date(new Date().toDateString())
 }
 
+function SidebarSection({ title, items, activeId, onOpen, onDelete }) {
+  if (items.length === 0) return null
+  return (
+    <div className="sl-section">
+      <div className="sl-section-label">{title}</div>
+      {items.map(sl => (
+        <div
+          key={sl.id}
+          className={`sl-list-item${activeId === sl.id ? ' active' : ''}`}
+          onClick={() => onOpen(sl)}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {sl.event_date && (
+              <div className="sl-date-badge">{fmtDate(sl.event_date)}</div>
+            )}
+            <div className="sl-list-name">{sl.name}</div>
+            <div className="sl-list-meta">
+              {(sl.songs || []).length} song{(sl.songs || []).length !== 1 ? 's' : ''}
+            </div>
+          </div>
+          <button
+            className="cc-lib-delete"
+            onClick={e => { e.stopPropagation(); onDelete(sl.id, sl.name, e) }}
+            title="Delete"
+          >✕</button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function SetLists() {
   const [setlists,    setSetlists]    = useState([])
   const [loadingList, setLoadingList] = useState(true)
@@ -53,6 +84,10 @@ export default function SetLists() {
 
   useEffect(() => { refreshLists(); loadLibrary() }, [refreshLists, loadLibrary])
 
+  /* ── Group setlists ── */
+  const upcoming = setlists.filter(sl => !isPast(sl.event_date))
+  const past     = setlists.filter(sl =>  isPast(sl.event_date))
+
   /* ── New / load for edit ── */
   function startNew() {
     setActive(EMPTY_ACTIVE)
@@ -74,6 +109,13 @@ export default function SetLists() {
     setItems(sl.songs || [])
     setDirty(false)
     setShowLib(false)
+  }
+
+  function handleDropdownChange(e) {
+    const id = e.target.value
+    if (!id) return
+    const sl = setlists.find(s => s.id === id)
+    if (sl) openForEdit(sl)
   }
 
   /* ── Song management ── */
@@ -120,7 +162,7 @@ export default function SetLists() {
       await refreshLists()
       setTimeout(() => setSaveMsg(null), 2000)
     } catch (e) {
-      setSaveMsg('Error saving')
+      setSaveMsg('Error: ' + (e?.message || 'save failed'))
       console.error(e)
     } finally {
       setSaving(false)
@@ -128,8 +170,7 @@ export default function SetLists() {
   }
 
   /* ── Delete ── */
-  async function handleDelete(id, slName, e) {
-    e.stopPropagation()
+  async function handleDelete(id, slName) {
     if (!window.confirm(`Delete "${slName}"?`)) return
     try {
       await deleteSetList(id)
@@ -177,34 +218,22 @@ export default function SetLists() {
           ) : setlists.length === 0 ? (
             <p className="cc-hint">No set lists yet — create one!</p>
           ) : (
-            setlists.map(sl => {
-              const past = isPast(sl.event_date)
-              return (
-                <div
-                  key={sl.id}
-                  className={`sl-list-item${active?.id === sl.id ? ' active' : ''}${past ? ' past' : ''}`}
-                  onClick={() => openForEdit(sl)}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {sl.event_date && (
-                      <div className={`sl-date-badge${past ? ' past' : ''}`}>
-                        {past ? '✓ ' : '📅 '}{fmtDate(sl.event_date)}
-                      </div>
-                    )}
-                    <div className="sl-list-name">{sl.name}</div>
-                    <div className="sl-list-meta">
-                      {(sl.songs || []).length} song{(sl.songs || []).length !== 1 ? 's' : ''}
-                      {!sl.event_date && <span style={{ color: 'var(--text-muted)', opacity: 0.6 }}> · no date</span>}
-                    </div>
-                  </div>
-                  <button
-                    className="cc-lib-delete"
-                    onClick={e => handleDelete(sl.id, sl.name, e)}
-                    title="Delete set list"
-                  >✕</button>
-                </div>
-              )
-            })
+            <>
+              <SidebarSection
+                title="📅 Upcoming"
+                items={upcoming}
+                activeId={active?.id}
+                onOpen={openForEdit}
+                onDelete={handleDelete}
+              />
+              <SidebarSection
+                title="✓ Past Performances"
+                items={past}
+                activeId={active?.id}
+                onOpen={openForEdit}
+                onDelete={handleDelete}
+              />
+            </>
           )}
         </div>
       </div>
@@ -215,13 +244,42 @@ export default function SetLists() {
 
           {/* Sticky header */}
           <div className="cc-input-header" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', margin: 0, padding: '1rem 1.5rem 0.75rem', borderBottom: '1px solid var(--border)' }}>
-            <div className="cc-header-row">
+            <div className="cc-header-row" style={{ gap: '0.75rem' }}>
               <input
                 className="sl-name-input"
                 value={name}
                 onChange={e => { setName(e.target.value); setDirty(true) }}
                 placeholder="Set list name"
               />
+              {/* Quick-jump dropdown */}
+              {setlists.length > 0 && (
+                <select
+                  className="sl-jump-select"
+                  value={active?.id || ''}
+                  onChange={handleDropdownChange}
+                  title="Jump to a different set list"
+                >
+                  <option value="">Jump to…</option>
+                  {upcoming.length > 0 && (
+                    <optgroup label="📅 Upcoming">
+                      {upcoming.map(sl => (
+                        <option key={sl.id} value={sl.id}>
+                          {sl.event_date ? fmtDate(sl.event_date) + ' · ' : ''}{sl.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {past.length > 0 && (
+                    <optgroup label="✓ Past Performances">
+                      {past.map(sl => (
+                        <option key={sl.id} value={sl.id}>
+                          {sl.event_date ? fmtDate(sl.event_date) + ' · ' : ''}{sl.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              )}
             </div>
             <div className="cc-savebar">
               <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
@@ -231,7 +289,7 @@ export default function SetLists() {
                 <button className="cc-btn-ghost" onClick={handleShare}>Copy Share Link</button>
                 <button className="cc-btn-ghost" onClick={handleOpenView}>Open Performer View ↗</button>
               </>}
-              {saveMsg  && <span className="cc-save-msg">{saveMsg}</span>}
+              {saveMsg  && <span className={saveMsg.startsWith('Error') ? 'cc-unsaved' : 'cc-save-msg'}>{saveMsg}</span>}
               {shareMsg && <span className="cc-save-msg">{shareMsg}</span>}
               {dirty && !saveMsg && <span className="cc-unsaved">● unsaved</span>}
             </div>
@@ -271,17 +329,12 @@ export default function SetLists() {
                     className="sl-event-textarea"
                     value={eventDetails}
                     onChange={e => { setEventDetails(e.target.value); setDirty(true) }}
-                    placeholder="Venue name, address, door time, notes for the band..."
+                    placeholder="Venue name, address, door time, notes for the band…"
                     rows={3}
                   />
                 </label>
                 {eventUrl && (
-                  <a
-                    href={eventUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="sl-event-link"
-                  >
+                  <a href={eventUrl} target="_blank" rel="noopener noreferrer" className="sl-event-link">
                     Open Event Page ↗
                   </a>
                 )}
