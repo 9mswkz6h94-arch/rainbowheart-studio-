@@ -18,6 +18,7 @@ export default function Navbar() {
         </Link>
         <div className="nav-links">
           <a href="/#services">Services</a>
+          <a href="/#open-mic">Open Mic</a>
           <a href="/#about">About</a>
           <a href="/#team">Team</a>
           <a href="/#contact">Contact</a>
