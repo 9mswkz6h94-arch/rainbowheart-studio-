@@ -135,7 +135,7 @@ export default function SetLists() {
     setAddingId(songId)
     try {
       const s = await fetchSong(songId)
-      setItems(prev => [...prev, { _songId: s.id, title: s.title, song_text: s.song_text, meta: s.meta }])
+      setItems(prev => [...prev, { _songId: s.id, title: s.title, song_text: s.song_text, meta: s.meta, duration: parseInt(s.meta?.duration, 10) || null }])
       setDirty(true)
     } catch (e) { console.error(e) }
     finally { setAddingId(null) }
@@ -227,7 +227,7 @@ export default function SetLists() {
           if (!item._songId) return item
           try {
             const s = await fetchSong(item._songId)
-            return { ...item, title: s.title, song_text: s.song_text, meta: s.meta }
+            return { ...item, title: s.title, song_text: s.song_text, meta: s.meta, duration: parseInt(s.meta?.duration, 10) || item.duration || null }
           } catch { return item }
         })
       )

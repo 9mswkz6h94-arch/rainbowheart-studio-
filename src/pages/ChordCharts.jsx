@@ -25,6 +25,7 @@ const BLANK_META = {
   writeBars:   true,
   scale:       100,
   draft:       false,
+  duration:    '',
 }
 
 
@@ -480,6 +481,10 @@ export default function ChordCharts() {
           <label className="cc-field">
             <span>Tempo (BPM)</span>
             <input value={meta.tempo} onChange={e => updateMeta('tempo', e.target.value)} placeholder="120" />
+          </label>
+          <label className="cc-field">
+            <span>Duration (min)</span>
+            <input type="number" min="1" max="60" value={meta.duration || ''} onChange={e => updateMeta('duration', e.target.value ? parseInt(e.target.value, 10) : '')} placeholder="4" />
           </label>
           <label className="cc-field">
             <span>Beat unit</span>
