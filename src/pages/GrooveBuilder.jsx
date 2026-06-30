@@ -155,7 +155,7 @@ function renderNotation(container, rows, grid, timeSig, feel, beatGrouping) {
             : '16'
 
           const note = hit
-            ? new StaveNote({ clef: 'percussion', keys: ['c/5'], duration: dur })
+            ? new StaveNote({ clef: 'percussion', keys: ['c/5'], duration: dur, note_type: 'x' })
                 .setStyle({ fillStyle: '#2D3436', strokeStyle: '#2D3436' })
             : new GhostNote({ duration: dur })
 
