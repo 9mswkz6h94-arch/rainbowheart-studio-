@@ -2101,6 +2101,57 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .cse-hint { margin-top: 0.75rem; font-size: 0.78rem; color: var(--text-muted); }
 
 /* Chord box */
+/* Label row with inline toggle */
+.cse-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.cse-label-row .cse-label { margin-bottom: 0; }
+
+.cse-accidental-toggle {
+  padding: 0.15rem 0.65rem;
+  border: 1.5px solid var(--primary);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cse-accidental-toggle:hover { background: var(--primary); color: #fff; }
+
+/* Chord box nav */
+.cse-chordbox-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.cse-pos-arrow {
+  width: 2rem;
+  height: 2rem;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cse-pos-arrow:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.cse-pos-arrow:disabled { opacity: 0.3; cursor: default; }
+
+.cse-pos-count { font-size: 0.7rem; color: var(--text-muted); }
+
 .cse-chordbox-wrap {
   display: inline-flex;
   flex-direction: column;

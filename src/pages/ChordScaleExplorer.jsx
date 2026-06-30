@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Note, Chord, Scale } from 'tonal'
 import { useAuth } from '../context/AuthContext'
@@ -46,7 +46,10 @@ const SCALE_TYPES = [
   { value: 'locrian',          label: 'Locrian' },
 ]
 
-const ROOTS = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B']
+const ROOTS_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+const ROOTS_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
+const TO_FLAT     = { 'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb' }
+const TO_SHARP    = { 'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#' }
 
 // ─── Fretboard layout constants ───────────────────────────────────────────────
 const L_PAD   = 58   // space for open-string labels
@@ -78,14 +81,32 @@ function getPositions(tuning, notes) {
   })
 }
 
-// ─── First-position voicing (one dot per string, frets 0–4) ──────────────────
-function getFirstVoicing(tuning, positions) {
-  return tuning.map((_, stringIdx) => {
-    const candidates = positions
-      .filter(p => p.string === stringIdx && p.fret <= 4)
-      .sort((a, b) => a.fret - b.fret)
-    return candidates[0] ?? null  // null = muted
-  })
+// ─── All voicings — one per neck position window ─────────────────────────────
+function getAllVoicings(tuning, positions) {
+  const starts = [0, 2, 4, 5, 7, 9, 12]
+  const seen   = new Set()
+  const result = []
+
+  for (const start of starts) {
+    const voicing = tuning.map((_, si) => {
+      const cands = positions
+        .filter(p => p.string === si && p.fret >= start && p.fret <= start + 4)
+        .sort((a, b) => a.fret - b.fret)
+      return cands[0] ?? null
+    })
+    if (voicing.filter(Boolean).length < Math.ceil(tuning.length / 2)) continue
+
+    const key = voicing.map(p => p ? `${p.fret}` : 'x').join('-')
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    const hasFretted = voicing.some(p => p && p.fret > 0)
+    const minFret    = Math.min(...voicing.filter(p => p && p.fret > 0).map(p => p.fret))
+    const label      = !hasFretted || start === 0 ? 'Open Position' : `${minFret}th Position`
+    result.push({ label, voicing })
+  }
+
+  return result.length ? result : [{ label: 'Open Position', voicing: tuning.map(() => null) }]
 }
 
 // ─── Chord Box SVG (vertical diagram) ────────────────────────────────────────
@@ -282,10 +303,19 @@ export default function ChordScaleExplorer() {
   const [instrKey,   setInstrKey]   = useState('guitar')
   const [mode,       setMode]       = useState('chord')
   const [root,       setRoot]       = useState('C')
+  const [useFlats,   setUseFlats]   = useState(false)
   const [chordType,  setChordType]  = useState('major')
   const [scaleType,  setScaleType]  = useState('major')
+  const [posIdx,     setPosIdx]     = useState(0)
 
   const instrument = INSTRUMENTS.find(i => i.key === instrKey)
+  const roots = useFlats ? ROOTS_FLAT : ROOTS_SHARP
+
+  function handleAccidentalToggle() {
+    const map = useFlats ? TO_SHARP : TO_FLAT
+    setRoot(r => map[r] ?? r)
+    setUseFlats(f => !f)
+  }
 
   const { notes, displayName } = useMemo(() => {
     if (mode === 'chord') {
@@ -302,10 +332,15 @@ export default function ChordScaleExplorer() {
     [instrument.tuning, notes]
   )
 
-  const voicing = useMemo(
-    () => mode === 'chord' ? getFirstVoicing(instrument.tuning, positions) : null,
+  const voicings = useMemo(
+    () => mode === 'chord' ? getAllVoicings(instrument.tuning, positions) : [],
     [mode, instrument.tuning, positions]
   )
+
+  useEffect(() => { setPosIdx(0) }, [root, chordType, instrKey])
+
+  const safeIdx = Math.min(posIdx, Math.max(0, voicings.length - 1))
+  const currentVoicing = voicings[safeIdx]
 
   const types       = mode === 'chord' ? CHORD_TYPES : SCALE_TYPES
   const selectedType = mode === 'chord' ? chordType : scaleType
@@ -354,9 +389,14 @@ export default function ChordScaleExplorer() {
 
           {/* Root note */}
           <div className="cse-control-group">
-            <label className="cse-label">Root Note</label>
+            <div className="cse-label-row">
+              <label className="cse-label">Root Note</label>
+              <button className="cse-accidental-toggle" onClick={handleAccidentalToggle}>
+                {useFlats ? '♭ Flats' : '♯ Sharps'}
+              </button>
+            </div>
             <div className="cse-root-grid">
-              {ROOTS.map(r => (
+              {roots.map(r => (
                 <button
                   key={r}
                   onClick={() => setRoot(r)}
@@ -400,10 +440,25 @@ export default function ChordScaleExplorer() {
             </div>
           </div>
           {/* Chord box — chord mode only */}
-          {mode === 'chord' && voicing && (
+          {mode === 'chord' && currentVoicing && (
             <div className="cse-chordbox-wrap">
-              <p className="cse-chordbox-label">First position</p>
-              <ChordBox tuning={instrument.tuning} voicing={voicing} />
+              <div className="cse-chordbox-nav">
+                <button
+                  className="cse-pos-arrow"
+                  onClick={() => setPosIdx(i => Math.max(0, i - 1))}
+                  disabled={safeIdx === 0}
+                >‹</button>
+                <span className="cse-chordbox-label">
+                  {currentVoicing.label} &nbsp;
+                  <span className="cse-pos-count">{safeIdx + 1} / {voicings.length}</span>
+                </span>
+                <button
+                  className="cse-pos-arrow"
+                  onClick={() => setPosIdx(i => Math.min(voicings.length - 1, i + 1))}
+                  disabled={safeIdx === voicings.length - 1}
+                >›</button>
+              </div>
+              <ChordBox tuning={instrument.tuning} voicing={currentVoicing.voicing} />
             </div>
           )}
 
