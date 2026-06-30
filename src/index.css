@@ -1532,6 +1532,294 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .rc-narrow .rsep        { margin: 0 5px; }
 
 /* ════════════════════════════════════════
+   TAB STUDIO  (.ts-*)
+   ════════════════════════════════════════ */
+
+.ts-page {
+  min-height: calc(100vh - 65px);
+  background: #f3f1ec;
+}
+
+/* Sticky header */
+.ts-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+.ts-header-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.ts-page-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem !important;
+  font-weight: 700;
+  margin: 0 !important;
+  color: var(--ink);
+}
+.ts-savebar { padding: 0 !important; }
+.ts-lib-status {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--lab);
+  padding-bottom: 0.1rem;
+}
+
+/* Content wrapper */
+.ts-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Cards */
+.ts-card {
+  background: #fff;
+  border: 1px solid #d2cfc9;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem 1.5rem;
+  box-shadow: 0 2px 14px rgba(0,0,0,.07);
+}
+.ts-card-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.67rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--lab);
+  margin-bottom: 1rem;
+}
+
+/* Controls row */
+.ts-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: flex-end;
+  margin-bottom: 1.25rem;
+}
+.ts-ctrl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.ts-ctrl-wide { flex: 1; min-width: 200px; }
+.ts-ctrl-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.67rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--val);
+}
+
+/* Segmented button */
+.ts-seg {
+  display: inline-flex;
+  border: 1px solid var(--ink);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.ts-seg-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s;
+}
+.ts-seg-btn.on { background: var(--ink); color: #fff; }
+.ts-seg-btn:not(.on):hover { background: #f5f4f2; }
+
+/* Stepper */
+.ts-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--ink);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.ts-step-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  line-height: 1;
+  transition: opacity 0.1s;
+}
+.ts-step-btn:hover { opacity: 0.8; }
+.ts-step-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-width: 28px;
+  text-align: center;
+  color: var(--ink);
+  background: #fff;
+  padding: 0 4px;
+}
+
+/* Inputs and selects */
+.ts-select,
+.ts-input {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #cdcac4;
+  border-radius: 6px;
+  background: #fdfcfa;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ts-select:focus,
+.ts-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(108,92,231,0.1);
+}
+.ts-tempo-input { width: 72px; }
+.ts-title-input { width: 100%; }
+
+/* Library name row */
+.ts-name-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 1rem;
+}
+.ts-name-input { width: 100%; max-width: 480px; }
+
+/* Fret grid */
+.ts-grid-wrap {
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 0.5rem;
+}
+.ts-grid-table {
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+/* Beat header */
+.ts-beat-hdr td {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--val);
+  text-align: left;
+  padding: 0 0 3px 1px;
+  vertical-align: bottom;
+}
+
+/* String rows */
+.ts-string-row td { padding: 2px 1px; vertical-align: middle; }
+.ts-string-label {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding-right: 8px !important;
+  text-align: right;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Separators */
+.ts-bar-sep      { width: 9px;  border-left: 2px solid #b9b6b0; }
+.ts-beat-sep     { width: 7px;  border-left: 1px solid var(--hair); }
+.ts-bar-sep-hdr  { width: 9px;  border-left: 2px solid #b9b6b0; }
+.ts-beat-sep-hdr { width: 7px;  border-left: 1px solid var(--hair); }
+
+/* Fret cells */
+.ts-cell { padding: 2px 1px; }
+.ts-cell-input {
+  width: 30px;
+  height: 28px;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border: 1px solid var(--hair);
+  border-radius: 5px;
+  background: #fdfcfa;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.1s, background 0.1s;
+  display: block;
+}
+.ts-cell-input:focus  { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 2px rgba(108,92,231,0.15); }
+.ts-cell-input.filled { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* Hint text */
+.ts-hint {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--lab);
+  line-height: 1.6;
+  margin-top: 0.5rem;
+}
+
+/* Player */
+.ts-player-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.ts-status {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--lab);
+}
+.ts-viewport {
+  overflow-x: auto;
+  min-height: 80px;
+  margin-top: 4px;
+}
+
+/* Export */
+.ts-export-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+}
+.ts-export-note {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  line-height: 1.65;
+  color: var(--val);
+  background: #f3f1ec;
+  border: 1px solid #e0ddd6;
+  border-radius: 7px;
+  padding: 0.75rem 0.875rem;
+}
+.ts-export-note strong { color: var(--ink); }
+
+@media (max-width: 600px) {
+  .ts-wrap { padding: 1rem 1rem 3rem; }
+  .ts-header-inner { padding: 0.65rem 1rem; }
+  .ts-controls { gap: 0.6rem 1rem; }
+}
+
+/* ════════════════════════════════════════
    PRINT STYLES
    ════════════════════════════════════════ */
 @media print {

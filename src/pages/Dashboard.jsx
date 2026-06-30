@@ -22,8 +22,9 @@ const tools = [
   {
     emoji: '🎼',
     title: 'Tab Builder',
-    description: 'Build and export guitar tabs.',
-    status: 'coming-soon',
+    description: 'Build bass and guitar tab riffs on a fret grid, hear them play back, and export as .tab.json or ASCII for your chord charts.',
+    status: 'ready',
+    href: '/studio/tab-studio',
   },
   {
     emoji: '📚',

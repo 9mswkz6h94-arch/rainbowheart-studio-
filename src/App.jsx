@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ChordCharts from './pages/ChordCharts'
+import TabStudio from './pages/TabStudio'
 import SetLists from './pages/SetLists'
 import SetListView from './pages/SetListView'
 import OpenMicPrivacy from './pages/OpenMicPrivacy'
@@ -29,6 +30,9 @@ export default function App() {
           } />
           <Route path="/studio/setlists" element={
             <ProtectedRoute><SetLists /></ProtectedRoute>
+          } />
+          <Route path="/studio/tab-studio" element={
+            <ProtectedRoute><TabStudio /></ProtectedRoute>
           } />
           <Route path="/setlist/:token" element={<SetListView />} />
           <Route path="/admin" element={
