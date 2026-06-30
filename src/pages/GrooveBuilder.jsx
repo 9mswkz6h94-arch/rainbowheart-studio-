@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { fetchGrooves, fetchGroove, saveGroove, deleteGroove } from '../lib/grooves'
 import { useAuth } from '../context/AuthContext'
-import { Renderer, Stave, StaveNote, GhostNote, Voice, Formatter, Beam } from 'vexflow'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -93,93 +92,124 @@ function groupBoundaries(beatGrouping, timeSig, feel) {
   return boundaries
 }
 
-// ── VexFlow renderer ─────────────────────────────────────────────────────────
+// ── SVG rhythm renderer ──────────────────────────────────────────────────────
 
 function renderNotation(container, rows, grid, timeSig, feel, beatGrouping) {
   if (!container) return
   container.innerHTML = ''
 
-  try {
-    const cols = calcColumns(timeSig, feel)
-    const spb  = subdivsPerBeat(timeSig.d, feel)
-    const rowCount = rows.length
+  const cols    = calcColumns(timeSig, feel)
+  const spb     = subdivsPerBeat(timeSig.d, feel)
 
-    const ROW_HEIGHT = 36
-    const WIDTH  = Math.max(600, cols * 28 + 120)
-    const HEIGHT = rowCount * ROW_HEIGHT + 40
+  const LABEL_W  = 36   // left label column
+  const TSIG_W   = 28   // time signature text area
+  const CELL_W   = 20   // px per subdivision column
+  const ROW_H    = 28   // px per instrument row
+  const PAD_TOP  = 8
+  const PAD_BOT  = 12
 
-    const renderer = new Renderer(container, Renderer.Backends.SVG)
-    renderer.resize(WIDTH, HEIGHT)
-    const ctx = renderer.getContext()
+  const trackW = cols * CELL_W
+  const totalW = LABEL_W + TSIG_W + trackW + 2  // +2 for closing barline
+  const totalH = rows.length * ROW_H + PAD_TOP + PAD_BOT
 
-    // First stave reserves time sig space; others match its note start x
-    let noteStartX = null
+  const ns = 'http://www.w3.org/2000/svg'
+  const svg = document.createElementNS(ns, 'svg')
+  svg.setAttribute('width',  totalW)
+  svg.setAttribute('height', totalH)
+  svg.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`)
+  svg.style.fontFamily = 'Arial, sans-serif'
 
-    // One single-line rhythm stave per instrument row
-    rows.forEach((instId, rowIdx) => {
-      const inst  = INSTRUMENTS.find(i => i.id === instId) || { short: instId }
-      const y     = rowIdx * ROW_HEIGHT + 10
-      const stave = new Stave(80, y, WIDTH - 100)
-      stave.setNumLines(1)
+  const trackX = LABEL_W + TSIG_W  // x where note columns begin
 
-      if (rowIdx === 0) {
-        stave.addTimeSignature(`${timeSig.n}/${timeSig.d}`)
-      } else if (noteStartX != null) {
-        stave.setNoteStartX(noteStartX)
-      }
-      stave.setContext(ctx).draw()
+  // Time signature (top row only)
+  const tsTop    = PAD_TOP + (ROW_H / 2) - ROW_H * rows.length / 2 + ROW_H * 0.5
+  const tsNumer  = document.createElementNS(ns, 'text')
+  tsNumer.setAttribute('x', LABEL_W + TSIG_W / 2)
+  tsNumer.setAttribute('y', PAD_TOP + ROW_H * 0.28)
+  tsNumer.setAttribute('text-anchor', 'middle')
+  tsNumer.setAttribute('font-size', '11')
+  tsNumer.setAttribute('font-weight', 'bold')
+  tsNumer.setAttribute('fill', '#2D3436')
+  tsNumer.textContent = timeSig.n
+  svg.appendChild(tsNumer)
 
-      if (rowIdx === 0) noteStartX = stave.getNoteStartX()
+  const tsDenom = document.createElementNS(ns, 'text')
+  tsDenom.setAttribute('x', LABEL_W + TSIG_W / 2)
+  tsDenom.setAttribute('y', PAD_TOP + ROW_H * 0.28 + 13)
+  tsDenom.setAttribute('text-anchor', 'middle')
+  tsDenom.setAttribute('font-size', '11')
+  tsDenom.setAttribute('font-weight', 'bold')
+  tsDenom.setAttribute('fill', '#2D3436')
+  tsDenom.textContent = timeSig.d
+  svg.appendChild(tsDenom)
 
-      // Label
-      ctx.save()
-      ctx.setFont('Arial', 10, 'normal')
-      ctx.fillText(inst.short, 4, y + 18)
-      ctx.restore()
+  // Beat group boundary columns (for barline-style separators)
+  const beatBoundaries = new Set()
+  let bCol = 0
+  beatGrouping.forEach(beats => { beatBoundaries.add(bCol); bCol += beats * spb })
+  beatBoundaries.add(cols) // closing barline
 
-      // Build notes for this row
-      const hits = grid[instId] || Array(cols).fill(0)
+  rows.forEach((instId, rowIdx) => {
+    const inst = INSTRUMENTS.find(i => i.id === instId) || { short: instId }
+    const rowY = PAD_TOP + rowIdx * ROW_H
+    const lineY = rowY + ROW_H * 0.6  // vertical centre of the row
 
-      // Group columns into beat groups
-      const notes = []
-      let colIdx = 0
+    // Instrument label
+    const lbl = document.createElementNS(ns, 'text')
+    lbl.setAttribute('x', LABEL_W - 4)
+    lbl.setAttribute('y', lineY + 4)
+    lbl.setAttribute('text-anchor', 'end')
+    lbl.setAttribute('font-size', '10')
+    lbl.setAttribute('fill', '#636E72')
+    lbl.textContent = inst.short
+    svg.appendChild(lbl)
 
-      beatGrouping.forEach(beats => {
-        const groupCols = beats * spb
-        for (let c = 0; c < groupCols; c++, colIdx++) {
-          const hit = hits[colIdx] || 0
-          // Duration: each column = one subdivision
-          // In straight /4: col = 16th. In triplet /4: col = 16th-triplet
-          const dur = feel === 'straight'
-            ? (spb === 4 ? '16' : '8')
-            : '16'
+    // Rhythm line
+    const line = document.createElementNS(ns, 'line')
+    line.setAttribute('x1', trackX)
+    line.setAttribute('x2', trackX + trackW)
+    line.setAttribute('y1', lineY)
+    line.setAttribute('y2', lineY)
+    line.setAttribute('stroke', '#B2BEC3')
+    line.setAttribute('stroke-width', '1')
+    svg.appendChild(line)
 
-          const note = hit
-            ? new StaveNote({ clef: 'percussion', keys: ['c/5'], duration: dur, note_type: 'x' })
-                .setStyle({ fillStyle: '#2D3436', strokeStyle: '#2D3436' })
-            : new GhostNote({ duration: dur })
-
-          notes.push(note)
-        }
-      })
-
-      if (notes.length === 0) return
-
-      const voice = new Voice({
-        num_beats: timeSig.n,
-        beat_value: timeSig.d,
-      }).setStrict(false)
-      voice.addTickables(notes)
-
-      new Formatter().joinVoices([voice]).format([voice], WIDTH - 120)
-
-      const beams = Beam.generateBeams(notes.filter(n => n instanceof StaveNote))
-      voice.draw(ctx, stave)
-      beams.forEach(b => b.setContext(ctx).draw())
+    // Beat group separators (thin vertical ticks above the line)
+    beatBoundaries.forEach(bc => {
+      const x = trackX + bc * CELL_W
+      const sep = document.createElementNS(ns, 'line')
+      const isFull = bc === 0 || bc === cols
+      sep.setAttribute('x1', x); sep.setAttribute('x2', x)
+      sep.setAttribute('y1', lineY - (isFull ? 8 : 5))
+      sep.setAttribute('y2', lineY + (isFull ? 4 : 3))
+      sep.setAttribute('stroke', isFull ? '#636E72' : '#B2BEC3')
+      sep.setAttribute('stroke-width', isFull ? '1.5' : '1')
+      svg.appendChild(sep)
     })
-  } catch (err) {
-    console.error('VexFlow render error:', err)
-  }
+
+    // Hit marks (X shape)
+    const hits = grid[instId] || Array(cols).fill(0)
+    hits.forEach((hit, colIdx) => {
+      if (!hit) return
+      const cx = trackX + colIdx * CELL_W + CELL_W / 2
+      const cy = lineY
+      const r  = 3.5
+      const x1 = document.createElementNS(ns, 'line')
+      x1.setAttribute('x1', cx - r); x1.setAttribute('y1', cy - r)
+      x1.setAttribute('x2', cx + r); x1.setAttribute('y2', cy + r)
+      x1.setAttribute('stroke', '#2D3436'); x1.setAttribute('stroke-width', '1.8')
+      x1.setAttribute('stroke-linecap', 'round')
+      svg.appendChild(x1)
+      const x2 = document.createElementNS(ns, 'line')
+      x2.setAttribute('x1', cx + r); x2.setAttribute('y1', cy - r)
+      x2.setAttribute('x2', cx - r); x2.setAttribute('y2', cy + r)
+      x2.setAttribute('stroke', '#2D3436'); x2.setAttribute('stroke-width', '1.8')
+      x2.setAttribute('stroke-linecap', 'round')
+      svg.appendChild(x2)
+    })
+  })
+
+  container.appendChild(svg)
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
