@@ -2100,6 +2100,35 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
 .cse-hint { margin-top: 0.75rem; font-size: 0.78rem; color: var(--text-muted); }
 
+/* Chord box */
+.cse-chordbox-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.cse-chordbox-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.cse-chordbox {
+  width: auto;
+  height: 160px;
+  display: block;
+  overflow: visible;
+}
+
+.cse-cb-mute  { font-size: 11px; fill: #b2bec3; font-family: 'Space Mono', monospace; dominant-baseline: middle; }
+.cse-cb-open  { fill: none; stroke: #636e72; stroke-width: 2; }
+.cse-cb-open-root { fill: none; stroke: var(--primary); stroke-width: 2.5; }
+
 .cse-nut         { stroke: var(--text); stroke-width: 4; stroke-linecap: round; }
 .cse-fret-line   { stroke: #ced6e0; stroke-width: 1.5; }
 .cse-string-line { stroke: #b2bec3; stroke-width: 1.5; }

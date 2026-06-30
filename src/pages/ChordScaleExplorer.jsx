@@ -78,6 +78,88 @@ function getPositions(tuning, notes) {
   })
 }
 
+// ─── First-position voicing (one dot per string, frets 0–4) ──────────────────
+function getFirstVoicing(tuning, positions) {
+  return tuning.map((_, stringIdx) => {
+    const candidates = positions
+      .filter(p => p.string === stringIdx && p.fret <= 4)
+      .sort((a, b) => a.fret - b.fret)
+    return candidates[0] ?? null  // null = muted
+  })
+}
+
+// ─── Chord Box SVG (vertical diagram) ────────────────────────────────────────
+const CB_SW = 26   // string spacing
+const CB_FH = 24   // fret height
+const CB_LP = 18   // left pad
+const CB_RP = 18   // right pad
+const CB_TP = 26   // top pad (O/X markers)
+const CB_BP = 14   // bottom pad
+const CB_FRETS = 4
+const CB_DOT_R = 9
+
+function ChordBox({ tuning, voicing }) {
+  const n    = tuning.length
+  const svgW = CB_LP + (n - 1) * CB_SW + CB_RP
+  const svgH = CB_TP + CB_FRETS * CB_FH + CB_BP
+
+  const sx = i => CB_LP + i * CB_SW
+  const fy = f => CB_TP + f * CB_FH
+
+  // Figure out if we need a fret offset (chord has no notes in 0-4)
+  // For now always show from fret 0
+
+  return (
+    <svg viewBox={`0 0 ${svgW} ${svgH}`} className="cse-chordbox" aria-label="Chord diagram">
+      {/* Nut */}
+      <line x1={sx(0)} y1={fy(0)} x2={sx(n-1)} y2={fy(0)} className="cse-nut" />
+
+      {/* Fret lines */}
+      {Array.from({ length: CB_FRETS }, (_, f) => (
+        <line key={f} x1={sx(0)} y1={fy(f+1)} x2={sx(n-1)} y2={fy(f+1)} className="cse-fret-line" />
+      ))}
+
+      {/* String lines */}
+      {tuning.map((_, i) => (
+        <line key={i} x1={sx(i)} y1={fy(0)} x2={sx(i)} y2={fy(CB_FRETS)} className="cse-string-line" />
+      ))}
+
+      {/* String name labels at bottom */}
+      {tuning.map((openNote, i) => (
+        <text key={i} x={sx(i)} y={svgH - 2} textAnchor="middle" className="cse-fret-num">
+          {Note.pitchClass(openNote)}
+        </text>
+      ))}
+
+      {/* Voicing dots / O / X */}
+      {voicing.map((pos, i) => {
+        if (!pos) {
+          return (
+            <text key={i} x={sx(i)} y={CB_TP - 8} textAnchor="middle" className="cse-cb-mute">✕</text>
+          )
+        }
+        if (pos.fret === 0) {
+          return (
+            <circle key={i} cx={sx(i)} cy={CB_TP - 12} r={6}
+              className={pos.isRoot ? 'cse-cb-open-root' : 'cse-cb-open'} />
+          )
+        }
+        const cy = fy(pos.fret) - CB_FH / 2
+        return (
+          <g key={i}>
+            <circle cx={sx(i)} cy={cy} r={CB_DOT_R}
+              className={pos.isRoot ? 'cse-dot-root' : 'cse-dot'} />
+            <text x={sx(i)} y={cy + 4} textAnchor="middle"
+              className={pos.isRoot ? 'cse-dot-text-root' : 'cse-dot-text'}>
+              {pos.note}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 // ─── Fretboard SVG ────────────────────────────────────────────────────────────
 function Fretboard({ tuning, positions }) {
   const n     = tuning.length
@@ -220,6 +302,11 @@ export default function ChordScaleExplorer() {
     [instrument.tuning, notes]
   )
 
+  const voicing = useMemo(
+    () => mode === 'chord' ? getFirstVoicing(instrument.tuning, positions) : null,
+    [mode, instrument.tuning, positions]
+  )
+
   const types       = mode === 'chord' ? CHORD_TYPES : SCALE_TYPES
   const selectedType = mode === 'chord' ? chordType : scaleType
   const setType     = mode === 'chord' ? setChordType : setScaleType
@@ -312,6 +399,14 @@ export default function ChordScaleExplorer() {
               )}
             </div>
           </div>
+          {/* Chord box — chord mode only */}
+          {mode === 'chord' && voicing && (
+            <div className="cse-chordbox-wrap">
+              <p className="cse-chordbox-label">First position</p>
+              <ChordBox tuning={instrument.tuning} voicing={voicing} />
+            </div>
+          )}
+
           <div className="cse-fretboard-scroll">
             <Fretboard tuning={instrument.tuning} positions={positions} />
           </div>
