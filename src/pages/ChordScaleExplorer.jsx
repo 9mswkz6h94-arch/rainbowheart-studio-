@@ -120,22 +120,36 @@ const CB_FRETS = 4
 const CB_DOT_R = 9
 
 function ChordBox({ tuning, voicing }) {
-  const n    = tuning.length
-  const svgW = CB_LP + (n - 1) * CB_SW + CB_RP
+  const n = tuning.length
+
+  // Compute fret offset so dots sit within the 4-row grid
+  const frettedFrets = voicing.filter(p => p && p.fret > 0).map(p => p.fret)
+  const minFret  = frettedFrets.length ? Math.min(...frettedFrets) : 0
+  const offset   = Math.max(0, minFret - 1)   // row 1 = minFret
+  const isOpen   = offset === 0
+
+  const rPad = isOpen ? CB_RP : 36             // extra room for fret label
+  const svgW = CB_LP + (n - 1) * CB_SW + rPad
   const svgH = CB_TP + CB_FRETS * CB_FH + CB_BP
 
   const sx = i => CB_LP + i * CB_SW
   const fy = f => CB_TP + f * CB_FH
 
-  // Figure out if we need a fret offset (chord has no notes in 0-4)
-  // For now always show from fret 0
-
   return (
     <svg viewBox={`0 0 ${svgW} ${svgH}`} className="cse-chordbox" aria-label="Chord diagram">
-      {/* Nut */}
-      <line x1={sx(0)} y1={fy(0)} x2={sx(n-1)} y2={fy(0)} className="cse-nut" />
+      {/* Top line: thick nut when open, regular fret line otherwise */}
+      <line x1={sx(0)} y1={fy(0)} x2={sx(n-1)} y2={fy(0)}
+        className={isOpen ? 'cse-nut' : 'cse-fret-line'} />
 
-      {/* Fret lines */}
+      {/* Fret number label (non-open positions) */}
+      {!isOpen && (
+        <text x={sx(n-1) + 6} y={fy(1) - CB_FH / 2 + 4}
+          className="cse-fret-num" textAnchor="start">
+          {minFret}fr
+        </text>
+      )}
+
+      {/* Remaining fret lines */}
       {Array.from({ length: CB_FRETS }, (_, f) => (
         <line key={f} x1={sx(0)} y1={fy(f+1)} x2={sx(n-1)} y2={fy(f+1)} className="cse-fret-line" />
       ))}
@@ -152,20 +166,18 @@ function ChordBox({ tuning, voicing }) {
         </text>
       ))}
 
-      {/* Voicing dots / O / X */}
+      {/* Voicing: X / open circle / fretted dot */}
       {voicing.map((pos, i) => {
-        if (!pos) {
-          return (
-            <text key={i} x={sx(i)} y={CB_TP - 8} textAnchor="middle" className="cse-cb-mute">✕</text>
-          )
-        }
-        if (pos.fret === 0) {
-          return (
-            <circle key={i} cx={sx(i)} cy={CB_TP - 12} r={6}
-              className={pos.isRoot ? 'cse-cb-open-root' : 'cse-cb-open'} />
-          )
-        }
-        const cy = fy(pos.fret) - CB_FH / 2
+        if (!pos) return (
+          <text key={i} x={sx(i)} y={CB_TP - 8} textAnchor="middle" className="cse-cb-mute">✕</text>
+        )
+        if (pos.fret === 0) return (
+          <circle key={i} cx={sx(i)} cy={CB_TP - 12} r={6}
+            className={pos.isRoot ? 'cse-cb-open-root' : 'cse-cb-open'} />
+        )
+        // Offset dot into the visible 4-row window
+        const row = pos.fret - offset
+        const cy  = fy(row) - CB_FH / 2
         return (
           <g key={i}>
             <circle cx={sx(i)} cy={cy} r={CB_DOT_R}
