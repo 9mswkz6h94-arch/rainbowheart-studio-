@@ -14,6 +14,7 @@ import OpenMicPrivacy from './pages/OpenMicPrivacy'
 import OpenMicTerms from './pages/OpenMicTerms'
 import Admin from './pages/Admin'
 import GrooveBuilder from './pages/GrooveBuilder'
+import GrooveSheet from './pages/GrooveSheet'
 
 export default function App() {
   return (
@@ -37,6 +38,9 @@ export default function App() {
           } />
           <Route path="/studio/groove-builder" element={
             <ProtectedRoute><GrooveBuilder /></ProtectedRoute>
+          } />
+          <Route path="/studio/groove-sheet" element={
+            <ProtectedRoute><GrooveSheet /></ProtectedRoute>
           } />
           <Route path="/setlist/:token" element={<SetListView />} />
           <Route path="/admin" element={

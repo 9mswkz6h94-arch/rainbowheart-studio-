@@ -34,6 +34,13 @@ const tools = [
     href: '/studio/groove-builder',
   },
   {
+    emoji: '📄',
+    title: 'Groove Sheet',
+    description: 'Compile saved grooves into a printable drum chart for a song. Reorder, annotate, and print a clean sheet for rehearsal.',
+    status: 'ready',
+    href: '/studio/groove-sheet',
+  },
+  {
     emoji: '📚',
     title: 'Heart Beats Practice App',
     description: 'Daily practice cards, streaks, badges, and lesson tracking for your students.',
