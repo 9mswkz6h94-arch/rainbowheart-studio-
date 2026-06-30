@@ -27,6 +27,13 @@ const tools = [
     href: '/studio/tab-studio',
   },
   {
+    emoji: '🥁',
+    title: 'Groove Builder',
+    description: 'Capture drum grooves on a click grid — straight or triplet feel, any time signature, 1–5 instrument rows. Save and browse your groove library.',
+    status: 'ready',
+    href: '/studio/groove-builder',
+  },
+  {
     emoji: '📚',
     title: 'Heart Beats Practice App',
     description: 'Daily practice cards, streaks, badges, and lesson tracking for your students.',

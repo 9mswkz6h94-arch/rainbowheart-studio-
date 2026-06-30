@@ -13,6 +13,7 @@ import SetListView from './pages/SetListView'
 import OpenMicPrivacy from './pages/OpenMicPrivacy'
 import OpenMicTerms from './pages/OpenMicTerms'
 import Admin from './pages/Admin'
+import GrooveBuilder from './pages/GrooveBuilder'
 
 export default function App() {
   return (
@@ -33,6 +34,9 @@ export default function App() {
           } />
           <Route path="/studio/tab-studio" element={
             <ProtectedRoute><TabStudio /></ProtectedRoute>
+          } />
+          <Route path="/studio/groove-builder" element={
+            <ProtectedRoute><GrooveBuilder /></ProtectedRoute>
           } />
           <Route path="/setlist/:token" element={<SetListView />} />
           <Route path="/admin" element={
