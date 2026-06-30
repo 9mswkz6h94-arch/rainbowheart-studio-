@@ -1,4 +1,4 @@
-/* ── Reset ── */
+﻿/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -1538,6 +1538,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .ts-page {
   min-height: calc(100vh - 65px);
   background: #f3f1ec;
+  font-family: 'OpenDyslexic Mono', monospace;
 }
 
 /* Sticky header */
@@ -1557,7 +1558,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   gap: 0.35rem;
 }
 .ts-page-title {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 1rem !important;
   font-weight: 700;
   margin: 0 !important;
@@ -1565,7 +1566,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 .ts-savebar { padding: 0 !important; }
 .ts-lib-status {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.68rem;
   color: var(--lab);
   padding-bottom: 0.1rem;
@@ -1590,7 +1591,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   box-shadow: 0 2px 14px rgba(0,0,0,.07);
 }
 .ts-card-label {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.67rem;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -1613,7 +1614,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 .ts-ctrl-wide { flex: 1; min-width: 200px; }
 .ts-ctrl-label {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.67rem;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -1628,7 +1629,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   overflow: hidden;
 }
 .ts-seg-btn {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 0.4rem 0.75rem;
@@ -1652,7 +1653,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   overflow: hidden;
 }
 .ts-step-btn {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 1rem;
   font-weight: 700;
   width: 30px;
@@ -1666,7 +1667,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 .ts-step-btn:hover { opacity: 0.8; }
 .ts-step-val {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.82rem;
   font-weight: 700;
   min-width: 28px;
@@ -1679,7 +1680,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 /* Inputs and selects */
 .ts-select,
 .ts-input {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.78rem;
   padding: 0.4rem 0.6rem;
   border: 1px solid #cdcac4;
@@ -1719,7 +1720,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
 /* Beat header */
 .ts-beat-hdr td {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.65rem;
   font-weight: 700;
   color: var(--val);
@@ -1731,7 +1732,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 /* String rows */
 .ts-string-row td { padding: 2px 1px; vertical-align: middle; }
 .ts-string-label {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-weight: 700;
   font-size: 0.82rem;
   padding-right: 8px !important;
@@ -1752,7 +1753,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   width: 30px;
   height: 28px;
   text-align: center;
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-weight: 700;
   font-size: 0.82rem;
   border: 1px solid var(--hair);
@@ -1768,7 +1769,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
 /* Hint text */
 .ts-hint {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.68rem;
   color: var(--lab);
   line-height: 1.6;
@@ -1784,7 +1785,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   margin-bottom: 0.75rem;
 }
 .ts-status {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.72rem;
   color: var(--lab);
 }
@@ -1802,7 +1803,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   margin-bottom: 0.875rem;
 }
 .ts-export-note {
-  font-family: 'Space Mono', monospace;
+  font-family: 'OpenDyslexic Mono', monospace;
   font-size: 0.72rem;
   line-height: 1.65;
   color: var(--val);
