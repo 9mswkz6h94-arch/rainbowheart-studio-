@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -10,6 +11,7 @@ import SetLists from './pages/SetLists'
 import SetListView from './pages/SetListView'
 import OpenMicPrivacy from './pages/OpenMicPrivacy'
 import OpenMicTerms from './pages/OpenMicTerms'
+import Admin from './pages/Admin'
 
 export default function App() {
   return (
@@ -29,6 +31,9 @@ export default function App() {
             <ProtectedRoute><SetLists /></ProtectedRoute>
           } />
           <Route path="/setlist/:token" element={<SetListView />} />
+          <Route path="/admin" element={
+            <AdminRoute><Admin /></AdminRoute>
+          } />
           <Route path="/privacy/open-mic" element={<OpenMicPrivacy />} />
           <Route path="/terms/open-mic" element={<OpenMicTerms />} />
         </Routes>

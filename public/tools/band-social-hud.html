@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Band Social HUD</title>
+<link href="https://cdn.jsdelivr.net/npm/opendyslexic@0.0.3/OpenDyslexic.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'OpenDyslexic',Georgia,serif;background:#0a0a0a;color:#eeeeee;padding:14px;font-size:15px;line-height:1.55;}
+:root{--bg:#0a0a0a;--card:#141414;--card2:#0f0f0f;--border:#242424;--fb:#4a9eff;--green:#00e676;--yellow:#ffd740;--purple:#b57bee;--teal:#2dd4bf;--amber:#fbbf24;--dim:#777;}
+
+.hdr{background:var(--card);border:2px solid #2a2a2a;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;}
+.hdr-title{font-size:1.25rem;font-weight:bold;letter-spacing:.5px;}
+.hdr-date{font-size:.78rem;color:var(--dim);border:1px solid #2a2a2a;border-radius:20px;padding:3px 10px;}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px;}
+.tab{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:2px solid;font-family:'OpenDyslexic',serif;font-size:.77rem;cursor:pointer;background:none;transition:all .15s;}
+.tab-fb{border-color:var(--fb);background:#0a2040;color:#fff;}
+.tab-lock{border-color:var(--border);color:#3a3a3a;cursor:not-allowed;}
+.soon{font-size:.55rem;background:#1a1a1a;color:#444;border:1px solid #2a2a2a;border-radius:3px;padding:1px 4px;}
+
+.prog-wrap{background:var(--card);border:2px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:11px;}
+.prog-row{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:6px;}
+.prog-lbl{color:#ccc;font-weight:bold;}
+.prog-val{color:var(--dim);}
+.prog-bg{background:#1e1e1e;border-radius:5px;height:13px;overflow:hidden;border:1px solid var(--border);}
+.prog-fill{height:100%;background:linear-gradient(90deg,#00b09b,#00e676);border-radius:5px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+
+.card{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:14px;margin-bottom:11px;}
+.card-title{font-size:.95rem;font-weight:bold;color:#fff;padding-bottom:9px;border-bottom:2px solid #1a1a1a;margin-bottom:12px;}
+
+.show-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:540px){.show-grid{grid-template-columns:1fr;}}
+.fw label{display:block;font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;}
+.fw input{width:100%;background:var(--card2);border:2px solid var(--border);border-radius:6px;color:#eee;padding:8px 10px;font-family:'OpenDyslexic',serif;font-size:.84rem;transition:border-color .15s;}
+.fw input:focus{outline:none;border-color:var(--fb);}
+.fw input::placeholder{color:#333;}
+.span2{grid-column:1/-1;}
+
+.cap-box{background:var(--card2);border:2px solid var(--border);border-radius:8px;padding:12px;font-size:.86rem;line-height:1.95;color:#ccc;margin-bottom:9px;min-height:130px;}
+.cv{background:#1a3050;border:1px solid var(--fb);color:var(--fb);border-radius:3px;padding:1px 5px;font-size:.82em;font-style:italic;}
+.cp-btn{width:100%;background:var(--fb);color:#fff;border:none;border-radius:8px;padding:11px;font-family:'OpenDyslexic',serif;font-size:.88rem;font-weight:bold;cursor:pointer;transition:background .15s;}
+.cp-btn:hover{background:#2563eb;}
+.cp-ok{display:none;text-align:center;font-size:.78rem;color:var(--green);margin-top:6px;}
+
+.sec-block{margin-bottom:14px;}
+.sec-hdr{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.84rem;font-weight:bold;border-bottom:1px solid #1a1a1a;margin-bottom:7px;}
+.sec-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.sec-cnt{margin-left:auto;font-size:.68rem;color:var(--dim);background:var(--card2);border:1px solid var(--border);padding:2px 8px;border-radius:10px;}
+
+.cl-item{border:2px solid var(--border);border-radius:8px;margin-bottom:6px;overflow:hidden;transition:border-color .2s;}
+.cl-item.done{border-color:#1b3a2a;}
+.cl-main{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--card2);cursor:pointer;user-select:none;transition:background .15s;}
+.cl-main:hover{background:#151515;}
+.cl-item.done .cl-main{background:#0a110d;}
+.cl-chk{width:22px;height:22px;border:3px solid #3a3a3a;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;}
+.cl-chk.on{background:var(--green);border-color:var(--green);color:#000;}
+.cl-n{font-size:.7rem;color:#444;flex-shrink:0;min-width:17px;}
+.cl-t{flex:1;font-size:.87rem;line-height:1.4;}
+.cl-item.done .cl-t{text-decoration:line-through;color:#454545;}
+.asgn{flex-shrink:0;padding:3px 8px;border-radius:10px;font-size:.66rem;border:1px solid;cursor:pointer;user-select:none;transition:all .15s;}
+.a0{background:#111;border-color:#2a2a2a;color:#555;}
+.a1{background:#18072e;border-color:#7c3aed;color:#c4b5fd;}
+.a2{background:#041a1a;border-color:#0d9488;color:#5eead4;}
+.a3{background:#1c1000;border-color:#d97706;color:#fcd34d;}
+.exp-btn{background:none;border:none;color:#3a3a3a;font-size:.85rem;cursor:pointer;padding:0 3px;flex-shrink:0;transition:transform .2s,color .15s;}
+.exp-btn.on{transform:rotate(180deg);color:#777;}
+.cl-det{display:none;background:#080808;border-top:1px solid #1a1a1a;padding:11px;}
+.cl-det.on{display:block;}
+.i-lbl{font-size:.66rem;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
+.i-text{font-size:.82rem;color:#bbb;line-height:1.8;background:var(--card2);border:1px solid #1a1a1a;border-radius:6px;padding:10px;margin-bottom:9px;}
+.n-lbl{font-size:.66rem;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.n-area{width:100%;background:var(--card2);border:2px solid #1a1a1a;border-radius:6px;color:#ddd;padding:7px;font-family:'OpenDyslexic',serif;font-size:.8rem;resize:vertical;min-height:46px;}
+.n-area:focus{outline:none;border-color:var(--fb);}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-title">🎵 Band Social HUD</div>
+  <div class="hdr-date" id="hdr-date"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab tab-fb">📘 Facebook</button>
+  <button class="tab tab-lock">🎵 TikTok <span class="soon">SOON</span></button>
+  <button class="tab tab-lock">📸 Instagram <span class="soon">SOON</span></button>
+  <button class="tab tab-lock">▶️ YouTube <span class="soon">SOON</span></button>
+  <button class="tab tab-lock">✉️ Email <span class="soon">SOON</span></button>
+  <button class="tab tab-lock">🧡 Patreon <span class="soon">SOON</span></button>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-row">
+    <span class="prog-lbl">📊 Checklist Progress</span>
+    <span class="prog-val" id="prog-val">0 / 18 steps done</span>
+  </div>
+  <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+</div>
+
+<div class="card">
+  <div class="card-title">📅 This Weekend's Show Details</div>
+  <div class="show-grid">
+    <div class="fw"><label>Band / Act Name</label><input id="f-band" type="text" placeholder="e.g. Rainbow Heart" oninput="updateCap()"></div>
+    <div class="fw"><label>Show Date</label><input id="f-date" type="text" placeholder="e.g. Saturday, July 5th" oninput="updateCap()"></div>
+    <div class="fw"><label>Show Time</label><input id="f-time" type="text" placeholder="e.g. 9:00 PM" oninput="updateCap()"></div>
+    <div class="fw"><label>Doors Open</label><input id="f-doors" type="text" placeholder="e.g. 8:00 PM" oninput="updateCap()"></div>
+    <div class="fw"><label>Venue Name</label><input id="f-venue" type="text" placeholder="e.g. The Roxy" oninput="updateCap()"></div>
+    <div class="fw"><label>Venue City</label><input id="f-city" type="text" placeholder="e.g. Nashville, TN" oninput="updateCap()"></div>
+    <div class="fw span2"><label>Ticket / Event Link</label><input id="f-tix" type="url" placeholder="https://..." oninput="updateCap()"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">✍️ Caption Builder</div>
+  <div class="cap-box" id="cap-out"></div>
+  <button class="cp-btn" onclick="copyCap()">📋 Copy Caption to Clipboard</button>
+  <div class="cp-ok" id="cp-ok">✓ Copied to clipboard!</div>
+</div>
+
+<div class="card">
+  <div class="card-title">✅ Facebook Post Checklist</div>
+  <div id="cl-root"></div>
+</div>
+
+<script>
+const AS = ['a0','a1','a2','a3'];
+const AL = {a0:'— assign',a1:'👤 Me',a2:'💎 Crystal',a3:'🤖 Claude'};
+
+const SECS = [
+  {title:'Before You Write Anything',color:'#4299ff',items:[
+    {id:'i01',t:'Confirm all show details are 100% accurate',ins:`✋ STOP — do this BEFORE writing anything else!\n\n1. Check texts or emails from the venue — verify date, start time, and address.\n2. Open your band calendar and confirm the show is on there.\n3. Double-check if anything changed since booking (time moved? different door policy?).\n4. Write the details down or keep them open in another tab.\n\n⚠️ Posting wrong details is embarrassing and hard to fully undo once shared.`},
+    {id:'i02',t:"Find the venue's Facebook page URL",ins:`1. Open Facebook and search for the venue name.\n2. Click their official Page in the results.\n3. Copy the URL from your browser's address bar.\n4. Paste it in the Notes field below — you'll need it to tag them.\n\n💡 Tagging the venue means their followers may see your post too. Free extra reach!`},
+    {id:'i03',t:'Get your ticket link ready and test it',ins:`1. Log in to your ticketing platform (Eventbrite, Bandsintown, etc.)\n2. Find the event and copy the direct ticket link.\n3. Open the link in a private/incognito browser tab to make sure it works.\n4. Paste the working link into the Show Details card above.\n\nDoor-only show? Write "Tickets at the door" — no link needed.\nHave a Facebook Event? Grab that link too.`},
+  ]},
+  {title:'Create Your Post Content',color:'#ffd740',items:[
+    {id:'i04',t:'Choose or create your show graphic / photo',ins:`You need one good image. Your options:\n\n🖼️ Recent band photo — pick your best one from your phone or drive\n🎨 Make a graphic in Canva (free at canva.com)\n   → Search "Facebook Event" template\n   → Swap in band name, venue, date\n   → Download as JPG\n\n📐 Best size for Facebook: 1200 × 630 pixels\n⚠️ Small or blurry images look unprofessional.\n\n💡 Save the image to your Desktop so it's easy to find when uploading.`},
+    {id:'i05',t:'Fill in the Caption Builder above',ins:`1. Scroll up to "This Weekend's Show Details."\n2. Fill in EVERY field — band name, date, time, doors, venue, city, ticket link.\n3. Watch the Caption Builder update automatically as you type.\n4. Read the caption out loud — does it sound like you? Edit freely!\n5. Click "Copy Caption to Clipboard" when it looks good.\n\n📝 Keep it under 3 short paragraphs — people skim on Facebook.\n💜 "Who's coming?" at the end invites comments, which boosts reach!`},
+  ]},
+  {title:'Set Up the Facebook Post',color:'#a855f7',items:[
+    {id:'i06',t:"Log in to Facebook — switch to the BAND PAGE",ins:`⚠️ #1 most common mistake — posting from personal instead of band page!\n\n1. Go to facebook.com and log in.\n2. Click your profile picture (top right).\n3. Look for "Switch Profile" or "Pages."\n4. Click your band's Page name.\n5. Confirm the name shown at the top is the BAND, not you personally.\n\n❌ If you see your own name, you're still on your personal profile — go back and switch!`},
+    {id:'i07',t:'Open a new post on your band page',ins:`1. On your band Page, click the "What's on your mind?" box near the top.\n2. (Or click "Create Post" if you see that button.)\n3. The post creation box will open.\n\n💡 If you don't see a way to post, you're probably still on your personal profile. Do the step above first!`},
+    {id:'i08',t:'Paste your caption into the post box',ins:`1. Click inside the text area of the post.\n2. Paste: Ctrl+V (Windows) or Cmd+V (Mac).\n3. Read through it ONE MORE TIME:\n   ✅ Correct date and day of week?\n   ✅ Correct show time?\n   ✅ Correct venue name and city?\n   ✅ Ticket link included?\n4. Fix anything wrong before moving on.`},
+    {id:'i09',t:'Upload your show graphic or photo',ins:`1. Click the photo icon at the bottom of the post box.\n2. Find and select the show image you saved earlier.\n3. Wait for it to finish uploading — you'll see a preview.\n4. Check the preview: clear and not weirdly cropped?\n\n💡 If it looks stretched or cut off, try resizing to 1200×630 first.`},
+    {id:'i10',t:'Tag the venue in the caption',ins:`1. In the caption text, find where you wrote the venue name.\n2. Delete the venue name.\n3. Type @ and then the venue name (e.g. @TheRoxy).\n4. A dropdown will appear — click the correct venue Page.\n5. The venue name turns blue = it's linked!\n\n💡 If venue doesn't appear in dropdown, just type the name normally — that's fine.\n🚫 Only tag the actual venue where you're playing.`},
+    {id:'i11',t:'Make sure the audience is set to PUBLIC',ins:`1. Look for the audience setting inside the post box — might say "Friends," "Public," or show a globe icon.\n2. Click it.\n3. Choose "Public."\n4. You should see a globe 🌍 icon.\n\n⚠️ If set to "Friends Only," only your personal friends see it — not fans of the band page. Very easy setting to miss!`},
+  ]},
+  {title:'Review & Publish',color:'#00e676',items:[
+    {id:'i12',t:'Get Crystal or a bandmate to review the post',ins:`1. Show them the post draft on your screen, OR\n   Take a screenshot and send it via text.\n2. Ask them to check specifically:\n   • Is the date correct?\n   • Is the time correct?\n   • Is the venue spelled right?\n   • Does the ticket link work?\n   • Any typos or weird wording?\n3. Make any corrections they catch.\n\n🧠 Two AUDHD brains catch more than one. This step takes 2 minutes and is totally worth it!`},
+    {id:'i13',t:'Publish or schedule the post',ins:`OPTION A — POST NOW:\n1. Click the blue "Post" button.\n2. Watch it appear on your Page's timeline.\n3. You did it! 🙌\n\nOPTION B — SCHEDULE IT (recommended if posting in advance):\n1. Click the small arrow next to "Post."\n2. Select "Schedule Post."\n3. Choose your date and time.\n   → Best times: Tue–Thu, 9–11am OR 7–9pm local time\n4. Confirm the schedule.\n\n📱 Post at least 5–7 days before the show for best reach.`},
+    {id:'i14',t:'Pin the post to the top of your Page',ins:`1. Find the just-published post on your band Page.\n2. Click the three dots (...) in the top-right corner of the post.\n3. Select "Pin to top of Page."\n4. Post should now show a 📌 pin icon and appear first on your Page.\n\n💡 Anyone visiting your Page will see the show info immediately, even if you post other content before the show.`},
+  ]},
+  {title:'After You Post',color:'#2dd4bf',items:[
+    {id:'i15',t:'Both band members share it to their personal profiles',ins:`1. Both YOU and CRYSTAL share the band Page post to your personal timelines.\n2. Click "Share" under the post → "Share to your timeline."\n3. Optional: add a personal line like "So pumped for this one! 💜"\n\n📢 Personal shares reach completely different audiences than the band page — doubles your reach for free!\n\n⏰ Do this within 30 minutes of the post going live.`},
+    {id:'i16',t:'Share to 3–5 local Facebook groups',ins:`1. Good group types:\n   • "[Your City] Live Music Events"\n   • "[Your City] Things To Do This Weekend"\n   • Fan groups for your genre in your area\n2. Check each group allows event promo (read pinned rules).\n3. Click "Share" → "Share to a group" → search for the group name.\n4. Aim for 3–5 total groups.\n\n⚠️ Don't spam the same post into 20 groups — moderators will remove you.`},
+    {id:'i17',t:'Set a timer: reply to first comments within 1 hour',ins:`1. RIGHT NOW — get your phone.\n2. Set a 60-minute timer. Label it: "Check Facebook show post comments."\n3. When it goes off, reply to every comment on the post.\n4. Even "❤️ See you there!" counts.\n\n🤖 WHY THIS MATTERS: Facebook's algorithm shows your post to MORE people when there's engagement in the first hour. This is the most important window!\n\n💡 Both of you set the timer — whoever sees it first replies.`},
+    {id:'i18',t:'Mark this post done and do a quick final review',ins:`1. All boxes checked? ✓\n2. Open Facebook and check the live post:\n   • Did the image upload correctly?\n   • Is it pinned to the top?\n   • Are both personal shares visible?\n3. Screenshot the live post and save it (helps track what worked for future shows).\n4. Take a breath — you did the thing! 🎉\n\nCome back in a few hours to check engagement and reply to new comments.`},
+  ]},
+];
+
+let S = {};
+
+function loadS(){
+  try{const r=localStorage.getItem('bhud_fb');if(r)S=JSON.parse(r);}catch(e){}
+  SECS.forEach(sec=>sec.items.forEach(item=>{if(!S[item.id])S[item.id]={done:false,as:'a0',notes:''};}));
+}
+
+function saveS(){try{localStorage.setItem('bhud_fb',JSON.stringify(S));}catch(e){}}
+
+function updateProg(){
+  let total=0,done=0;
+  SECS.forEach((sec,si)=>{
+    let sd=0;
+    sec.items.forEach(item=>{total++;if(S[item.id]?.done){done++;sd++;}});
+    const el=document.getElementById('sc'+si);
+    if(el)el.textContent=sd+'/'+sec.items.length;
+  });
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-val').textContent=done+' / '+total+' steps done';
+}
+
+function toggleDone(id){
+  S[id].done=!S[id].done;saveS();
+  const el=document.getElementById('ci-'+id);
+  const chk=el.querySelector('.cl-chk');
+  if(S[id].done){el.classList.add('done');chk.classList.add('on');chk.textContent='✓';}
+  else{el.classList.remove('done');chk.classList.remove('on');chk.textContent='';}
+  updateProg();
+}
+
+function cycleAs(id){
+  const cur=AS.indexOf(S[id].as);
+  S[id].as=AS[(cur+1)%AS.length];saveS();
+  const el=document.getElementById('ci-'+id);
+  const badge=el.querySelector('.asgn');
+  badge.className='asgn '+S[id].as;
+  badge.textContent=AL[S[id].as];
+}
+
+function togDet(id){
+  document.getElementById('cd-'+id).classList.toggle('on');
+  document.getElementById('eb-'+id).classList.toggle('on');
+}
+
+function saveNotes(id,v){S[id].notes=v;saveS();}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function buildCL(){
+  let h='';
+  SECS.forEach((sec,si)=>{
+    h+='<div class="sec-block">';
+    h+=`<div class="sec-hdr" style="color:${sec.color}"><div class="sec-dot" style="background:${sec.color}"></div>${sec.title}<span class="sec-cnt" id="sc${si}">0/${sec.items.length}</span></div>`;
+    sec.items.forEach((item,ii)=>{
+      const s=S[item.id]||{done:false,as:'a0',notes:''};
+      const num=SECS.slice(0,si).reduce((t,s)=>t+s.items.length,0)+ii+1;
+      const ins=esc(item.ins).replace(/\n/g,'<br>');
+      const notes=esc(s.notes||'');
+      h+=`<div class="cl-item${s.done?' done':''}" id="ci-${item.id}">
+        <div class="cl-main" onclick="toggleDone('${item.id}')">
+          <div class="cl-chk${s.done?' on':''}">${s.done?'✓':''}</div>
+          <span class="cl-n">${num}.</span>
+          <span class="cl-t">${item.t}</span>
+          <span class="asgn ${s.as}" onclick="event.stopPropagation();cycleAs('${item.id}')">${AL[s.as]}</span>
+          <button class="exp-btn" id="eb-${item.id}" onclick="event.stopPropagation();togDet('${item.id}')" title="Show instructions">▼</button>
+        </div>
+        <div class="cl-det" id="cd-${item.id}">
+          <div class="i-lbl">📋 Step-by-step instructions</div>
+          <div class="i-text">${ins}</div>
+          <div class="n-lbl">📝 Notes</div>
+          <textarea class="n-area" placeholder="Add notes here..." oninput="saveNotes('${item.id}',this.value)" onclick="event.stopPropagation()">${notes}</textarea>
+        </div>
+      </div>`;
+    });
+    h+='</div>';
+  });
+  document.getElementById('cl-root').innerHTML=h;
+}
+
+function updateCap(){
+  const v=id=>document.getElementById(id).value;
+  const band=v('f-band')||null,date=v('f-date')||null,time=v('f-time')||null;
+  const doors=v('f-doors')||null,venue=v('f-venue')||null,city=v('f-city')||null,tix=v('f-tix')||null;
+  const ph=t=>`<span class="cv">${t}</span>`;
+  document.getElementById('cap-out').innerHTML=
+    `<strong>${band?esc(band):ph('BAND NAME')}</strong> is playing LIVE this weekend! 🎶<br><br>`+
+    `📅 ${date?esc(date):ph('DATE')} at ${time?esc(time):ph('TIME')}<br>`+
+    `🚪 Doors open at ${doors?esc(doors):ph('DOOR TIME')}<br>`+
+    `🏛️ ${venue?esc(venue):ph('VENUE')} — ${city?esc(city):ph('CITY')}<br><br>`+
+    `🎟️ Get your tickets → ${tix?`<a href="${esc(tix)}" style="color:var(--fb)">${esc(tix)}</a>`:ph('TICKET LINK')}<br><br>`+
+    `Come out and share the love! 💜<br>Who's coming? Drop a comment below! 👇`;
+}
+
+function copyCap(){
+  const txt=document.getElementById('cap-out').innerText||'';
+  const ok=()=>{const m=document.getElementById('cp-ok');m.style.display='block';setTimeout(()=>m.style.display='none',2500);};
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(ok).catch(()=>fbCopy(txt,ok));}else{fbCopy(txt,ok);}
+}
+
+function fbCopy(txt,cb){
+  const t=document.createElement('textarea');t.value=txt;t.style.cssText='position:fixed;opacity:0;';
+  document.body.appendChild(t);t.select();
+  try{document.execCommand('copy');cb();}catch(e){}
+  document.body.removeChild(t);
+}
+
+const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const now=new Date();
+document.getElementById('hdr-date').textContent=days[now.getDay()]+', '+months[now.getMonth()]+' '+now.getDate()+' · '+now.getFullYear();
+
+loadS();
+buildCL();
+updateProg();
+updateCap();
+</script>
+</body>
+</html>
