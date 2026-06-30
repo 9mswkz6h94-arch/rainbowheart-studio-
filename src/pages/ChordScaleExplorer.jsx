@@ -1,0 +1,354 @@
+import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { Note, Chord, Scale } from 'tonal'
+import { useAuth } from '../context/AuthContext'
+
+// ─── Instrument configs ───────────────────────────────────────────────────────
+const INSTRUMENTS = [
+  { key: 'ukulele',     label: 'Ukulele',         tuning: ['G4','C4','E4','A4'],              frets: 12 },
+  { key: 'tenorGuitar', label: 'Tenor Guitar',    tuning: ['C3','G3','D4','A4'],              frets: 12 },
+  { key: 'guitarlele',  label: 'Guitarlele',       tuning: ['A2','D3','G3','C4','E4','A4'],    frets: 12 },
+  { key: 'guitar',      label: 'Acoustic Guitar', tuning: ['E2','A2','D3','G3','B3','E4'],    frets: 12 },
+  { key: 'bass',        label: 'Bass Guitar',     tuning: ['E1','A1','D2','G2'],              frets: 12 },
+]
+
+const CHORD_TYPES = [
+  { value: 'major',                   label: 'Major' },
+  { value: 'minor',                   label: 'Minor' },
+  { value: 'dominant seventh',        label: 'Dom 7' },
+  { value: 'major seventh',           label: 'Maj 7' },
+  { value: 'minor seventh',           label: 'Min 7' },
+  { value: 'diminished',              label: 'Dim' },
+  { value: 'augmented',               label: 'Aug' },
+  { value: 'suspended second',        label: 'Sus2' },
+  { value: 'suspended fourth',        label: 'Sus4' },
+  { value: 'major sixth',             label: 'Maj 6' },
+  { value: 'minor sixth',             label: 'Min 6' },
+  { value: 'dominant ninth',          label: 'Dom 9' },
+  { value: 'minor ninth',             label: 'Min 9' },
+  { value: 'major ninth',             label: 'Maj 9' },
+  { value: 'half-diminished seventh', label: 'Half Dim' },
+  { value: 'diminished seventh',      label: 'Dim 7' },
+]
+
+const SCALE_TYPES = [
+  { value: 'major',            label: 'Major' },
+  { value: 'minor',            label: 'Natural Minor' },
+  { value: 'harmonic minor',   label: 'Harmonic Minor' },
+  { value: 'melodic minor',    label: 'Melodic Minor' },
+  { value: 'major pentatonic', label: 'Pentatonic Maj' },
+  { value: 'minor pentatonic', label: 'Pentatonic Min' },
+  { value: 'blues',            label: 'Blues' },
+  { value: 'dorian',           label: 'Dorian' },
+  { value: 'phrygian',         label: 'Phrygian' },
+  { value: 'lydian',           label: 'Lydian' },
+  { value: 'mixolydian',       label: 'Mixolydian' },
+  { value: 'locrian',          label: 'Locrian' },
+]
+
+const ROOTS = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B']
+
+// ─── Fretboard layout constants ───────────────────────────────────────────────
+const L_PAD   = 58   // space for open-string labels
+const R_PAD   = 12
+const T_PAD   = 22   // room for fret numbers
+const B_PAD   = 14
+const FRET_W  = 50
+const STR_H   = 28
+const DOT_R   = 12
+const N_FRETS = 12
+const LABEL_X = 38  // x center for string labels / open-string dots
+
+// ─── Note positions ───────────────────────────────────────────────────────────
+function getPositions(tuning, notes) {
+  if (!notes || notes.length === 0) return []
+  const rootChroma = Note.chroma(notes[0])
+  const chromas    = new Set(notes.map(n => Note.chroma(n)))
+
+  return tuning.flatMap((openNote, stringIdx) => {
+    const openMidi = Note.midi(openNote)
+    if (openMidi == null) return []
+    return Array.from({ length: N_FRETS + 1 }, (_, fret) => {
+      const chroma = (openMidi + fret) % 12
+      if (!chromas.has(chroma)) return null
+      const noteName = notes.find(n => Note.chroma(n) === chroma)
+        ?? Note.pitchClass(Note.fromMidi(openMidi + fret))
+      return { string: stringIdx, fret, note: noteName, isRoot: chroma === rootChroma }
+    }).filter(Boolean)
+  })
+}
+
+// ─── Fretboard SVG ────────────────────────────────────────────────────────────
+function Fretboard({ tuning, positions }) {
+  const n     = tuning.length
+  const svgW  = L_PAD + N_FRETS * FRET_W + R_PAD
+  const svgH  = T_PAD + (n - 1) * STR_H + B_PAD
+  const posSet = new Set(positions.map(p => `${p.string}-${p.fret}`))
+
+  const sy = i => T_PAD + i * STR_H
+  const fx = f => L_PAD + f * FRET_W
+  // Dot center x for a given fret (1-based; sits between lines f-1 and f)
+  const dotX = f => L_PAD + (f - 1) * FRET_W + FRET_W / 2
+
+  const midY = T_PAD + ((n - 1) * STR_H) / 2
+
+  // Standard fretboard inlay positions
+  const singleDots = [3, 5, 7, 9].filter(f => f <= N_FRETS)
+  const doubleFret  = 12
+
+  return (
+    <svg
+      viewBox={`0 0 ${svgW} ${svgH}`}
+      className="cse-fretboard"
+      aria-label="Fretboard diagram"
+    >
+      {/* ── Fretboard position markers (inlays) ── */}
+      {singleDots.map(f => (
+        <circle key={f} cx={dotX(f)} cy={midY} r={4} className="cse-inlay" />
+      ))}
+      {doubleFret <= N_FRETS && (
+        <>
+          <circle cx={dotX(doubleFret)} cy={T_PAD + (n - 1) * STR_H * 0.25} r={4} className="cse-inlay" />
+          <circle cx={dotX(doubleFret)} cy={T_PAD + (n - 1) * STR_H * 0.75} r={4} className="cse-inlay" />
+        </>
+      )}
+
+      {/* ── Fret lines ── */}
+      {Array.from({ length: N_FRETS + 1 }, (_, f) => (
+        <line
+          key={f}
+          x1={fx(f)} y1={T_PAD - 4}
+          x2={fx(f)} y2={T_PAD + (n - 1) * STR_H + 4}
+          className={f === 0 ? 'cse-nut' : 'cse-fret-line'}
+        />
+      ))}
+
+      {/* ── String lines ── */}
+      {tuning.map((_, i) => (
+        <line
+          key={i}
+          x1={fx(0)} y1={sy(i)}
+          x2={fx(N_FRETS)} y2={sy(i)}
+          className="cse-string-line"
+        />
+      ))}
+
+      {/* ── Fret number labels ── */}
+      {[3, 5, 7, 9, 12].filter(f => f <= N_FRETS).map(f => (
+        <text key={f} x={dotX(f)} y={T_PAD - 6} textAnchor="middle" className="cse-fret-num">
+          {f}
+        </text>
+      ))}
+
+      {/* ── String labels / open-string dots ── */}
+      {tuning.map((openNote, i) => {
+        const openPos = positions.find(p => p.string === i && p.fret === 0)
+        const pc = Note.pitchClass(openNote)
+        return (
+          <g key={i}>
+            {openPos ? (
+              <>
+                <circle cx={LABEL_X} cy={sy(i)} r={DOT_R}
+                  className={openPos.isRoot ? 'cse-dot-root' : 'cse-dot'} />
+                <text x={LABEL_X} y={sy(i) + 4} textAnchor="middle"
+                  className={openPos.isRoot ? 'cse-dot-text-root' : 'cse-dot-text'}>
+                  {pc}
+                </text>
+              </>
+            ) : (
+              <text x={LABEL_X} y={sy(i) + 4} textAnchor="middle" className="cse-string-label">
+                {pc}
+              </text>
+            )}
+          </g>
+        )
+      })}
+
+      {/* ── Note dots (frets 1–12) ── */}
+      {positions.filter(p => p.fret > 0).map(({ string, fret, note, isRoot }, idx) => (
+        <g key={idx}>
+          <circle
+            cx={dotX(fret)} cy={sy(string)} r={DOT_R}
+            className={isRoot ? 'cse-dot-root' : 'cse-dot'}
+          />
+          <text
+            x={dotX(fret)} y={sy(string) + 4}
+            textAnchor="middle"
+            className={isRoot ? 'cse-dot-text-root' : 'cse-dot-text'}
+          >
+            {note}
+          </text>
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+// ─── Studio tools shown in the upsell section ────────────────────────────────
+const STUDIO_TOOLS = [
+  { emoji: '🎸', label: 'Chord Chart Builder',  desc: 'Print-ready charts for gig night.' },
+  { emoji: '🎼', label: 'Tab Builder',           desc: 'Fret grids with playback & export.' },
+  { emoji: '🎵', label: 'Set Lists',             desc: 'Shareable charts for the whole band.' },
+  { emoji: '🥁', label: 'Groove Builder',        desc: 'Drum patterns in any time signature.' },
+  { emoji: '📄', label: 'Groove Sheet',          desc: 'Printable drum charts per song.' },
+  { emoji: '📚', label: 'Heart Beats Practice',  desc: 'Daily practice tracking for students.' },
+]
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+export default function ChordScaleExplorer() {
+  const { user } = useAuth()
+  const [instrKey,   setInstrKey]   = useState('guitar')
+  const [mode,       setMode]       = useState('chord')
+  const [root,       setRoot]       = useState('C')
+  const [chordType,  setChordType]  = useState('major')
+  const [scaleType,  setScaleType]  = useState('major')
+
+  const instrument = INSTRUMENTS.find(i => i.key === instrKey)
+
+  const { notes, displayName } = useMemo(() => {
+    if (mode === 'chord') {
+      const c = Chord.get(`${root} ${chordType}`)
+      return { notes: c.notes ?? [], displayName: c.name || `${root} ${chordType}` }
+    } else {
+      const s = Scale.get(`${root} ${scaleType}`)
+      return { notes: s.notes ?? [], displayName: s.name || `${root} ${scaleType}` }
+    }
+  }, [mode, root, chordType, scaleType])
+
+  const positions = useMemo(
+    () => getPositions(instrument.tuning, notes),
+    [instrument.tuning, notes]
+  )
+
+  const types       = mode === 'chord' ? CHORD_TYPES : SCALE_TYPES
+  const selectedType = mode === 'chord' ? chordType : scaleType
+  const setType     = mode === 'chord' ? setChordType : setScaleType
+
+  return (
+    <div className="cse-page">
+      <div className="container">
+
+        <div className="cse-header">
+          <div className="cse-free-badge">✨ Free tool — no account needed</div>
+          <h1>Chord &amp; Scale Explorer</h1>
+          <p>Select an instrument, root note, and chord or scale to see all positions on the fretboard.</p>
+        </div>
+
+        {/* Instrument tabs */}
+        <div className="cse-instrument-tabs">
+          {INSTRUMENTS.map(inst => (
+            <button
+              key={inst.key}
+              onClick={() => setInstrKey(inst.key)}
+              className={'cse-tab' + (instrKey === inst.key ? ' active' : '')}
+            >
+              {inst.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Controls */}
+        <div className="cse-controls">
+
+          {/* Mode toggle */}
+          <div className="cse-control-group">
+            <label className="cse-label">Mode</label>
+            <div className="cse-toggle">
+              <button
+                className={'cse-toggle-btn' + (mode === 'chord' ? ' active' : '')}
+                onClick={() => setMode('chord')}
+              >Chord</button>
+              <button
+                className={'cse-toggle-btn' + (mode === 'scale' ? ' active' : '')}
+                onClick={() => setMode('scale')}
+              >Scale</button>
+            </div>
+          </div>
+
+          {/* Root note */}
+          <div className="cse-control-group">
+            <label className="cse-label">Root Note</label>
+            <div className="cse-root-grid">
+              {ROOTS.map(r => (
+                <button
+                  key={r}
+                  onClick={() => setRoot(r)}
+                  className={'cse-root-btn' + (root === r ? ' active' : '')}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Type selector */}
+          <div className="cse-control-group">
+            <label className="cse-label">{mode === 'chord' ? 'Chord' : 'Scale'} Type</label>
+            <div className="cse-type-grid">
+              {types.map(t => (
+                <button
+                  key={t.value}
+                  onClick={() => setType(t.value)}
+                  className={'cse-type-btn' + (selectedType === t.value ? ' active' : '')}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Fretboard display */}
+        <div className="cse-board-wrap">
+          <div className="cse-board-header">
+            <h2 className="cse-chord-name">{displayName}</h2>
+            <div className="cse-notes-row">
+              {notes.map(n => (
+                <span key={n} className="cse-note-pill">{n}</span>
+              ))}
+              {notes.length === 0 && (
+                <span className="cse-empty">No notes found for this selection.</span>
+              )}
+            </div>
+          </div>
+          <div className="cse-fretboard-scroll">
+            <Fretboard tuning={instrument.tuning} positions={positions} />
+          </div>
+          <p className="cse-hint">
+            Filled dots = root &nbsp;·&nbsp; Outlined dots = chord/scale tones &nbsp;·&nbsp; Open strings highlighted on left
+          </p>
+        </div>
+
+        {/* Studio upsell — shown only to guests */}
+        {!user && (
+          <div className="cse-upsell">
+            <div className="cse-upsell-text">
+              <h2>Like this? There's a whole studio waiting.</h2>
+              <p>
+                Sign up for Rainbow Heart Studio and unlock a full suite of musician tools —
+                built for teachers, students, and performers.
+              </p>
+              <div className="cse-upsell-ctas">
+                <Link to="/login" className="btn btn-primary">Get Studio Access →</Link>
+                <a href="/#services" className="btn btn-outline">See What We Offer</a>
+              </div>
+            </div>
+            <div className="cse-upsell-grid">
+              {STUDIO_TOOLS.map(t => (
+                <div key={t.label} className="cse-upsell-card">
+                  <span className="cse-upsell-emoji">{t.emoji}</span>
+                  <div>
+                    <strong>{t.label}</strong>
+                    <p>{t.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}

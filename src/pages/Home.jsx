@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 function encode(data) {
   return Object.keys(data)
@@ -228,6 +229,46 @@ export default function Home() {
           <div className="hero-ctas">
             <a href="#services" className="btn btn-primary">Explore Services</a>
             <a href="#contact" className="btn btn-outline">Get in Touch</a>
+          </div>
+        </div>
+      </section>
+
+      {/* Studio Tools Showcase */}
+      <section className="studio-showcase">
+        <div className="container">
+          <div className="studio-showcase-header">
+            <div className="studio-showcase-label">🎸 Rainbow Heart Studio</div>
+            <h2>A full creative suite for musicians</h2>
+            <p>
+              Sign up for free and unlock every tool — built for teachers, students, and performers.
+            </p>
+            <div className="studio-showcase-ctas">
+              <Link to="/login" className="btn btn-primary">Get Studio Access →</Link>
+              <Link to="/tools/chord-scale-explorer" className="btn btn-outline">Try Free Tool First</Link>
+            </div>
+          </div>
+          <div className="studio-showcase-grid">
+            {[
+              { emoji: '🎸', title: 'Chord Chart Builder',   desc: 'Print-ready chord charts in the Rainbow Hearts style — full chart, bass/chords, and lyrics sheets.' },
+              { emoji: '🎵', title: 'Set Lists',             desc: 'Build shareable set lists from your song library. Share a link — anyone pulls up full charts on a tablet at the gig.' },
+              { emoji: '🎼', title: 'Tab Builder',           desc: 'Build bass and guitar tab riffs on a fret grid, hear them play back, and export as ASCII or .tab.json.' },
+              { emoji: '🥁', title: 'Groove Builder',        desc: 'Capture drum grooves on a click grid — straight or triplet feel, any time signature, up to 5 instrument rows.' },
+              { emoji: '📄', title: 'Groove Sheet',          desc: 'Compile saved grooves into a printable drum chart for a song. Reorder, annotate, and print for rehearsal.' },
+              { emoji: '🎵', title: 'Chord & Scale Explorer',desc: 'Every chord and scale across Ukulele, Tenor Guitar, Guitarlele, Acoustic Guitar, and Bass. Free — no login needed.', free: true },
+              { emoji: '📚', title: 'Heart Beats Practice',  desc: 'Daily practice cards, streaks, badges, and lesson tracking for students. Keeps the routine fun.' },
+            ].map(tool => (
+              <div key={tool.title} className={'studio-preview-card' + (tool.free ? ' free' : '')}>
+                <div className="studio-preview-icon">{tool.emoji}</div>
+                <div className="studio-preview-body">
+                  <h3>{tool.title}</h3>
+                  <p>{tool.desc}</p>
+                </div>
+                {tool.free
+                  ? <span className="studio-preview-free">✨ Free</span>
+                  : <span className="studio-preview-lock">🔒 Studio</span>
+                }
+              </div>
+            ))}
           </div>
         </div>
       </section>

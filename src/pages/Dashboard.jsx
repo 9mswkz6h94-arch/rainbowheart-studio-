@@ -41,6 +41,13 @@ const tools = [
     href: '/studio/groove-sheet',
   },
   {
+    emoji: '🎵',
+    title: 'Chord & Scale Explorer',
+    description: 'See every chord and scale across all positions on Ukulele, Tenor Guitar, Guitarlele, Acoustic Guitar, and Bass.',
+    status: 'ready',
+    href: '/tools/chord-scale-explorer',
+  },
+  {
     emoji: '📚',
     title: 'Heart Beats Practice App',
     description: 'Daily practice cards, streaks, badges, and lesson tracking for your students.',
