@@ -2568,6 +2568,56 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
 .gb-notation svg { display: block; }
 
+/* playhead column highlight */
+.gb-cell-playing {
+  background: rgba(108, 92, 231, 0.18) !important;
+}
+.gb-cell-on.gb-cell-playing {
+  background: #5849BE !important;
+}
+
+/* transport bar */
+.gb-transport {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  margin-bottom: 0.25rem;
+}
+
+.gb-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--primary, #6C5CE7);
+  background: #fff;
+  color: var(--primary, #6C5CE7);
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.gb-play-btn:hover { background: var(--primary, #6C5CE7); color: #fff; }
+.gb-play-btn.playing {
+  background: var(--primary, #6C5CE7);
+  color: #fff;
+}
+
+.gb-transport-bpm {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.gb-transport-loop {
+  font-size: 0.78rem;
+  color: var(--primary, #6C5CE7);
+  opacity: 0.8;
+}
+
 /* ── Groove Sheet ─────────────────────────────────────────────────────────── */
 
 .gs-page {

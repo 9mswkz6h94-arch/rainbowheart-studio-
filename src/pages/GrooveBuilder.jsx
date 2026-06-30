@@ -91,6 +91,103 @@ function renderNotation(container, rows, grid, timeSig, feel, beatGrouping) {
   container.appendChild(svg)
 }
 
+// ── Drum synthesis ────────────────────────────────────────────────────────────
+
+function synthKick(ctx, time) {
+  const osc = ctx.createOscillator()
+  const g   = ctx.createGain()
+  osc.connect(g); g.connect(ctx.destination)
+  osc.frequency.setValueAtTime(150, time)
+  osc.frequency.exponentialRampToValueAtTime(0.001, time + 0.4)
+  g.gain.setValueAtTime(1.0, time)
+  g.gain.exponentialRampToValueAtTime(0.001, time + 0.4)
+  osc.start(time); osc.stop(time + 0.4)
+}
+
+function synthSnare(ctx, time) {
+  const len  = Math.floor(ctx.sampleRate * 0.15)
+  const buf  = ctx.createBuffer(1, len, ctx.sampleRate)
+  const data = buf.getChannelData(0)
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
+  const src = ctx.createBufferSource(); src.buffer = buf
+  const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 1200
+  const g   = ctx.createGain()
+  src.connect(hpf); hpf.connect(g); g.connect(ctx.destination)
+  g.gain.setValueAtTime(0.7, time)
+  g.gain.exponentialRampToValueAtTime(0.001, time + 0.15)
+  src.start(time)
+  const osc = ctx.createOscillator(); const og = ctx.createGain()
+  osc.connect(og); og.connect(ctx.destination)
+  osc.frequency.setValueAtTime(185, time)
+  og.gain.setValueAtTime(0.4, time); og.gain.exponentialRampToValueAtTime(0.001, time + 0.08)
+  osc.start(time); osc.stop(time + 0.08)
+}
+
+function synthHihat(ctx, time, open) {
+  const decay = open ? 0.28 : 0.045
+  const len   = Math.floor(ctx.sampleRate * decay)
+  const buf   = ctx.createBuffer(1, len, ctx.sampleRate)
+  const data  = buf.getChannelData(0)
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
+  const src = ctx.createBufferSource(); src.buffer = buf
+  const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 8000
+  const g   = ctx.createGain()
+  src.connect(hpf); hpf.connect(g); g.connect(ctx.destination)
+  g.gain.setValueAtTime(open ? 0.25 : 0.3, time)
+  g.gain.exponentialRampToValueAtTime(0.001, time + decay)
+  src.start(time)
+}
+
+function synthTom(ctx, time, freq) {
+  const osc = ctx.createOscillator(); const g = ctx.createGain()
+  osc.connect(g); g.connect(ctx.destination)
+  osc.frequency.setValueAtTime(freq, time)
+  osc.frequency.exponentialRampToValueAtTime(freq * 0.25, time + 0.3)
+  g.gain.setValueAtTime(0.8, time); g.gain.exponentialRampToValueAtTime(0.001, time + 0.3)
+  osc.start(time); osc.stop(time + 0.3)
+}
+
+function synthRide(ctx, time) {
+  const len  = Math.floor(ctx.sampleRate * 0.5)
+  const buf  = ctx.createBuffer(1, len, ctx.sampleRate)
+  const data = buf.getChannelData(0)
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
+  const src = ctx.createBufferSource(); src.buffer = buf
+  const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'
+  bpf.frequency.value = 5000; bpf.Q.value = 2
+  const g = ctx.createGain()
+  src.connect(bpf); bpf.connect(g); g.connect(ctx.destination)
+  g.gain.setValueAtTime(0.18, time); g.gain.exponentialRampToValueAtTime(0.001, time + 0.5)
+  src.start(time)
+}
+
+function synthCrash(ctx, time) {
+  const len  = Math.floor(ctx.sampleRate * 0.9)
+  const buf  = ctx.createBuffer(1, len, ctx.sampleRate)
+  const data = buf.getChannelData(0)
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
+  const src = ctx.createBufferSource(); src.buffer = buf
+  const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 5000
+  const g = ctx.createGain()
+  src.connect(hpf); hpf.connect(g); g.connect(ctx.destination)
+  g.gain.setValueAtTime(0.35, time); g.gain.exponentialRampToValueAtTime(0.001, time + 0.9)
+  src.start(time)
+}
+
+function scheduleHit(ctx, instId, time) {
+  try {
+    if      (instId === 'kick')                                        synthKick(ctx, time)
+    else if (instId === 'snare')                                       synthSnare(ctx, time)
+    else if (instId === 'hihat_closed' || instId === 'hihat_foot')    synthHihat(ctx, time, false)
+    else if (instId === 'hihat_open')                                  synthHihat(ctx, time, true)
+    else if (instId === 'tom1')                                        synthTom(ctx, time, 200)
+    else if (instId === 'tom2')                                        synthTom(ctx, time, 150)
+    else if (instId === 'floor_tom')                                   synthTom(ctx, time, 90)
+    else if (instId === 'ride')                                        synthRide(ctx, time)
+    else if (instId === 'crash')                                       synthCrash(ctx, time)
+  } catch (e) { /* never let audio errors crash the UI */ }
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function GrooveBuilder() {
@@ -113,14 +210,37 @@ export default function GrooveBuilder() {
   const [saving,  setSaving]  = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
 
+  // ── Playback state
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playhead,  setPlayhead]  = useState(-1)
+
   // ── Derived
   const cols       = calcColumns(meta.timeSig, meta.feel)
   const boundaries = groupBoundaries(meta.beatGrouping, meta.timeSig, meta.feel)
 
   // ── Refs
-  const notationRef = useRef(null)
-  const libBtnRef   = useRef(null)
+  const notationRef     = useRef(null)
+  const libBtnRef       = useRef(null)
   const [libMenuPos, setLibMenuPos] = useState({ left: 0, top: 0 })
+
+  // Playback engine refs (mutable, outside React render cycle)
+  const audioCtxRef     = useRef(null)
+  const schedulerRef    = useRef(null)
+  const rafRef          = useRef(null)
+  const nextNoteTimeRef = useRef(0)
+  const currentColRef   = useRef(0)
+  const notesQueueRef   = useRef([])
+  const playingRef      = useRef(false)
+  // Live snapshots used inside the scheduler interval
+  const rowsRef         = useRef(rows)
+  const gridRef         = useRef(grid)
+  const metaRef         = useRef(meta)
+  const colsRef         = useRef(cols)
+
+  useEffect(() => { rowsRef.current = rows },  [rows])
+  useEffect(() => { gridRef.current = grid },  [grid])
+  useEffect(() => { metaRef.current = meta },  [meta])
+  useEffect(() => { colsRef.current = cols },  [cols])
 
   // ── Load library
   const refreshLib = useCallback(async () => {
@@ -149,6 +269,72 @@ export default function GrooveBuilder() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   })
+
+  // ── Playback engine ───────────────────────────────────────────────────────
+
+  function runScheduler() {
+    const ctx    = audioCtxRef.current
+    const { feel, tempo } = metaRef.current
+    const colDur = 60 / (tempo * (feel === 'straight' ? 4 : 6))
+    const total  = colsRef.current
+
+    while (nextNoteTimeRef.current < ctx.currentTime + 0.1) {
+      const col = currentColRef.current
+      rowsRef.current.forEach(instId => {
+        const hits = gridRef.current[instId] || []
+        if (hits[col]) scheduleHit(ctx, instId, nextNoteTimeRef.current)
+      })
+      notesQueueRef.current.push({ time: nextNoteTimeRef.current, col })
+      nextNoteTimeRef.current += colDur
+      currentColRef.current = (col + 1) % total
+    }
+  }
+
+  function animatePlayhead() {
+    const ctx = audioCtxRef.current
+    if (!ctx) return
+    const now = ctx.currentTime
+    while (notesQueueRef.current.length && notesQueueRef.current[0].time <= now) {
+      setPlayhead(notesQueueRef.current[0].col)
+      notesQueueRef.current.shift()
+    }
+    if (playingRef.current) rafRef.current = requestAnimationFrame(animatePlayhead)
+  }
+
+  function startPlayback() {
+    if (playingRef.current) return
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)()
+    }
+    if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume()
+    playingRef.current    = true
+    currentColRef.current = 0
+    notesQueueRef.current = []
+    nextNoteTimeRef.current = audioCtxRef.current.currentTime + 0.05
+    schedulerRef.current = setInterval(runScheduler, 25)
+    rafRef.current = requestAnimationFrame(animatePlayhead)
+    setIsPlaying(true)
+  }
+
+  function stopPlayback() {
+    playingRef.current = false
+    clearInterval(schedulerRef.current)
+    cancelAnimationFrame(rafRef.current)
+    notesQueueRef.current = []
+    setIsPlaying(false)
+    setPlayhead(-1)
+  }
+
+  // Stop when layout changes (time sig / feel switch)
+  useEffect(() => { if (playingRef.current) stopPlayback() }, [cols])
+
+  // Cleanup on unmount
+  useEffect(() => () => {
+    playingRef.current = false
+    clearInterval(schedulerRef.current)
+    cancelAnimationFrame(rafRef.current)
+    audioCtxRef.current?.close()
+  }, [])
 
   // ── Grid helpers
   function toggleCell(instId, colIdx) {
@@ -491,14 +677,15 @@ export default function GrooveBuilder() {
                     {/* Grid cells */}
                     {hits.map((hit, colIdx) => {
                       const isBeat    = boundaries.has(colIdx)
-                      const isSubDiv4 = colIdx % 4 === 0
+                      const isActive  = colIdx === playhead
                       return (
                         <td
                           key={colIdx}
                           className={[
                             'gb-cell',
-                            hit        ? 'gb-cell-on'   : '',
-                            isBeat     ? 'gb-cell-beat'  : '',
+                            hit      ? 'gb-cell-on'      : '',
+                            isBeat   ? 'gb-cell-beat'    : '',
+                            isActive ? 'gb-cell-playing' : '',
                           ].filter(Boolean).join(' ')}
                           onClick={() => toggleCell(instId, colIdx)}
                         />
@@ -528,7 +715,20 @@ export default function GrooveBuilder() {
           )}
         </div>
 
-        {/* VexFlow notation */}
+        {/* Transport bar */}
+        <div className="gb-transport">
+          <button
+            className={`gb-play-btn${isPlaying ? ' playing' : ''}`}
+            onClick={isPlaying ? stopPlayback : startPlayback}
+            title={isPlaying ? 'Stop' : 'Play'}
+          >
+            {isPlaying ? '■' : '▶'}
+          </button>
+          <span className="gb-transport-bpm">{meta.tempo} BPM</span>
+          {isPlaying && <span className="gb-transport-loop">↻ looping</span>}
+        </div>
+
+        {/* Notation preview */}
         <div className="gb-notation-wrap">
           <div className="gb-notation-label">Notation Preview</div>
           <div ref={notationRef} className="gb-notation" />
