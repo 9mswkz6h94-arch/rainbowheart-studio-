@@ -3,8 +3,8 @@ import { useAuth } from '../context/AuthContext'
 
 // Add Crystal's email here once confirmed
 const ADMIN_EMAILS = [
-  'jonathan.m.owens@gmail.com',
-  // 'CRYSTAL_EMAIL_HERE',
+  'jonathan@rainbowheart.studio',
+  'crystal@rainbowheart.studio',
 ]
 
 export default function AdminRoute({ children }) {
