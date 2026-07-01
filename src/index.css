@@ -2631,6 +2631,18 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   .cc-preview { padding: 0.75rem; }
 }
 
+/* ── Mobile: fix cumulative page margins ── */
+@media (max-width: 640px) {
+  .page {
+    margin: 0 !important;
+    margin-bottom: 18px !important;
+    padding: 0.45in 0.4in 0.6in !important;
+  }
+  .stagewrap .page {
+    margin-bottom: 18px !important;
+  }
+}
+
 /* ══════════════════════════════════════════════
    Set List Builder  (/studio/setlists)
    ══════════════════════════════════════════════ */
