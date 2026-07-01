@@ -1,74 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { STUDIO_TOOLS } from '../lib/tools'
 
 const HEARTBEATS_URL = 'https://heartbeats-practice-app.netlify.app'
 
-const tools = [
-  {
-    emoji: '🎸',
-    title: 'Chord Chart Builder',
-    description: 'Generate print-ready chord charts in the Rainbow Hearts style — full chart, bass/chords, and lyrics sheets.',
-    status: 'ready',
-    href: '/studio/chord-charts',
-  },
-  {
-    emoji: '🎵',
-    title: 'Set Lists',
-    description: 'Build shareable set lists from your song library. Share a link with your band — anyone can pull up the full chord charts on a tablet at the gig.',
-    status: 'ready',
-    href: '/studio/setlists',
-  },
-  {
-    emoji: '🎼',
-    title: 'Tab Builder',
-    description: 'Build bass and guitar tab riffs on a fret grid, hear them play back, and export as .tab.json or ASCII for your chord charts.',
-    status: 'ready',
-    href: '/studio/tab-studio',
-  },
-  {
-    emoji: '🥁',
-    title: 'Groove Builder',
-    description: 'Capture drum grooves on a click grid — straight or triplet feel, any time signature, 1–5 instrument rows. Save and browse your groove library.',
-    status: 'ready',
-    href: '/studio/groove-builder',
-  },
-  {
-    emoji: '📄',
-    title: 'Groove Sheet',
-    description: 'Compile saved grooves into a printable drum chart for a song. Reorder, annotate, and print a clean sheet for rehearsal.',
-    status: 'ready',
-    href: '/studio/groove-sheet',
-  },
-  {
-    emoji: '🎙',
-    title: 'Tuner',
-    description: 'Chromatic and instrument tuner — Guitar (Standard + Drop D), Bass, and Ukulele. Listens through your mic, no account needed.',
-    status: 'ready',
-    href: '/studio/tuner',
-  },
-  {
-    emoji: '🎵',
-    title: 'Chord & Scale Explorer',
-    description: 'See every chord and scale across all positions on Ukulele, Tenor Guitar, Guitarlele, Acoustic Guitar, and Bass.',
-    status: 'ready',
-    href: '/tools/chord-scale-explorer',
-  },
-  {
-    emoji: '🥁',
-    title: 'Metronome',
-    description: 'Precise click track with tap tempo and adjustable time signature — no account needed.',
-    status: 'ready',
-    href: '/studio/metronome',
-  },
-  {
-    emoji: '📚',
-    title: 'Heart Beats Practice App',
-    description: 'Daily practice cards, streaks, badges, and lesson tracking for your students.',
-    status: 'ready',
-    sso: true,
-  },
-]
+const tools = STUDIO_TOOLS.map(t => ({ ...t, status: 'ready' }))
 
 async function openHeartBeatsSSO() {
   const { data: { session } } = await supabase.auth.getSession()

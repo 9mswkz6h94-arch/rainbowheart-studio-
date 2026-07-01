@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { STUDIO_TOOLS } from '../lib/tools'
 
 function encode(data) {
   return Object.keys(data)
@@ -248,20 +249,12 @@ export default function Home() {
             </div>
           </div>
           <div className="studio-showcase-grid">
-            {[
-              { emoji: '🎸', title: 'Chord Chart Builder',   desc: 'Print-ready chord charts in the Rainbow Hearts style — full chart, bass/chords, and lyrics sheets.' },
-              { emoji: '🎵', title: 'Set Lists',             desc: 'Build shareable set lists from your song library. Share a link — anyone pulls up full charts on a tablet at the gig.' },
-              { emoji: '🎼', title: 'Tab Builder',           desc: 'Build bass and guitar tab riffs on a fret grid, hear them play back, and export as ASCII or .tab.json.' },
-              { emoji: '🥁', title: 'Groove Builder',        desc: 'Capture drum grooves on a click grid — straight or triplet feel, any time signature, up to 5 instrument rows.' },
-              { emoji: '📄', title: 'Groove Sheet',          desc: 'Compile saved grooves into a printable drum chart for a song. Reorder, annotate, and print for rehearsal.' },
-              { emoji: '🎵', title: 'Chord & Scale Explorer',desc: 'Every chord and scale across Ukulele, Tenor Guitar, Guitarlele, Acoustic Guitar, and Bass. Free — no login needed.', free: true },
-              { emoji: '📚', title: 'Heart Beats Practice',  desc: 'Daily practice cards, streaks, badges, and lesson tracking for students. Keeps the routine fun.' },
-            ].map(tool => (
-              <div key={tool.title} className={'studio-preview-card' + (tool.free ? ' free' : '')}>
+            {STUDIO_TOOLS.map(tool => (
+              <div key={tool.slug} className={'studio-preview-card' + (tool.free ? ' free' : '')}>
                 <div className="studio-preview-icon">{tool.emoji}</div>
                 <div className="studio-preview-body">
                   <h3>{tool.title}</h3>
-                  <p>{tool.desc}</p>
+                  <p>{tool.description}</p>
                 </div>
                 {tool.free
                   ? <span className="studio-preview-free">✨ Free</span>
@@ -363,23 +356,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Meet the Team */}
-      <section id="team" className="team">
-        <div className="container">
-          <h2 className="section-title">Meet the Team</h2>
-          <div className="team-grid">
-            {staff.map((s) => (
-              <div key={s.name} className="staff-card">
-                <div className="staff-avatar" style={{ background: s.color }}>{s.avatar}</div>
-                <h3>{s.name}</h3>
-                <p className="staff-role">{s.role}</p>
-              </div>
-            ))}
-          </div>
-          <p className="team-note">Full bios coming soon — stay tuned!</p>
-        </div>
-      </section>
-
       {/* Find Us */}
       <section id="find-us" className="find-us">
         <div className="container find-us-inner">
@@ -418,6 +394,23 @@ export default function Home() {
               <div className="find-us-map-cta">Get Directions →</div>
             </a>
           </div>
+        </div>
+      </section>
+
+      {/* Meet the Team */}
+      <section id="team" className="team">
+        <div className="container">
+          <h2 className="section-title">Meet the Team</h2>
+          <div className="team-grid">
+            {staff.map((s) => (
+              <div key={s.name} className="staff-card">
+                <div className="staff-avatar" style={{ background: s.color }}>{s.avatar}</div>
+                <h3>{s.name}</h3>
+                <p className="staff-role">{s.role}</p>
+              </div>
+            ))}
+          </div>
+          <p className="team-note">Full bios coming soon — stay tuned!</p>
         </div>
       </section>
 

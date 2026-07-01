@@ -49,6 +49,7 @@ export default function ChordCharts() {
   const [saveMsg,      setSaveMsg]      = useState(null)
   const [loadingList,  setLoadingList]  = useState(true)
   const [libDropOpen,  setLibDropOpen]  = useState(false)
+  const [scanning,     setScanning]     = useState(false)
 
   /* ── Resizable panel ── */
   const [panelW, setPanelW] = useState(380)
@@ -73,6 +74,7 @@ export default function ChordCharts() {
   const stageRef     = useRef(null)
   const debounceRef  = useRef(null)
   const fileInputRef = useRef(null)
+  const scanInputRef = useRef(null)
   const libBtnRef    = useRef(null)
   const [libMenuPos, setLibMenuPos] = useState({ left: 0, top: 0 })
 
@@ -254,6 +256,34 @@ export default function ChordCharts() {
     r.readAsText(file)
   }
 
+  /* ── Scan a photo/PDF of a chart and transcribe it into this app's chart format ── */
+  function handleScanFile(file) {
+    const r = new FileReader()
+    r.onload = async () => {
+      const dataBase64 = String(r.result).split(',')[1] || ''
+      setScanning(true); setSaveMsg(null)
+      try {
+        const res = await fetch('/.netlify/functions/scan-chart', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ mediaType: file.type, dataBase64 }),
+        })
+        const result = await res.json()
+        if (!result.ok) throw new Error(result.error || 'Transcription failed')
+        applyLoaded(result.meta || {}, result.source || '', null)
+        setSaveMsg('Transcribed — check chords/lyrics before saving')
+        setTimeout(() => setSaveMsg(null), 4000)
+      } catch (e) {
+        console.error('Scan failed', e)
+        alert('Could not transcribe that chart. Try a clearer photo, or a smaller file.')
+      } finally {
+        setScanning(false)
+      }
+    }
+    r.onerror = () => alert('Could not read that file.')
+    r.readAsDataURL(file)
+  }
+
   /* ── Apply loaded data (from file or Supabase) ── */
   function applyLoaded(m, src, id = null) {
     setMeta({
@@ -386,6 +416,30 @@ export default function ChordCharts() {
                     return
                   }
                   handleLoadFile(e.target.files[0])
+                  e.target.value = ''
+                }
+              }}
+            />
+            <button
+              className="cc-btn-ghost"
+              onClick={() => scanInputRef.current?.click()}
+              disabled={scanning}
+              title="Scan a photo or PDF of a chart and transcribe it"
+            >
+              {scanning ? <span className="slv-spinner cc-scan-spinner" /> : '📷 Scan Chart'}
+            </button>
+            <input
+              ref={scanInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              style={{ display: 'none' }}
+              onChange={e => {
+                if (e.target.files?.[0]) {
+                  if (dirty && !window.confirm('Discard unsaved changes?')) {
+                    e.target.value = ''
+                    return
+                  }
+                  handleScanFile(e.target.files[0])
                   e.target.value = ''
                 }
               }}
@@ -574,6 +628,9 @@ export default function ChordCharts() {
             style={{ display: 'none' }}
             onChange={e => { if (e.target.files[0]) handleLoadFile(e.target.files[0]) }}
           />
+          <button className="cc-btn-ghost" onClick={() => scanInputRef.current?.click()} disabled={scanning}>
+            {scanning ? 'Scanning…' : '📷 Scan Chart'}
+          </button>
         </div>
 
         {/* Syntax hint */}
