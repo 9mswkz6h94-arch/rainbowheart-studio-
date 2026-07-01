@@ -3224,3 +3224,241 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
   .gs-groove-notes { color: #444; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   TUNER
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.tuner-page {
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+  max-width: 560px;
+}
+
+.tuner-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* ── Mode toggle ── */
+.tuner-mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.tuner-mode-btn {
+  padding: 0.5rem 1.5rem;
+  border: 2px solid var(--border);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.tuner-mode-btn--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.tuner-mode-btn:hover:not(.tuner-mode-btn--active) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ── Instrument picker ── */
+.tuner-instrument-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.tuner-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.tuner-select {
+  padding: 0.45rem 0.85rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: #fff;
+  cursor: pointer;
+}
+.tuner-select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ── String selector ── */
+.tuner-strings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.tuner-string-btn {
+  padding: 0.45rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--text);
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.tuner-string-btn--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.tuner-string-btn:hover:not(.tuner-string-btn--active) {
+  border-color: var(--primary);
+}
+
+/* ── Mic gate ── */
+.tuner-mic-gate {
+  text-align: center;
+  padding: 2rem;
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+}
+.tuner-mic-gate--error {
+  background: #fff0f0;
+  border: 1px solid #ffc0c0;
+}
+.tuner-mic-description {
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.tuner-start-btn {
+  font-size: 1.1rem;
+  padding: 0.85rem 2.5rem;
+}
+.tuner-mic-status {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 2rem 0;
+}
+
+/* ── Meter ── */
+.tuner-meter {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.tuner-meter-svg {
+  width: 100%;
+  max-width: 280px;
+}
+
+/* ── Status badge slot — always reserves height so nothing shifts ── */
+.tuner-status-slot {
+  min-height: 2.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+/* ── Status badge ── */
+.tuner-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 1rem;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+.tuner-status--in-tune {
+  background: #d4f8ec;
+  color: #0a7a54;
+}
+.tuner-status--sharp,
+.tuner-status--flat {
+  background: #fff3cd;
+  color: #856404;
+}
+.tuner-status-icon {
+  font-size: 1rem;
+}
+
+/* ── Note readout ── */
+.tuner-readout {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.tuner-note {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(4rem, 15vw, 7rem);
+  line-height: 1;
+  color: var(--text);
+  transition: color 0.15s ease;
+}
+.tuner-note--in-tune { color: #0a7a54; }
+.tuner-note--sharp,
+.tuner-note--flat    { color: var(--orange); }
+
+.tuner-cents {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+.tuner-freq {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+.tuner-target {
+  font-size: 0.85rem;
+  color: var(--primary);
+  margin-top: 0.35rem;
+  font-weight: 600;
+}
+
+/* ── Stop button ── */
+.tuner-stop-btn {
+  display: block;
+  margin: 0 auto;
+  padding: 0.6rem 2rem;
+  background: transparent;
+  border: 2px solid var(--border);
+  border-radius: 100px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.tuner-stop-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* ── Screen-reader only ── */
+.tuner-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+}
