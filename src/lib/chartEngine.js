@@ -382,7 +382,13 @@ export function fitTitles(root) {
 
 /* ── Layout engine — packs sections into Letter pages ── */
 const DPI    = 96
-const PAGE_H = 11 * DPI   // 1056px
+// Page-box height. Deliberately shorter than the 11in physical sheet: when a browser's
+// print dialog keeps its own headers & footers on (the "Page X of Y" / URL bands), it
+// reserves ~0.4–0.5in top and bottom, shrinking the printable area below 11in. A rigid
+// 11in box then overflows a little on every sheet and the overflow accumulates, pushing
+// each chart progressively down the page. Sizing the box at 10in leaves ~1in of headroom
+// that absorbs those bands, so charts print identically no matter the device's settings.
+const PAGE_H = 10 * DPI   // 960px
 const COL_W  = 333         // two-column width
 const FULL_W = 697         // single-column width
 
