@@ -2567,6 +2567,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
     border: none !important;
   }
   .stagewrap {
+    display: block !important;   /* CRITICAL: flex containers swallow page-break-after on their children */
     padding: 0 !important;
     margin: 0 !important;
     gap: 0 !important;
@@ -3208,10 +3209,12 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
 /* Print: performer view — show only the chart pages */
 @media print {
-  .slv-root    { background: #fff !important; }
+  .slv-root    { background: #fff !important; display: block !important; }
   .slv-topbar,
   .slv-nav     { display: none !important; }
-  .slv-stage-wrap { padding: 0 !important; overflow: visible !important; }
+  /* block, not flex — flex ancestors also break page fragmentation of descendants */
+  .slv-stage-wrap { padding: 0 !important; overflow: visible !important; display: block !important; }
+  .slv-stage-wrap .stagewrap { display: block !important; max-width: none !important; width: 8.5in !important; }
   /* Always print light, even in dark charts mode */
   .slv-dark .slv-stage-wrap .page {
     --paper: #FFFFFF;
