@@ -1,8 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import {
   TunerAudio, freqToNote, closestString,
   INSTRUMENTS, loadTunerPrefs, saveTunerPrefs,
 } from '../lib/tuner'
+
+const STUDIO_TOOLS = [
+  { emoji: '🎸', label: 'Chord Chart Builder',  desc: 'Print-ready charts for gig night.' },
+  { emoji: '🎵', label: 'Chord & Scale Explorer', desc: 'Every chord and scale on your instrument.' },
+  { emoji: '🎼', label: 'Tab Builder',           desc: 'Fret grids with playback & export.' },
+  { emoji: '🎵', label: 'Set Lists',             desc: 'Shareable charts for the whole band.' },
+  { emoji: '🥁', label: 'Groove Builder',        desc: 'Drum patterns in any time signature.' },
+  { emoji: '📚', label: 'Heart Beats Practice',  desc: 'Daily practice tracking for students.' },
+]
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -72,6 +83,7 @@ function StringSelector({ instrument, activeString, onSelect }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function Tuner() {
+  const { user } = useAuth()
   const prefs = loadTunerPrefs()
 
   const [mode, setMode] = useState(prefs.mode ?? 'chromatic')
@@ -277,6 +289,35 @@ export default function Tuner() {
           </button>
         </>
       )}
+
+      {/* Studio upsell — shown only to guests */}
+      {!user && (
+        <div className="cse-upsell">
+          <div className="cse-upsell-text">
+            <h2>Like this? There's a whole studio waiting.</h2>
+            <p>
+              Sign up for Rainbow Heart Studio and unlock a full suite of musician tools —
+              built for teachers, students, and performers.
+            </p>
+            <div className="cse-upsell-ctas">
+              <Link to="/login" className="btn btn-primary">Get Studio Access →</Link>
+              <a href="/#services" className="btn btn-outline">See What We Offer</a>
+            </div>
+          </div>
+          <div className="cse-upsell-grid">
+            {STUDIO_TOOLS.map(t => (
+              <div key={t.label} className="cse-upsell-card">
+                <span className="cse-upsell-emoji">{t.emoji}</span>
+                <div>
+                  <strong>{t.label}</strong>
+                  <p>{t.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
