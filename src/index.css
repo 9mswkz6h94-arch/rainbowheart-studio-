@@ -1638,6 +1638,8 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   overflow: hidden;
   background: var(--paper);
   box-shadow: 0 2px 14px rgba(0,0,0,.14);
+  margin: 0;
+  margin-bottom: 18px;
 }
 .ebsvg { display: block; width: 100%; overflow: visible; margin: 2px 0 12px; }
 .eyebrow { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; fill: var(--lab); text-anchor: middle; }
