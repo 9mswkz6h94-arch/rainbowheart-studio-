@@ -468,20 +468,12 @@ export default function Home() {
               </p>
               <div className="open-mic-ctas">
                 <a
-                  href="https://open-mic-queue.netlify.app/signup"
+                  href="https://open-mic-queue.netlify.app"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-primary-inv"
                 >
-                  Sign Up to Perform →
-                </a>
-                <a
-                  href="https://open-mic-queue.netlify.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-outline-light"
-                >
-                  View Tonight's Queue →
+                  View Queue & Sign Up →
                 </a>
               </div>
               <p className="open-mic-radio-note">
