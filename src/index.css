@@ -2532,17 +2532,39 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
    ════════════════════════════════════════ */
 @media print {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  @page { size: 8.5in 11in; margin: 0.45in 0.62in 0.6in 0.62in !important; }
+  @page { size: 8.5in 11in; margin: 0 !important; }
 
-  html, body { background: #fff; margin: 0 !important; padding: 0 !important; width: 8.5in; }
+  html, body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 8.5in !important;
+    height: 11in !important;
+  }
   .navbar          { display: none !important; }
   .footer          { display: none !important; }
   .cc-input        { display: none !important; }
   .cc-input-header { display: none !important; }
-  .cc-page    { display: block !important; }
-  .cc-preview { overflow: visible !important; height: auto !important; padding: 0 !important; margin: 0 !important; background: #fff !important; width: 8.5in; }
-  .stagewrap  { padding: 0 !important; margin: 0 !important; gap: 0 !important; width: 8.5in; }
-  .pagecount  { display: none !important; height: 0 !important; margin: 0 !important; }
+  .cc-page         { display: block !important; margin: 0 !important; padding: 0 !important; }
+  .cc-preview {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+    width: 8.5in !important;
+  }
+  .stagewrap {
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    width: 8.5in !important;
+  }
+  .pagecount {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+  }
   .page {
     width: 8.5in !important;
     height: 11in !important;
@@ -2556,26 +2578,36 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
     overflow: hidden !important;
     page-break-before: auto;
     background: #fff !important;
+    display: block !important;
+    position: relative !important;
   }
   .page:first-child { page-break-before: avoid; }
   .page:last-child { page-break-after: auto; }
 
+  /* Ensure header fits properly */
+  .page header {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   /* Ensure content doesn't overflow */
   .pbody {
     overflow: visible !important;
-    width: calc(8.5in - 2 * 0.62in) !important;
     box-sizing: border-box !important;
+    margin: 0 !important;
   }
 
   /* Prevent unwanted page breaks inside content */
   .section { page-break-inside: avoid; }
 
-  /* Restore absolute positioning of footer for proper alignment */
+  /* Position footer at bottom of page, accounting for padding */
   .page footer {
     position: absolute !important;
-    bottom: 0.4in;
+    bottom: 0.6in;
     left: 0.62in;
     right: 0.62in;
+    width: auto !important;
   }
 }
 
