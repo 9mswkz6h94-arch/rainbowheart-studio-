@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchSetLists, saveSetList, deleteSetList } from '../lib/setlists'
 import { fetchSongs, fetchSong } from '../lib/songs'
 
@@ -78,6 +78,14 @@ export default function SetLists() {
   const [libQuery,    setLibQuery]    = useState('')
   const [dragIdx,     setDragIdx]     = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
+  const nameRef = useRef(null)
+
+  function focusNameField() {
+    const el = nameRef.current
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => { el.focus(); el.select() }, 250)
+  }
 
   /* ── Load data ── */
   const refreshLists = useCallback(async () => {
@@ -484,7 +492,13 @@ export default function SetLists() {
           {/* Sticky header */}
           <div className="cc-input-header" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', margin: 0, padding: '1rem 1.5rem 0.75rem', borderBottom: '1px solid var(--border)' }}>
             <div className="cc-header-row" style={{ gap: '0.75rem' }}>
-              <span className="sl-editor-name">{name || 'Untitled Show'}</span>
+              <span
+                className="sl-editor-name sl-editor-name-btn"
+                onClick={focusNameField}
+                title="Click to rename this show"
+              >
+                {name || 'Untitled Show'} <span className="sl-rename-pencil">✏</span>
+              </span>
               {/* Quick-jump dropdown */}
               {setlists.length > 0 && (
                 <select
@@ -538,13 +552,17 @@ export default function SetLists() {
           <div className="sl-body">
             <div className="sl-order-panel">
 
-              {/* Set list name */}
-              <input
-                className="sl-name-field"
-                value={name}
-                onChange={e => { setName(e.target.value); setDirty(true) }}
-                placeholder="Show name… (venue, event, date)"
-              />
+              {/* Show name */}
+              <label className="sl-name-label">
+                <span>✏ Show name</span>
+                <input
+                  ref={nameRef}
+                  className="sl-name-field"
+                  value={name}
+                  onChange={e => { setName(e.target.value); setDirty(true) }}
+                  placeholder="Show name… (venue, event, date)"
+                />
+              </label>
 
               {/* Event details card */}
               <div className="sl-event-card">

@@ -2630,24 +2630,41 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   max-width: 260px;
 }
 
-/* Set name as dedicated body field */
+/* Show name as dedicated body field — must LOOK editable */
+.sl-name-label { display: block; margin-bottom: 1.25rem; }
+.sl-name-label > span {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+}
 .sl-name-field {
   display: block;
   width: 100%;
+  box-sizing: border-box;
   font-size: 1.5rem;
   font-weight: 700;
   font-family: inherit;
   color: var(--ink);
-  border: none;
-  border-bottom: 2px solid var(--border);
-  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
   outline: none;
-  padding: 0.25rem 0;
-  margin-bottom: 1.25rem;
-  transition: border-color 0.15s;
+  padding: 0.4rem 0.65rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.sl-name-field:focus { border-color: var(--accent); }
+.sl-name-field:hover { border-color: var(--primary); }
+.sl-name-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,92,231,0.15); }
 .sl-name-field::placeholder { color: var(--text-muted); font-weight: 400; }
+
+/* Sticky-header show title doubles as a rename shortcut */
+.sl-editor-name-btn { cursor: pointer; }
+.sl-editor-name-btn:hover { color: var(--primary); }
+.sl-rename-pencil { font-size: 0.8rem; opacity: 0.45; }
+.sl-editor-name-btn:hover .sl-rename-pencil { opacity: 1; }
 
 /* Duration inputs */
 .sl-duration-input {
