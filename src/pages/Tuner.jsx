@@ -12,6 +12,7 @@ const STUDIO_TOOLS = [
   { emoji: '🎼', label: 'Tab Builder',           desc: 'Fret grids with playback & export.' },
   { emoji: '🎵', label: 'Set Lists',             desc: 'Shareable charts for the whole band.' },
   { emoji: '🥁', label: 'Groove Builder',        desc: 'Drum patterns in any time signature.' },
+  { emoji: '🥁', label: 'Metronome',             desc: 'Click track with tap tempo, no login needed.' },
   { emoji: '📚', label: 'Heart Beats Practice',  desc: 'Daily practice tracking for students.' },
 ]
 

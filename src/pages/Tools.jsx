@@ -13,6 +13,12 @@ const FREE_TOOLS = [
     description: 'See every chord and scale across all positions on Ukulele, Tenor Guitar, Guitarlele, Acoustic Guitar, and Bass.',
     href: '/tools/chord-scale-explorer',
   },
+  {
+    emoji: '🥁',
+    title: 'Metronome',
+    description: 'Precise click track with tap tempo and adjustable time signature. No account needed — open and play.',
+    href: '/studio/metronome',
+  },
 ]
 
 export default function Tools() {

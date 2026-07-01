@@ -306,6 +306,7 @@ const STUDIO_TOOLS = [
   { emoji: '🎵', label: 'Set Lists',             desc: 'Shareable charts for the whole band.' },
   { emoji: '🥁', label: 'Groove Builder',        desc: 'Drum patterns in any time signature.' },
   { emoji: '📄', label: 'Groove Sheet',          desc: 'Printable drum charts per song.' },
+  { emoji: '🥁', label: 'Metronome',             desc: 'Click track with tap tempo, no login needed.' },
   { emoji: '📚', label: 'Heart Beats Practice',  desc: 'Daily practice tracking for students.' },
 ]
 

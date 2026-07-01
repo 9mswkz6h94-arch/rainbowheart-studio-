@@ -55,6 +55,13 @@ const tools = [
     href: '/tools/chord-scale-explorer',
   },
   {
+    emoji: '🥁',
+    title: 'Metronome',
+    description: 'Precise click track with tap tempo and adjustable time signature — no account needed.',
+    status: 'ready',
+    href: '/studio/metronome',
+  },
+  {
     emoji: '📚',
     title: 'Heart Beats Practice App',
     description: 'Daily practice cards, streaks, badges, and lesson tracking for your students.',

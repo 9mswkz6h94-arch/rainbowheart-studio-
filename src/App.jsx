@@ -17,6 +17,7 @@ import GrooveBuilder from './pages/GrooveBuilder'
 import GrooveSheet from './pages/GrooveSheet'
 import ChordScaleExplorer from './pages/ChordScaleExplorer'
 import Tuner from './pages/Tuner'
+import Metronome from './pages/Metronome'
 import Tools from './pages/Tools'
 
 export default function App() {
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/tools" element={<Tools />} />
           <Route path="/tools/chord-scale-explorer" element={<ChordScaleExplorer />} />
           <Route path="/studio/tuner" element={<Tuner />} />
+          <Route path="/studio/metronome" element={<Metronome />} />
           <Route path="/setlist/:token" element={<SetListView />} />
           <Route path="/admin" element={
             <AdminRoute><Admin /></AdminRoute>
