@@ -17,7 +17,8 @@ DIALECT RULES:
 - Section headers are a line starting with "#" followed by a short code: v (verse), c (chorus), b (bridge), pc (pre-chorus), intro, solo, instrumental (or inst), interlude, outro, tag, hook, refrain, vamp, breakdown, coda, ending, chant, drop, turnaround. Add a number directly after the code for repeats you want explicitly numbered, e.g. "#v2". If the chart doesn't label sections, infer reasonable labels from structure (verse/chorus/bridge) rather than leaving sections unlabeled.
 - Blank lines are just spacing; they do not end a section.
 - A "chord line" is a line where every token is a chord symbol (like Cm, G7, Bb/D, Fmaj7) or "%" (repeat previous bar). Chord tokens may have trailing dots for rhythmic subdivision within a bar (e.g. "C. C. G. G." for four beats).
-- If a chord line is immediately followed by a lyric line, they are PAIRED: write the chords on their own line above, and in the lyric line below mark each chord's landing point with an underscore "_" placed right before the syllable where that chord starts. There must be exactly as many underscores in the lyric line as there are chords on the line above (excluding "%").
+- If a chord line is immediately followed by a lyric line, they are PAIRED: write the chords on their own line above, and in the lyric line below mark each chord's landing point with an underscore "_". Look at the ACTUAL horizontal position of each chord in the image relative to the lyric text directly beneath it, and place the underscore at that exact character position — this is a visual/positional match to the source, not a musical guess about where a chord "should" land.
+- CRITICAL — the underscore count must match the chord count exactly: the lyric line must contain EXACTLY one underscore per chord on the line above it (excluding "%"), never more, never fewer. This includes the first chord: if a chord's position falls at or before the very first letter of the lyric, the lyric line must itself START with an underscore (e.g. "_Here we go") — do not skip the underscore for a chord just because it's the first one or lands at position zero. Before writing each chord/lyric pair, count the chords in the chord line and count the underscores you are about to place in the lyric line below it; they must be equal, or you have made an error and must fix it before moving on.
 - If a chord line is NOT followed by a lyric line (e.g. an intro or instrumental section with only chords), leave it standalone — that renders as an instrumental bar line.
 - Prefix a lyric line with "*" (and a space) to mark it bold (use sparingly, only for a clearly emphasized hook/title line if the chart marks it that way).
 - Write chords exactly as they appear on the source (sharps or flats) — do not transpose or respell.
@@ -37,7 +38,7 @@ Respond with ONLY a single JSON object, no prose, no markdown code fences, match
 }
 Leave any metadata field as an empty string if it is not visible or not confidently legible on the page — never guess or invent musical facts.
 
-WORKED EXAMPLE (input: a chart with an intro chord line, a verse with chords over lyrics, and a chorus):
+WORKED EXAMPLE (input: a chart with an intro chord line, a verse where each line has two chords — the first one landing right at the start of the lyric — and a chorus):
 {
   "title": "Belly Crawl",
   "writer": "",
@@ -45,9 +46,9 @@ WORKED EXAMPLE (input: a chart with an intro chord line, a verse with chords ove
   "meter": "4/4",
   "tempo": "",
   "capo": "",
-  "source": "#intro\\nCm Eb G Cm\\n\\n#v\\nCm                Eb\\nI see the writing on the _wall\\nG                  Cm\\nHeard it _echo down the _hall\\n\\n#c\\nEb          Bb\\n*Belly crawl, we're gonna _belly crawl\\nCm             G\\nThrough the _fire till we _stall"
+  "source": "#intro\\nCm Eb G Cm\\n\\n#v\\nCm                Eb\\n_I see the writing on the _wall\\nG                  Cm\\n_Heard it echo down the _hall\\n\\n#c\\nEb          Bb\\n*_Belly crawl, we're gonna _belly crawl\\nCm             G\\n_Through the fire till we _stall"
 }
-Notice: the intro line is a standalone chord line (no lyric follows, so no underscores needed there). In the verse and chorus, each lyric line has one underscore per chord shown above it, placed right before the syllable that chord lands on. The chorus's first lyric line is bolded because it's clearly the hook.`
+Notice: the intro line is a standalone chord line (no lyric follows, so no underscores needed there). Every other line has exactly two chords and exactly two underscores in the lyric below it — one at the very start of the line (since the first chord lands there) and one further in, at the exact spot the second chord sits above the lyric in the source image. The chorus's first line starts with "*_" (bold marker immediately followed by the leading underscore, no space needed between them) because it's both bolded and has a chord at position zero.`
 
 function jsonResponse(status, body) {
   return new Response(JSON.stringify(body), {
