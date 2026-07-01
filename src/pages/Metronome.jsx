@@ -215,7 +215,7 @@ export default function Metronome() {
           <div className="cse-upsell-text">
             <h2>Like this? There's a whole studio waiting.</h2>
             <p>
-              Sign up for Rainbow Heart Studio and unlock a full suite of musician tools —
+              Get Studio Access to unlock a full suite of musician tools —
               built for teachers, students, and performers.
             </p>
             <div className="cse-upsell-ctas">

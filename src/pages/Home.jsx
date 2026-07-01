@@ -241,7 +241,7 @@ export default function Home() {
             <div className="studio-showcase-label">🎸 Rainbow Heart Studio</div>
             <h2>A full creative suite for musicians</h2>
             <p>
-              Sign up for free and unlock every tool — built for teachers, students, and performers.
+              Get Studio Access to unlock every tool — built for teachers, students, and performers.
             </p>
             <div className="studio-showcase-ctas">
               <Link to="/login" className="btn btn-primary">Get Studio Access →</Link>

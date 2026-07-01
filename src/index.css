@@ -176,6 +176,17 @@ a  { color: inherit; text-decoration: none; }
 .btn-nav-login:hover { background: var(--primary-dark) !important; }
 .btn-nav-signout { color: var(--text-muted) !important; }
 
+.nav-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--text);
+  padding: 0.25rem 0.4rem;
+}
+
 /* ── Hero ── */
 .hero {
   min-height: 88vh;
@@ -975,7 +986,66 @@ a  { color: inherit; text-decoration: none; }
   .about-inner { grid-template-columns: 1fr; }
   .about-visual { display: none; }
   .footer-inner { flex-direction: column; text-align: center; }
-  .nav-links a:not(.btn-nav-login):not(.nav-link-studio):not(.nav-link-tools) { display: none; }
+
+  /* Mobile nav: hamburger + collapsible dropdown instead of hiding links */
+  .nav-hamburger { display: block; }
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+  .nav-links.open { max-height: 24rem; }
+  .nav-links a,
+  .nav-links button {
+    width: 100%;
+    text-align: left;
+    padding: 0.9rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    box-sizing: border-box;
+  }
+  .btn-nav-login {
+    margin: 0.75rem 1.5rem !important;
+    width: calc(100% - 3rem) !important;
+    text-align: center !important;
+  }
+
+  /* Locked studio tool cards: compact 2-up chips on mobile, free tools stay full-width */
+  .studio-showcase-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+  .studio-preview-card.free { grid-column: 1 / -1; }
+  .studio-preview-card:not(.free) {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem;
+  }
+  .studio-preview-card:not(.free) .studio-preview-body p { display: none; }
+  .studio-preview-card:not(.free) .studio-preview-body h3 {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    line-height: 1.2;
+  }
+  .studio-preview-card:not(.free) .studio-preview-icon { font-size: 1.15rem; }
+  .studio-preview-card:not(.free) .studio-preview-lock {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    margin: 0;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.6rem;
+  }
 
   /* Legal pages responsive */
   .legal-page {
