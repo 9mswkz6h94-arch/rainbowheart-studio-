@@ -6,7 +6,7 @@ const STUDIO_TOOLS = [
   { emoji: '🎸', label: 'Chord Chart Builder',   desc: 'Print-ready charts for gig night.' },
   { emoji: '🎵', label: 'Chord & Scale Explorer', desc: 'Every chord and scale on your instrument.' },
   { emoji: '🎼', label: 'Tab Builder',           desc: 'Fret grids with playback & export.' },
-  { emoji: '🎵', label: 'Set Lists',             desc: 'Shareable charts for the whole band.' },
+  { emoji: '🎤', label: 'Shows',                 desc: 'Shareable set lists for the whole band.' },
   { emoji: '🥁', label: 'Groove Builder',        desc: 'Drum patterns in any time signature.' },
   { emoji: '🎙', label: 'Tuner',                 desc: 'Chromatic & instrument tuner, no login needed.' },
   { emoji: '📚', label: 'Heart Beats Practice',  desc: 'Daily practice tracking for students.' },

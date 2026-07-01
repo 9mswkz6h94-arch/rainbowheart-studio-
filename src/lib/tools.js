@@ -67,9 +67,9 @@ export const STUDIO_TOOLS = [
   },
   {
     slug: 'setlists',
-    emoji: '🎵',
-    title: 'Set Lists',
-    description: 'Build shareable set lists from your song library. Share a link — anyone pulls up full charts on a tablet at the gig.',
+    emoji: '🎤',
+    title: 'Shows',
+    description: 'Build set lists for your shows from your song library. Share a link — anyone pulls up full charts on a tablet at the gig.',
     href: '/studio/setlists',
     free: false,
   },

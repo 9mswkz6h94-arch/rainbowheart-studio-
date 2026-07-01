@@ -25,7 +25,7 @@ export default function SetListView() {
         const sl = await fetchSetListByToken(token)
         setSetlist(sl)
       } catch (e) {
-        setError('Set list not found or the link may be incorrect.')
+        setError('Show not found or the link may be incorrect.')
         console.error(e)
       } finally {
         setLoading(false)
@@ -152,7 +152,7 @@ export default function SetListView() {
   if (loading) return (
     <div className="slv-loading">
       <div className="slv-spinner" />
-      <p>Loading set list…</p>
+      <p>Loading show…</p>
     </div>
   )
 
@@ -228,14 +228,14 @@ export default function SetListView() {
           onClick={handlePrintAll}
           disabled={printing || songsOnly.length === 0}
         >
-          {printing ? 'Preparing…' : '🖨 Print Full Set'}
+          {printing ? 'Preparing…' : '🖨 Print All Charts'}
         </button>
       </div>
 
       {/* ── Chart stage ── */}
       <div className="slv-stage-wrap">
         {total === 0 ? (
-          <div className="slv-no-songs">This set list has no songs yet.</div>
+          <div className="slv-no-songs">This show has no songs yet.</div>
         ) : isBreak ? (
           <div className="slv-break-screen">
             <div className="slv-break-icon">☕</div>

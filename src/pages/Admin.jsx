@@ -22,9 +22,9 @@ const liveTools = [
     href: '/studio/chord-charts',
   },
   {
-    emoji: '🎵',
-    title: 'Set Lists',
-    description: 'Build shareable set lists. Share a link for full chord charts on any device at the gig.',
+    emoji: '🎤',
+    title: 'Shows',
+    description: 'Build set lists for your shows. Share a link for full chord charts on any device at the gig.',
     href: '/studio/setlists',
   },
   {

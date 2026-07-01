@@ -303,7 +303,7 @@ function Fretboard({ tuning, positions }) {
 const STUDIO_TOOLS = [
   { emoji: '🎸', label: 'Chord Chart Builder',  desc: 'Print-ready charts for gig night.' },
   { emoji: '🎼', label: 'Tab Builder',           desc: 'Fret grids with playback & export.' },
-  { emoji: '🎵', label: 'Set Lists',             desc: 'Shareable charts for the whole band.' },
+  { emoji: '🎤', label: 'Shows',                 desc: 'Shareable set lists for the whole band.' },
   { emoji: '🥁', label: 'Groove Builder',        desc: 'Drum patterns in any time signature.' },
   { emoji: '📄', label: 'Groove Sheet',          desc: 'Printable drum charts per song.' },
   { emoji: '🥁', label: 'Metronome',             desc: 'Click track with tap tempo, no login needed.' },

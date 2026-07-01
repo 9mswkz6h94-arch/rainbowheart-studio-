@@ -40,7 +40,7 @@ function SidebarSection({ title, items, activeId, onOpen, onDelete, onDuplicate 
             <button
               className="sl-dup-btn"
               onClick={e => { e.stopPropagation(); onDuplicate(sl) }}
-              title="Duplicate set list"
+              title="Duplicate show"
             >⧉</button>
             <button
               className="cc-lib-delete"
@@ -103,7 +103,7 @@ export default function SetLists() {
   /* ── New / load for edit ── */
   function startNew() {
     setActive(EMPTY_ACTIVE)
-    setName('New Set List')
+    setName('New Show')
     setEventDate('')
     setEventUrl('')
     setEventDetails('')
@@ -442,10 +442,10 @@ export default function SetLists() {
       <div className="sl-sidebar">
         <div className="cc-input-header" style={{ margin: '-1.25rem -1.25rem 0', padding: '1rem 1.25rem 0.75rem' }}>
           <div className="cc-header-row">
-            <h2 style={{ fontSize: '1rem', margin: 0 }}>🎵 Set Lists</h2>
+            <h2 style={{ fontSize: '1rem', margin: 0 }}>🎤 Shows</h2>
           </div>
           <div className="cc-savebar">
-            <button className="cc-btn-solid" onClick={startNew}>+ New Set List</button>
+            <button className="cc-btn-solid" onClick={startNew}>+ New Show</button>
           </div>
         </div>
 
@@ -453,7 +453,7 @@ export default function SetLists() {
           {loadingList ? (
             <p className="cc-hint">Loading…</p>
           ) : setlists.length === 0 ? (
-            <p className="cc-hint">No set lists yet — create one!</p>
+            <p className="cc-hint">No shows yet — create one!</p>
           ) : (
             <>
               <SidebarSection
@@ -484,14 +484,14 @@ export default function SetLists() {
           {/* Sticky header */}
           <div className="cc-input-header" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', margin: 0, padding: '1rem 1.5rem 0.75rem', borderBottom: '1px solid var(--border)' }}>
             <div className="cc-header-row" style={{ gap: '0.75rem' }}>
-              <span className="sl-editor-name">{name || 'Untitled Set'}</span>
+              <span className="sl-editor-name">{name || 'Untitled Show'}</span>
               {/* Quick-jump dropdown */}
               {setlists.length > 0 && (
                 <select
                   className="sl-jump-select"
                   value={active?.id || ''}
                   onChange={handleDropdownChange}
-                  title="Jump to a different set list"
+                  title="Jump to a different show"
                 >
                   <option value="">Jump to…</option>
                   {upcoming.length > 0 && (
@@ -517,7 +517,7 @@ export default function SetLists() {
             </div>
             <div className="cc-savebar">
               <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving…' : 'Save Set List'}
+                {saving ? 'Saving…' : 'Save Show'}
               </button>
               {items.length > 0 && (
                 <button className="cc-btn-ghost" onClick={handlePrintSetList} title="Print a song-order reference sheet">
@@ -543,7 +543,7 @@ export default function SetLists() {
                 className="sl-name-field"
                 value={name}
                 onChange={e => { setName(e.target.value); setDirty(true) }}
-                placeholder="Set list name…"
+                placeholder="Show name… (venue, event, date)"
               />
 
               {/* Event details card */}
@@ -793,7 +793,7 @@ export default function SetLists() {
       ) : (
         <div className="sl-empty-state">
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎵</div>
-          <div>Select a set list or create a new one</div>
+          <div>Select a show or create a new one</div>
         </div>
       )}
     </div>
