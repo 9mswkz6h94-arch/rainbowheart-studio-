@@ -21,7 +21,7 @@ function SidebarSection({ title, items, activeId, onOpen, onDelete, onDuplicate 
     <div className="sl-section">
       <div className="sl-section-label">{title}</div>
       {items.map(sl => {
-        const songCount = (sl.songs || []).filter(s => s._type !== 'break').length
+        const songCount = (sl.songs || []).filter(s => !s._type).length
         return (
           <div
             key={sl.id}
@@ -75,6 +75,7 @@ export default function SetLists() {
   const [shareMsg,    setShareMsg]    = useState(null)
   const [showLib,     setShowLib]     = useState(false)
   const [showDrafts,  setShowDrafts]  = useState(false)
+  const [libQuery,    setLibQuery]    = useState('')
   const [dragIdx,     setDragIdx]     = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
 
@@ -193,6 +194,26 @@ export default function SetLists() {
     setDirty(true)
   }
 
+  function handleAddSet() {
+    setItems(prev => {
+      const n = prev.filter(it => it._type === 'set').length
+      const header = { _type: 'set', label: `Set ${n + 1}` }
+      // First set on an existing list goes on top so it wraps the songs already there
+      return n === 0 ? [header, ...prev] : [...prev, header]
+    })
+    setDirty(true)
+  }
+
+  function handleDeleteSet(idx) {
+    let end = idx + 1
+    while (end < items.length && items[end]._type !== 'set') end++
+    const inside = end - idx - 1
+    const label = items[idx].label || 'Set'
+    if (inside > 0 && !window.confirm(`Delete "${label}" and the ${inside} item${inside !== 1 ? 's' : ''} in it? Songs stay in your library.`)) return
+    setItems(prev => [...prev.slice(0, idx), ...prev.slice(end)])
+    setDirty(true)
+  }
+
   function handleItemDurationChange(idx, val) {
     const n = val === '' ? null : Math.round(parseFloat(val) * 4) / 4
     if (n !== null && (isNaN(n) || n <= 0)) return
@@ -300,10 +321,16 @@ export default function SetLists() {
     const w = window.open('', '_blank')
     if (!w) return
     let sn = 0, printTotal = 0, rows = ''
-    for (const item of items) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
       const dur = parseFloat(item.duration) || 0
       printTotal += dur
-      if (item._type === 'break') {
+      if (item._type === 'set') {
+        sn = 0
+        const stats = setStats[i] || { songs: 0, mins: 0 }
+        const sub = stats.mins > 0 ? `~${fmtDuration(stats.mins)}` : ''
+        rows += `<tr class="set-row"><td></td><td colspan="2">${item.label || 'Set'}</td><td class="dur">${sub}</td></tr>`
+      } else if (item._type === 'break') {
         const durStr = dur ? fmtSongDur(dur) : ''
         rows += `<tr class="break-row"><td colspan="3">— ${item.label || 'Break'} —</td><td class="dur">${durStr}</td></tr>`
       } else {
@@ -335,6 +362,8 @@ export default function SetLists() {
       .dur { color: #888; font-size: 0.82rem; text-align: right; white-space: nowrap; width: 3rem; }
       tr.break-row td { text-align: center; color: #888; font-style: italic; font-size: 0.85rem; padding: 0.6rem; border-bottom: 2px dashed #ccc; }
       tr.break-row .dur { text-align: right; font-style: normal; }
+      tr.set-row td { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.95rem; padding-top: 1.1rem; border-bottom: 2px solid #111; }
+      tr.set-row .dur { font-weight: 400; }
       .total-row td { border-top: 2px solid #111; font-weight: 700; padding-top: 0.6rem; }
       @media print { body { padding: 1rem; } }
     </style></head><body>
@@ -352,11 +381,30 @@ export default function SetLists() {
 
   const editing = active !== null
 
-  let _sn = 0
-  const songNums   = items.map(it => it._type === 'break' ? null : ++_sn)
-  const songCount  = _sn
+  /* Song numbering restarts at each named set */
+  let _sn = 0, _songTotal = 0
+  const songNums = items.map(it => {
+    if (it._type === 'set') { _sn = 0; return null }
+    if (it._type) return null
+    _songTotal++
+    return ++_sn
+  })
+  const songCount  = _songTotal
   const breakCount = items.filter(it => it._type === 'break').length
+  const setCount   = items.filter(it => it._type === 'set').length
   const totalMins = items.reduce((s, it) => s + (parseFloat(it.duration) || 0), 0)
+
+  /* Per-set song count + running time, keyed by the set header's index */
+  const setStats = {}
+  {
+    let cur = null
+    items.forEach((it, i) => {
+      if (it._type === 'set') { cur = i; setStats[i] = { songs: 0, mins: 0 }; return }
+      if (cur === null) return
+      setStats[cur].mins += parseFloat(it.duration) || 0
+      if (!it._type) setStats[cur].songs++
+    })
+  }
 
   function fmtDuration(m) {
     const totalSecs = Math.round(m * 60)
@@ -375,6 +423,7 @@ export default function SetLists() {
     return secs > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${mins}:00`
   }
 
+  const libQ = libQuery.trim().toLowerCase()
   const displayLibrary = [...library]
     .sort((a, b) => {
       const ad = a.meta?.draft ? 1 : 0, bd = b.meta?.draft ? 1 : 0
@@ -382,6 +431,9 @@ export default function SetLists() {
       return (a.title || '').localeCompare(b.title || '')
     })
     .filter(s => showDrafts || !s.meta?.draft)
+    .filter(s => !libQ
+      || (s.title || '').toLowerCase().includes(libQ)
+      || (s.meta?.writer || '').toLowerCase().includes(libQ))
 
   return (
     <div className="sl-layout">
@@ -539,6 +591,7 @@ export default function SetLists() {
               <div className="sl-panel-header" style={{ marginTop: '1.25rem' }}>
                 <span className="sl-panel-title">
                   Set Order · {songCount} song{songCount !== 1 ? 's' : ''}
+                  {setCount > 0 ? ` · ${setCount} set${setCount !== 1 ? 's' : ''}` : ''}
                   {breakCount > 0 ? ` · ${breakCount} break${breakCount !== 1 ? 's' : ''}` : ''}
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -553,6 +606,14 @@ export default function SetLists() {
                       ↻ Sync Charts
                     </button>
                   )}
+                  <button
+                    className="cc-btn-ghost"
+                    style={{ fontSize: '0.75rem' }}
+                    onClick={handleAddSet}
+                    title="Add a named set divider (Set 1, Set 2, Encore…) — song numbering restarts each set"
+                  >
+                    🎼 Add Set
+                  </button>
                   <button
                     className="cc-btn-ghost"
                     style={{ fontSize: '0.75rem' }}
@@ -595,6 +656,27 @@ export default function SetLists() {
                       onDragOver:  e => handleDragOver(e, idx),
                       onDrop:      e => handleDrop(e, idx),
                       onDragEnd:   handleDragEnd,
+                    }
+                    if (song._type === 'set') {
+                      const stats = setStats[idx] || { songs: 0, mins: 0 }
+                      return (
+                        <div key={idx} className={`sl-set-row${dragClass}`} {...dragProps}>
+                          <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
+                          <span className="sl-set-icon">🎼</span>
+                          <input
+                            className="sl-set-label-input"
+                            value={song.label || ''}
+                            placeholder="Set name…"
+                            onChange={e => handleBreakLabelChange(idx, e.target.value)}
+                            onClick={e => e.stopPropagation()}
+                          />
+                          <span className="sl-set-stats">
+                            {stats.songs} song{stats.songs !== 1 ? 's' : ''}
+                            {stats.mins > 0 ? ` · ~${fmtDuration(stats.mins)}` : ''}
+                          </span>
+                          <button className="cc-lib-delete" onClick={() => handleDeleteSet(idx)} title="Delete this set and the songs in it">✕</button>
+                        </div>
+                      )
                     }
                     if (song._type === 'break') {
                       return (
@@ -669,10 +751,19 @@ export default function SetLists() {
                     {showDrafts ? 'Hide Drafts' : 'Show Drafts'}
                   </button>
                 </div>
+                <input
+                  className="sl-lib-search"
+                  type="search"
+                  value={libQuery}
+                  onChange={e => setLibQuery(e.target.value)}
+                  placeholder="🔍 Search songs…"
+                />
                 {loadingLib ? (
                   <p className="cc-hint" style={{ padding: '0.75rem' }}>Loading…</p>
                 ) : displayLibrary.length === 0 ? (
-                  <p className="cc-hint" style={{ padding: '0.75rem' }}>No saved songs yet.</p>
+                  <p className="cc-hint" style={{ padding: '0.75rem' }}>
+                    {libQ ? 'No songs match your search.' : 'No saved songs yet.'}
+                  </p>
                 ) : (
                   displayLibrary.map(song => {
                     const inSet = items.some(it => it._songId === song.id)

@@ -11,6 +11,9 @@ export default function SetListView() {
   const [error,      setError]      = useState(null)
   const [songIdx,    setSongIdx]    = useState(0)
   const [printing,   setPrinting]   = useState(false)
+  const [darkCharts, setDarkCharts] = useState(() => {
+    try { return localStorage.getItem('slv-dark-charts') === '1' } catch { return false }
+  })
 
   const measureRef = useRef(null)
   const stageRef   = useRef(null)
@@ -35,7 +38,7 @@ export default function SetListView() {
   const renderSong = useCallback(async (idx) => {
     if (!setlist || !measureRef.current || !stageRef.current) return
     const song = setlist.songs[idx]
-    if (!song || song._type === 'break') return
+    if (!song || song._type) return
 
     await document.fonts.ready
 
@@ -64,8 +67,8 @@ export default function SetListView() {
   useEffect(() => {
     if (setlist) {
       const item = setlist.songs[songIdx]
-      if (item?._type === 'break') {
-        document.title = `${item.label || 'Break'} — ${setlist.name}`
+      if (item?._type) {
+        document.title = `${item.label || (item._type === 'set' ? 'Set' : 'Break')} — ${setlist.name}`
       } else if (item) {
         document.title = `${item.title} — ${setlist.name}`
       } else {
@@ -83,7 +86,7 @@ export default function SetListView() {
 
     let allHtml = ''
     for (const song of setlist.songs) {
-      if (song._type === 'break') continue
+      if (song._type) continue
       const parsed = parseSong(song.song_text || '', song.meta || {})
       const opts   = { compact: true, collapse: true, writeBars: true }
       allHtml += layout(parsed, 'full', opts, measureRef.current).html
@@ -110,15 +113,40 @@ export default function SetListView() {
   function goPrev() { setSongIdx(i => Math.max(0, i - 1)) }
   function goNext() { setSongIdx(i => Math.min((setlist?.songs.length ?? 1) - 1, i + 1)) }
 
-  /* ── Keyboard navigation ── */
+  /* ── Keyboard navigation ──
+     PageDown/PageUp cover Bluetooth page-turner pedals (AirTurn, Donner, etc.) */
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goNext()
       if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goPrev()
+      if (e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); goNext() }
+      if (e.key === 'PageUp')                    { e.preventDefault(); goPrev() }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   })
+
+  /* ── Keep the screen awake during a performance ── */
+  useEffect(() => {
+    let lock = null
+    async function acquire() {
+      try { lock = await navigator.wakeLock?.request('screen') } catch { /* unsupported or denied — fine */ }
+    }
+    function onVis() { if (document.visibilityState === 'visible') acquire() }
+    acquire()
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      try { lock?.release() } catch { /* already released */ }
+    }
+  }, [])
+
+  function toggleDarkCharts() {
+    setDarkCharts(d => {
+      try { localStorage.setItem('slv-dark-charts', d ? '0' : '1') } catch { /* private mode */ }
+      return !d
+    })
+  }
 
   /* ── States ── */
   if (loading) return (
@@ -139,14 +167,43 @@ export default function SetListView() {
   const total   = songs.length
   const current = songs[songIdx]
   const isBreak = current?._type === 'break'
+  const isSet   = current?._type === 'set'
 
-  const songsOnly    = songs.filter(s => s._type !== 'break')
-  const songPosition = isBreak
+  const songsOnly    = songs.filter(s => !s._type)
+  const songPosition = current?._type
     ? null
-    : songs.slice(0, songIdx + 1).filter(s => s._type !== 'break').length
+    : songs.slice(0, songIdx + 1).filter(s => !s._type).length
+
+  /* Current named set (if this setlist uses set dividers) */
+  let setStart = -1
+  for (let i = songIdx; i >= 0; i--) {
+    if (songs[i]._type === 'set') { setStart = i; break }
+  }
+  let setEnd = songs.length
+  for (let i = setStart + 1; i < songs.length; i++) {
+    if (songs[i]._type === 'set') { setEnd = i; break }
+  }
+  const setLabel     = setStart >= 0 ? (songs[setStart].label || 'Set') : null
+  const setSongCount = setStart >= 0 ? songs.slice(setStart + 1, setEnd).filter(s => !s._type).length : 0
+  const posInSet     = setStart >= 0 && !current?._type
+    ? songs.slice(setStart + 1, songIdx + 1).filter(s => !s._type).length
+    : null
+
+  const positionText = isBreak
+    ? (current.label || 'Break')
+    : isSet
+      ? (current.label || 'Set')
+      : setLabel && posInSet != null
+        ? `${setLabel} · ${posInSet} / ${setSongCount}`
+        : songPosition != null
+          ? `${songPosition} / ${songsOnly.length}`
+          : '—'
+
+  /* First song of the set we're standing on (for the divider screen) */
+  const upNext = isSet ? songs.slice(songIdx + 1, setEnd).find(s => !s._type) : null
 
   return (
-    <div className="slv-root">
+    <div className={`slv-root${darkCharts ? ' slv-dark' : ''}`}>
 
       {/* Hidden off-screen measure div for layout engine */}
       <div
@@ -158,13 +215,14 @@ export default function SetListView() {
       {/* ── Top bar ── */}
       <div className="slv-topbar">
         <div className="slv-set-name">{setlist.name}</div>
-        <div className="slv-position">
-          {isBreak
-            ? (current.label || 'Break')
-            : songPosition != null
-              ? `${songPosition} / ${songsOnly.length}`
-              : '—'}
-        </div>
+        <div className="slv-position">{positionText}</div>
+        <button
+          className="slv-print-btn"
+          onClick={toggleDarkCharts}
+          title="Toggle dark charts for dim stages"
+        >
+          {darkCharts ? '☀ Light' : '🌙 Dark'}
+        </button>
         <button
           className="slv-print-btn"
           onClick={handlePrintAll}
@@ -182,6 +240,15 @@ export default function SetListView() {
           <div className="slv-break-screen">
             <div className="slv-break-icon">☕</div>
             <div className="slv-break-label">{current.label || 'Break'}</div>
+          </div>
+        ) : isSet ? (
+          <div className="slv-break-screen">
+            <div className="slv-break-icon">🎼</div>
+            <div className="slv-break-label slv-set-label-view">{current.label || 'Set'}</div>
+            <div className="slv-set-meta">
+              {setSongCount} song{setSongCount !== 1 ? 's' : ''}
+            </div>
+            {upNext && <div className="slv-set-next">Up first: {upNext.title || 'Untitled'}</div>}
           </div>
         ) : (
           <div ref={stageRef} className="stagewrap compact" />
@@ -203,9 +270,9 @@ export default function SetListView() {
             {songs.map((s, i) => (
               <button
                 key={i}
-                className={`slv-dot${i === songIdx ? ' active' : ''}${s._type === 'break' ? ' break' : ''}`}
+                className={`slv-dot${i === songIdx ? ' active' : ''}${s._type === 'break' ? ' break' : ''}${s._type === 'set' ? ' set' : ''}`}
                 onClick={() => setSongIdx(i)}
-                title={s._type === 'break' ? (s.label || 'Break') : s.title}
+                title={s._type === 'break' ? (s.label || 'Break') : s._type === 'set' ? (s.label || 'Set') : s.title}
               />
             ))}
           </div>

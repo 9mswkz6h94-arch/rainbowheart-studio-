@@ -2911,6 +2911,52 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 .sl-event-link:hover { text-decoration: underline; }
 
+/* ── Named set divider rows (editor) ── */
+.sl-set-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  margin-top: 0.35rem;
+  background: rgba(108,92,231,0.08);
+  border: 1px solid rgba(108,92,231,0.25);
+  border-radius: 8px;
+  cursor: grab;
+}
+.sl-set-row:active { cursor: grabbing; }
+.sl-set-row.sl-dragging { opacity: 0.35; }
+.sl-set-row.sl-drag-over { border-color: var(--accent); background: #f0f4ff; }
+.sl-set-row:hover .sl-drag-handle { color: #aaa; }
+.sl-set-row:hover .cc-lib-delete { opacity: 1; color: #e74c3c; }
+.sl-set-icon { font-size: 1rem; flex-shrink: 0; }
+.sl-set-label-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.sl-set-label-input:focus { outline: none; }
+.sl-set-stats { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+
+/* ── Library search (editor) ── */
+.sl-lib-search {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  background: #fff;
+  color: var(--text);
+}
+.sl-lib-search:focus { outline: none; border-color: var(--primary); }
+
 /* ══════════════════════════════════════════════
    Set List Performer View  (/setlist/:token)
    ══════════════════════════════════════════════ */
@@ -3014,6 +3060,8 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .slv-dot:hover:not(.active) { background: #888; }
 .slv-dot.break { border-radius: 2px; width: 14px; height: 6px; background: #e8a945; }
 .slv-dot.break.active { background: #f5c842; }
+.slv-dot.set { border-radius: 2px; width: 18px; height: 8px; background: #8f7ff0; }
+.slv-dot.set.active { background: #b3a7ff; transform: scale(1.15); }
 
 /* Break screen in performer view */
 .slv-break-screen {
@@ -3033,6 +3081,21 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #e8a945;
+}
+.slv-break-screen .slv-break-label.slv-set-label-view { color: #a99bff; font-size: 2rem; }
+.slv-set-meta { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: #888; }
+.slv-set-next { font-family: 'Space Mono', monospace; font-size: 0.95rem; color: #ccc; }
+
+/* ── Dark charts mode (dim stages) — inverts the chart paper only ── */
+.slv-dark .slv-stage-wrap .page {
+  --paper: #17171a;
+  --ink:   #ece9e4;
+  --val:   #b9b6b1;
+  --lab:   #85827d;
+  --hair:  #3c3c42;
+  --slash: #a5a29d;
+  --secbg: #4a4a52;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.5);
 }
 
 .slv-loading {
@@ -3062,6 +3125,16 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   .slv-topbar,
   .slv-nav     { display: none !important; }
   .slv-stage-wrap { padding: 0 !important; overflow: visible !important; }
+  /* Always print light, even in dark charts mode */
+  .slv-dark .slv-stage-wrap .page {
+    --paper: #FFFFFF;
+    --ink:   #171411;
+    --val:   #565452;
+    --lab:   #9c9a97;
+    --hair:  #d9d7d3;
+    --slash: #5e5b57;
+    --secbg: #6e6a66;
+  }
 }
 
 /* ══════════════════════════════════════════════════════
