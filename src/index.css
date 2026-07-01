@@ -2539,13 +2539,21 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
     margin: 0 !important;
     padding: 0 !important;
     width: 8.5in !important;
-    height: 11in !important;
+    min-height: 11in !important;
+    display: block !important;
   }
   .navbar          { display: none !important; }
   .footer          { display: none !important; }
   .cc-input        { display: none !important; }
   .cc-input-header { display: none !important; }
-  .cc-page         { display: block !important; margin: 0 !important; padding: 0 !important; }
+  .cc-splitter     { display: none !important; }
+  .cc-page {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    grid-template-columns: none !important;
+    width: 100% !important;
+  }
   .cc-preview {
     overflow: visible !important;
     height: auto !important;
@@ -2553,6 +2561,8 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
     margin: 0 !important;
     background: #fff !important;
     width: 8.5in !important;
+    display: block !important;
+    border: none !important;
   }
   .stagewrap {
     padding: 0 !important;
@@ -2574,12 +2584,15 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
     page-break-inside: avoid;
     transform: none !important;
     margin: 0 !important;
+    margin-bottom: 0 !important;
     padding: 0.45in 0.62in 0.6in 0.62in !important;
     overflow: hidden !important;
     page-break-before: auto;
     background: #fff !important;
     display: block !important;
     position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
   }
   .page:first-child { page-break-before: avoid; }
   .page:last-child { page-break-after: auto; }
