@@ -21,8 +21,7 @@ export default function Navbar() {
           <a href="/#open-mic">Open Mic</a>
           <a href="/#about">About</a>
           <a href="/#team">Team</a>
-          <NavLink to="/tools/chord-scale-explorer" className="nav-link-tools">Tools</NavLink>
-          <NavLink to="/studio/tuner" className="nav-link-tools">Tuner</NavLink>
+          <NavLink to="/tools" className="nav-link-tools">Tools</NavLink>
           <a href="/#contact">Contact</a>
           {user ? (
             <>

@@ -17,6 +17,7 @@ import GrooveBuilder from './pages/GrooveBuilder'
 import GrooveSheet from './pages/GrooveSheet'
 import ChordScaleExplorer from './pages/ChordScaleExplorer'
 import Tuner from './pages/Tuner'
+import Tools from './pages/Tools'
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/studio/groove-sheet" element={
             <ProtectedRoute><GrooveSheet /></ProtectedRoute>
           } />
+          <Route path="/tools" element={<Tools />} />
           <Route path="/tools/chord-scale-explorer" element={<ChordScaleExplorer />} />
           <Route path="/studio/tuner" element={<Tuner />} />
           <Route path="/setlist/:token" element={<SetListView />} />
