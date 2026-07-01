@@ -41,6 +41,13 @@ const tools = [
     href: '/studio/groove-sheet',
   },
   {
+    emoji: '🎙',
+    title: 'Tuner',
+    description: 'Chromatic and instrument tuner — Guitar (Standard + Drop D), Bass, and Ukulele. Listens through your mic, no account needed.',
+    status: 'ready',
+    href: '/studio/tuner',
+  },
+  {
     emoji: '🎵',
     title: 'Chord & Scale Explorer',
     description: 'See every chord and scale across all positions on Ukulele, Tenor Guitar, Guitarlele, Acoustic Guitar, and Bass.',

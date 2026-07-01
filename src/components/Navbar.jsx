@@ -22,6 +22,7 @@ export default function Navbar() {
           <a href="/#about">About</a>
           <a href="/#team">Team</a>
           <NavLink to="/tools/chord-scale-explorer" className="nav-link-tools">Tools</NavLink>
+          <NavLink to="/studio/tuner" className="nav-link-tools">Tuner</NavLink>
           <a href="/#contact">Contact</a>
           {user ? (
             <>
