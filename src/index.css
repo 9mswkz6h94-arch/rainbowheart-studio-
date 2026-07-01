@@ -739,6 +739,7 @@ a  { color: inherit; text-decoration: none; }
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.1);
 }
+.fb-feed-mobile-cta { display: none; }
 
 /* ── Contact Form ── */
 .contact-form {
@@ -814,6 +815,29 @@ a  { color: inherit; text-decoration: none; }
 .footer-links { display: flex; gap: 1.5rem; }
 .footer-links a { font-size: 0.875rem; color: var(--text-muted); transition: color 0.15s; }
 .footer-links a:hover { color: var(--primary); }
+
+/* ── Scroll to top ── */
+.scroll-to-top-btn {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 90;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-hover);
+  transition: background 0.15s, transform 0.15s;
+}
+.scroll-to-top-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
 
 /* ── Login ── */
 .login-page {
@@ -1018,6 +1042,11 @@ a  { color: inherit; text-decoration: none; }
   .about-inner { grid-template-columns: 1fr; }
   .about-visual { display: none; }
   .footer-inner { flex-direction: column; text-align: center; }
+
+  /* Facebook feed: the embedded iframe traps scroll gestures on mobile,
+     so swap it for a plain link to the page instead */
+  .fb-embed-wrap { display: none; }
+  .fb-feed-mobile-cta { display: inline-flex; }
 
   /* Mobile nav: hamburger + collapsible dropdown instead of hiding links */
   .nav-hamburger { display: block; }

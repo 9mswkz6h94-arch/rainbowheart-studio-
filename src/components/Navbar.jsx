@@ -32,11 +32,11 @@ export default function Navbar() {
         </button>
         <div className={'nav-links' + (menuOpen ? ' open' : '')} onClick={closeMenu}>
           <a href="/#services">Services</a>
-          <a href="/#open-mic">Open Mic</a>
           <a href="/#about">About</a>
           <a href="/#team">Team</a>
-          <NavLink to="/tools" className="nav-link-tools">Tools</NavLink>
           <a href="/#contact">Contact</a>
+          <a href="/#open-mic">Open Mic</a>
+          <NavLink to="/tools" className="nav-link-tools">Tools</NavLink>
           {user ? (
             <>
               <NavLink to="/studio" className="nav-link-studio">

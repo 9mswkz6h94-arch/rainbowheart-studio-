@@ -226,13 +226,15 @@ function ServiceCard({ s }) {
           {s.ctaExternal ? (
             <a href={s.ctaHref} target="_blank" rel="noopener noreferrer" className="card-cta">{s.cta} →</a>
           ) : (
-            <a href="#contact" className="card-cta">{s.cta} →</a>
+            <a href={s.ctaHref || '#contact'} className="card-cta">{s.cta} →</a>
           )}
         </div>
       </div>
     </div>
   )
 }
+
+const KTCP_URL = 'https://www.ktcp.org/'
 
 const staff = [
   {
@@ -329,46 +331,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Open Mic */}
-      <section id="open-mic" className="open-mic-section">
-        <div className="container">
-          <div className="open-mic-inner">
-            <div className="open-mic-text">
-              <p className="open-mic-tag">📅 Every 4th Saturday · 7:00 PM</p>
-              <h2>Brother Jon's Open Mic Night</h2>
-              <p className="open-mic-venue">📍 Nelson Brew Works · Copperas Cove, TX</p>
-              <p className="open-mic-desc">
-                All original performers welcome. Sign up at the door, take the stage,
-                and share your music with a live audience — and a livestream. Featured
-                artists get the chance to be interviewed and aired on KTCP 98.7.
-              </p>
-              <div className="open-mic-ctas">
-                <a
-                  href="https://open-mic-queue.netlify.app/signup"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary-inv"
-                >
-                  Sign Up to Perform →
-                </a>
-                <a
-                  href="https://open-mic-queue.netlify.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-outline-light"
-                >
-                  View Tonight's Queue →
-                </a>
-              </div>
-              <p className="open-mic-radio-note">
-                📻 Featured artists air on <strong>KTCP 98.7 — The Voice of Bell County</strong>
-              </p>
-            </div>
-            <div className="open-mic-visual" aria-hidden="true">🎤</div>
-          </div>
-        </div>
-      </section>
-
       {/* About */}
       <section id="about" className="about">
         <div className="container about-inner">
@@ -452,6 +414,15 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Contact */}
+      <section id="contact" className="contact-cta">
+        <div className="container">
+          <h2>Ready to create something?</h2>
+          <p>Drop us a message and we'll get back to you soon.</p>
+          <ContactForm />
+        </div>
+      </section>
+
       {/* Facebook Feed */}
       <section className="fb-feed-section">
         <div className="container fb-feed-inner">
@@ -470,15 +441,58 @@ export default function Home() {
               allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
             />
           </div>
+          <a
+            href="https://www.facebook.com/jowensrainbowheartstudio/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary fb-feed-mobile-cta"
+          >
+            Visit our Facebook Page →
+          </a>
         </div>
       </section>
 
-      {/* Contact */}
-      <section id="contact" className="contact-cta">
+      {/* Open Mic */}
+      <section id="open-mic" className="open-mic-section">
         <div className="container">
-          <h2>Ready to create something?</h2>
-          <p>Drop us a message and we'll get back to you soon.</p>
-          <ContactForm />
+          <div className="open-mic-inner">
+            <div className="open-mic-text">
+              <p className="open-mic-tag">📅 Every 4th Saturday · 7:00 PM</p>
+              <h2>Brother Jon's Open Mic Night</h2>
+              <p className="open-mic-venue">📍 Nelson Brew Works · Copperas Cove, TX</p>
+              <p className="open-mic-desc">
+                All original performers welcome. Sign up at the door, take the stage,
+                and share your music with a live audience — and a livestream. Featured
+                artists get the chance to be interviewed and aired on{' '}
+                <a href={KTCP_URL} target="_blank" rel="noopener noreferrer">KTCP 98.7</a>.
+              </p>
+              <div className="open-mic-ctas">
+                <a
+                  href="https://open-mic-queue.netlify.app/signup"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary-inv"
+                >
+                  Sign Up to Perform →
+                </a>
+                <a
+                  href="https://open-mic-queue.netlify.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-outline-light"
+                >
+                  View Tonight's Queue →
+                </a>
+              </div>
+              <p className="open-mic-radio-note">
+                📻 Featured artists air on{' '}
+                <a href={KTCP_URL} target="_blank" rel="noopener noreferrer">
+                  <strong>KTCP 98.7 — The Voice of Bell County</strong>
+                </a>
+              </p>
+            </div>
+            <div className="open-mic-visual" aria-hidden="true">🎤</div>
+          </div>
         </div>
       </section>
 

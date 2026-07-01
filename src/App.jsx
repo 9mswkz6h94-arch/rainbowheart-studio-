@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ScrollToTopButton from './components/ScrollToTopButton'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import Home from './pages/Home'
@@ -63,6 +64,7 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
+      <ScrollToTopButton />
     </>
   )
 }
