@@ -114,6 +114,7 @@ const services = [
   {
     emoji: '🎸',
     title: 'Private Lessons',
+    stinger: 'One-on-one lessons for every age and instrument.',
     description: 'One-on-one instruction with multiple talented instructors. Guitar, vocals, piano, songwriting, and more — all ages and skill levels welcome.',
     gradient: 'linear-gradient(135deg, #FF6B6B, #FD79A8)',
     cta: 'Book a Lesson',
@@ -121,6 +122,7 @@ const services = [
   {
     emoji: '🖌️',
     title: 'Murals',
+    stinger: 'Custom hand-painted murals for any space.',
     description: 'Custom hand-painted murals for homes, businesses, and public spaces. Bold, lasting, and uniquely yours.',
     gradient: 'linear-gradient(135deg, #1DD1A1, #48DBFB)',
     cta: 'See Our Work',
@@ -130,6 +132,7 @@ const services = [
   {
     emoji: '🥁',
     title: 'The Heart Beats',
+    stinger: 'A kids band that builds real musicianship.',
     description: 'Young musicians learning to play, rehearse, and perform together. Builds confidence, teamwork, and a lifelong love of music.',
     gradient: 'linear-gradient(135deg, #A29BFE, #FD79A8)',
     cta: 'Learn More',
@@ -137,6 +140,7 @@ const services = [
   {
     emoji: '🎤',
     title: '4th Saturday Open Mic',
+    stinger: 'Live music every 4th Saturday — all welcome.',
     description: 'Live music every 4th Saturday at Nelson Brew Works in Copperas Cove. All performers welcome — come play, come listen, come be part of something.',
     gradient: 'linear-gradient(135deg, #FF9F43, #FF6B6B)',
     cta: 'Sign Up or View Queue',
@@ -146,6 +150,7 @@ const services = [
   {
     emoji: '📻',
     title: "Brother Jon's Songwriter Session",
+    stinger: 'Monthly songwriter radio show on KTCP 98.7.',
     description: 'A monthly songwriter radio show on KTCP 98.7 — The Voice of Bell County. Featured artists perform live and share the stories behind their songs. Streaming live every 4th Saturday.',
     gradient: 'linear-gradient(135deg, #48DBFB, #6C5CE7)',
     cta: 'Follow for Updates',
@@ -155,6 +160,7 @@ const services = [
   {
     emoji: '🎙️',
     title: 'Brother Jon & The Rainbow Hearts',
+    stinger: 'Central Texas roots rock, live around town.',
     description: 'Central Texas roots rock with soul. Catch them live across the area or stream their music — and look for them right here at Rainbow Heart Studio.',
     gradient: 'linear-gradient(135deg, #6C5CE7, #B146C2)',
     cta: 'Visit the Band',
@@ -164,6 +170,7 @@ const services = [
   {
     emoji: '💍',
     title: 'Micro Weddings',
+    stinger: 'Intimate ceremonies, scaled to what matters most.',
     description: 'Intimate ceremonies for the couples who want meaningful, personal celebrations. Live music, custom décor, and an unforgettable day — all scaled to what matters most to you.',
     gradient: 'linear-gradient(135deg, #FF1493, #FF69B4)',
     cta: 'Plan Your Day',
@@ -171,6 +178,7 @@ const services = [
   {
     emoji: '🎭',
     title: 'Face Painting',
+    stinger: 'Professional face painting for parties and events.',
     description: 'Professional face painting for events, parties, festivals, and celebrations. Custom designs, fast turnaround, and smiles all around.',
     gradient: 'linear-gradient(135deg, #FFD700, #FFA500)',
     cta: 'Book Face Painting',
@@ -178,6 +186,7 @@ const services = [
   {
     emoji: '🎉',
     title: 'Event Packages',
+    stinger: 'Curated live-music experiences for your event.',
     description: 'Curated experiences for house shows, art parties, corporate events, and celebrations. Live music, creativity, and connection tailored to your vision.',
     gradient: 'linear-gradient(135deg, #00CEC9, #74B9FF)',
     cta: 'Explore Options',
@@ -185,11 +194,45 @@ const services = [
   {
     emoji: '👨‍🏫',
     title: 'Coaching Sessions',
+    stinger: 'Personalized coaching for adult learners and musicians.',
     description: 'Personalized instruction for adult learners and musicians honing a specific skill. Whether you\'re picking up an instrument, refining technique, or unlocking your creative voice — we meet you where you are.',
     gradient: 'linear-gradient(135deg, #A29BFE, #74B9FF)',
     cta: 'Start Learning',
   },
 ]
+
+function ServiceCard({ s }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div
+      className={'service-card' + (expanded ? ' expanded' : '')}
+      style={{ '--card-gradient': s.gradient }}
+    >
+      <div className="card-icon">{s.emoji}</div>
+      <h3>{s.title}</h3>
+      <p className="card-stinger">{s.stinger}</p>
+      <button
+        type="button"
+        className="card-expand-btn"
+        onClick={() => setExpanded(e => !e)}
+        aria-expanded={expanded}
+      >
+        {expanded ? 'Show less −' : 'Learn more +'}
+      </button>
+      <div className="card-details-wrap">
+        <div className="card-details-inner">
+          <p>{s.description}</p>
+          {s.ctaExternal ? (
+            <a href={s.ctaHref} target="_blank" rel="noopener noreferrer" className="card-cta">{s.cta} →</a>
+          ) : (
+            <a href="#contact" className="card-cta">{s.cta} →</a>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const staff = [
   {
@@ -250,17 +293,25 @@ export default function Home() {
           </div>
           <div className="studio-showcase-grid">
             {STUDIO_TOOLS.map(tool => (
-              <div key={tool.slug} className={'studio-preview-card' + (tool.free ? ' free' : '')}>
-                <div className="studio-preview-icon">{tool.emoji}</div>
-                <div className="studio-preview-body">
-                  <h3>{tool.title}</h3>
-                  <p>{tool.description}</p>
+              tool.free ? (
+                <Link key={tool.slug} to={tool.href} className="studio-preview-card free">
+                  <div className="studio-preview-icon">{tool.emoji}</div>
+                  <div className="studio-preview-body">
+                    <h3>{tool.title}</h3>
+                    <p>{tool.description}</p>
+                  </div>
+                  <span className="studio-preview-free">✨ Free</span>
+                </Link>
+              ) : (
+                <div key={tool.slug} className="studio-preview-card">
+                  <div className="studio-preview-icon">{tool.emoji}</div>
+                  <div className="studio-preview-body">
+                    <h3>{tool.title}</h3>
+                    <p>{tool.description}</p>
+                  </div>
+                  <span className="studio-preview-lock">🔒 Studio</span>
                 </div>
-                {tool.free
-                  ? <span className="studio-preview-free">✨ Free</span>
-                  : <span className="studio-preview-lock">🔒 Studio</span>
-                }
-              </div>
+              )
             ))}
           </div>
         </div>
@@ -272,20 +323,7 @@ export default function Home() {
           <h2 className="section-title">What We Do</h2>
           <div className="services-grid">
             {services.map((s) => (
-              <div
-                key={s.title}
-                className="service-card"
-                style={{ '--card-gradient': s.gradient }}
-              >
-                <div className="card-icon">{s.emoji}</div>
-                <h3>{s.title}</h3>
-                <p>{s.description}</p>
-                {s.ctaExternal ? (
-                  <a href={s.ctaHref} target="_blank" rel="noopener noreferrer" className="card-cta">{s.cta} →</a>
-                ) : (
-                  <a href="#contact" className="card-cta">{s.cta} →</a>
-                )}
-              </div>
+              <ServiceCard key={s.title} s={s} />
             ))}
           </div>
         </div>

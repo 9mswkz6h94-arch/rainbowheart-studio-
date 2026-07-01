@@ -286,6 +286,11 @@ a  { color: inherit; text-decoration: none; }
 .studio-preview-card.free {
   border-color: var(--primary);
   pointer-events: auto;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.studio-preview-card.free:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
 }
 
 .studio-preview-icon { font-size: 1.75rem; }
@@ -362,6 +367,33 @@ a  { color: inherit; text-decoration: none; }
   transition: opacity 0.15s;
 }
 .card-cta:hover { opacity: 0.75; }
+
+.service-card .card-stinger { margin-bottom: 0.9rem; }
+
+.card-expand-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+}
+.card-expand-btn:hover { opacity: 0.75; }
+
+.card-details-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+.service-card.expanded .card-details-wrap { grid-template-rows: 1fr; }
+.card-details-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.card-details-inner p { margin-top: 0.9rem; }
 
 /* ── Open Mic Section ── */
 .open-mic-section {
