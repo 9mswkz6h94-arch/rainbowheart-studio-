@@ -1,10 +1,11 @@
 // Transcribes a photographed/scanned chord chart into this app's ChordMark
 // dialect (parseSong in src/lib/chartEngine.js) using Claude's vision input.
-// POST { mediaType: 'image/png' | 'image/jpeg' | 'image/webp' | 'application/pdf', dataBase64 }
+// POST { files: [{ mediaType: 'image/png' | 'image/jpeg' | 'image/webp' | 'application/pdf', dataBase64 }, ...] }
+// One or more images (treated as sequential pages of one song), OR a single PDF.
 // -> { ok: true, meta, source } | { ok: false, error }
 
 const MODEL = 'claude-haiku-4-5-20251001'
-const MAX_BYTES = 10 * 1024 * 1024 // 10MB, base64-decoded size
+const MAX_BYTES = 15 * 1024 * 1024 // 15MB decoded total across all files, room for a multi-page scan
 
 const ALLOWED_MEDIA_TYPES = new Set([
   'image/png', 'image/jpeg', 'image/webp', 'image/gif', 'application/pdf',
@@ -21,6 +22,7 @@ DIALECT RULES:
 - Prefix a lyric line with "*" (and a space) to mark it bold (use sparingly, only for a clearly emphasized hook/title line if the chart marks it that way).
 - Write chords exactly as they appear on the source (sharps or flats) — do not transpose or respell.
 - If the same section repeats later with identical chords and lyrics, write it out again in full each time; do not use any shorthand for repeated sections.
+- You may be given multiple pages, either as several separate photos or as pages within one PDF. Treat every page you're given as ONE continuous song that simply didn't fit on a single page — read them in the order given (the first image or page is page 1, and so on) and produce a single unbroken "source" value spanning every page. Do not restart or repeat title/key/tempo per page, do not treat a later page as a new song, and do not insert any page-break marker into the source text.
 
 OUTPUT FORMAT:
 Respond with ONLY a single JSON object, no prose, no markdown code fences, matching this shape:
@@ -85,27 +87,39 @@ export default async (req) => {
     return jsonResponse(400, { ok: false, error: 'Invalid JSON body' })
   }
 
-  const { mediaType, dataBase64 } = payload || {}
-  if (!mediaType || !dataBase64) {
-    return jsonResponse(400, { ok: false, error: 'mediaType and dataBase64 are required' })
+  const { files } = payload || {}
+  if (!Array.isArray(files) || files.length === 0) {
+    return jsonResponse(400, { ok: false, error: 'files (a non-empty array) is required' })
   }
-  if (!ALLOWED_MEDIA_TYPES.has(mediaType)) {
-    return jsonResponse(400, { ok: false, error: `Unsupported mediaType: ${mediaType}` })
+  for (const f of files) {
+    if (!f?.mediaType || !f?.dataBase64) {
+      return jsonResponse(400, { ok: false, error: 'Each file needs a mediaType and dataBase64' })
+    }
+    if (!ALLOWED_MEDIA_TYPES.has(f.mediaType)) {
+      return jsonResponse(400, { ok: false, error: `Unsupported mediaType: ${f.mediaType}` })
+    }
   }
-  if (base64ByteLength(dataBase64) > MAX_BYTES) {
-    return jsonResponse(400, { ok: false, error: 'File is too large (10MB max)' })
+  const hasPdf = files.some(f => f.mediaType === 'application/pdf')
+  if (hasPdf && files.length > 1) {
+    return jsonResponse(400, { ok: false, error: 'Send a PDF by itself, not combined with other files' })
+  }
+  const totalBytes = files.reduce((sum, f) => sum + base64ByteLength(f.dataBase64), 0)
+  if (totalBytes > MAX_BYTES) {
+    return jsonResponse(400, { ok: false, error: 'Total file size is too large (15MB max)' })
   }
 
-  const contentBlock = mediaType === 'application/pdf'
-    ? { type: 'document', source: { type: 'base64', media_type: mediaType, data: dataBase64 } }
-    : { type: 'image', source: { type: 'base64', media_type: mediaType, data: dataBase64 } }
+  const contentBlocks = files.map(f =>
+    f.mediaType === 'application/pdf'
+      ? { type: 'document', source: { type: 'base64', media_type: f.mediaType, data: f.dataBase64 } }
+      : { type: 'image', source: { type: 'base64', media_type: f.mediaType, data: f.dataBase64 } }
+  )
 
   const headers = {
     'content-type': 'application/json',
     'x-api-key': apiKey,
     'anthropic-version': '2023-06-01',
   }
-  if (mediaType === 'application/pdf') {
+  if (hasPdf) {
     headers['anthropic-beta'] = 'pdfs-2024-09-25'
   }
 
@@ -116,12 +130,12 @@ export default async (req) => {
       headers,
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: SYSTEM_PROMPT,
         messages: [{
           role: 'user',
           content: [
-            contentBlock,
+            ...contentBlocks,
             { type: 'text', text: 'Transcribe this chord chart into the JSON format described in the system prompt.' },
           ],
         }],
