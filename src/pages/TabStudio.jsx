@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, Fragment } from 'react'
+import { useState, useEffect, useRef, useCallback, Fragment } from 'react'
+import { fetchTabs, fetchTab, saveTab, deleteTab } from '../lib/tabs'
 
 /* ── Static data ── */
 const ROWS   = { bass: ['G','D','A','E'], guitar: ['e','B','G','D','A','E'] }
 const TUNING = { bass: 'E1 A1 D2 G2', guitar: 'E2 A2 D3 G3 B3 E4' }
-const LS_KEY = 'rh_tabstudio_v1'
 const SIG_OPTIONS = ['4/4','3/4','2/4','6/8','12/8','5/4','7/8']
 
 const NOTE_DURS = [
@@ -124,10 +124,6 @@ function buildAscii(inst, sig, gridDiv, bars, frets) {
   }).join('\n')
 }
 
-/* ── localStorage ── */
-function loadLib()       { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {} } catch { return {} } }
-function persistLib(lib) { localStorage.setItem(LS_KEY, JSON.stringify(lib)) }
-
 /* ── Component ── */
 export default function TabStudio() {
 
@@ -141,13 +137,15 @@ export default function TabStudio() {
   const [tempo,   setTempo]   = useState(124)
 
   /* library */
-  const [lib,         setLib]         = useState(loadLib)
+  const [tabs,        setTabs]        = useState([])
+  const [loadingLib,  setLoadingLib]  = useState(true)
   const [curId,       setCurId]       = useState(null)
   const [libName,     setLibName]     = useState('')
   const [libStatus,   setLibStatus]   = useState('')
   const [libDropOpen, setLibDropOpen] = useState(false)
   const [libMenuPos,  setLibMenuPos]  = useState({ left: 0, top: 0 })
   const [dirty,       setDirty]       = useState(false)
+  const [saving,      setSaving]      = useState(false)
   const [saveMsg,     setSaveMsg]     = useState(null)
 
   /* player */
@@ -164,6 +162,14 @@ export default function TabStudio() {
   /* derived */
   const d    = calcDims(sig, gridDiv)
   const rows = ROWS[inst]
+
+  /* ── Load tab library from Supabase ── */
+  const refreshLib = useCallback(async () => {
+    try   { setTabs(await fetchTabs()) }
+    catch (e) { console.error('Failed to load tabs', e) }
+    finally   { setLoadingLib(false) }
+  }, [])
+  useEffect(() => { refreshLib() }, [refreshLib])
 
   /* ── Load alphaTab CDN script once on mount ── */
   useEffect(() => {
@@ -231,10 +237,9 @@ export default function TabStudio() {
   }, [libDropOpen])
 
   /* ── Payload helpers ── */
-  function buildPayload(overrideId) {
-    const pid = overrideId || curId || ('tab_' + Math.random().toString(36).slice(2))
+  function buildPayload() {
     return {
-      format: 'rainbowhearts.tab', version: 1, id: pid,
+      format: 'rainbowhearts.tab', version: 1, id: curId || null,
       name: libName || title || 'Untitled tab',
       title, instrument: inst, tuning: TUNING[inst],
       timeSignature: sig, gridDivision: gridDiv, bars, tempo,
@@ -250,7 +255,19 @@ export default function TabStudio() {
     const ni=p.instrument||'bass', ns=p.timeSignature||'4/4', ng=p.gridDivision||16, nb=p.bars||2
     setInst(ni); setSig(ns); setGridDiv(ng); setBars(nb)
     setTitle(p.title||''); setTempo(p.tempo||120)
-    setLibName(p.name||''); setCurId(p.id||null)
+    setLibName(p.name||p.title||''); setCurId(null)
+    const d2 = calcDims(ns, ng)
+    const newFrets = makeGrid(ni, d2.cellsPerBar, nb)
+    if (p.grid) p.grid.forEach((row,r) => row.forEach((f,c) => { if (newFrets[r] && c < newFrets[r].length) newFrets[r][c] = f||'' }))
+    setFrets(newFrets); setDirty(false)
+  }
+
+  function applyFromRecord(record) {
+    const p = record.tab_data || {}
+    const ni=p.instrument||'bass', ns=p.timeSignature||'4/4', ng=p.gridDivision||16, nb=p.bars||2
+    setInst(ni); setSig(ns); setGridDiv(ng); setBars(nb)
+    setTitle(p.title||''); setTempo(p.tempo||120)
+    setLibName(record.title||''); setCurId(record.id)
     const d2 = calcDims(ns, ng)
     const newFrets = makeGrid(ni, d2.cellsPerBar, nb)
     if (p.grid) p.grid.forEach((row,r) => row.forEach((f,c) => { if (newFrets[r] && c < newFrets[r].length) newFrets[r][c] = f||'' }))
@@ -258,26 +275,44 @@ export default function TabStudio() {
   }
 
   /* ── Library actions ── */
-  function handleSave() {
-    const p = buildPayload(curId)
-    const newLib = { ...lib, [p.id]: p }
-    setLib(newLib); persistLib(newLib)
-    setCurId(p.id); setLibName(p.name); setDirty(false)
-    setLibStatus('Saved "' + p.name + '"')
-    setSaveMsg('Saved!'); setTimeout(() => setSaveMsg(null), 2000)
+  async function handleSave() {
+    setSaving(true); setSaveMsg(null)
+    try {
+      const tab_data = {
+        format: 'rainbowhearts.tab', version: 1,
+        title, instrument: inst, tuning: TUNING[inst],
+        timeSignature: sig, gridDivision: gridDiv, bars, tempo,
+        grid:     frets.map(r => r.slice()),
+        alphaTex: buildTex(inst, sig, gridDiv, bars, frets, title, tempo),
+        ascii:    buildAscii(inst, sig, gridDiv, bars, frets),
+      }
+      const saved = await saveTab({ id: curId, title: libName || title || 'Untitled Tab', tab_data })
+      setCurId(saved.id); setLibName(saved.title); setDirty(false)
+      setSaveMsg('Saved!'); await refreshLib()
+      setTimeout(() => setSaveMsg(null), 2000)
+    } catch (e) {
+      setSaveMsg('Error saving'); console.error(e)
+    } finally { setSaving(false) }
   }
 
-  function handleLibLoad(id) {
-    const entry = lib[id]
-    if (entry) { applyPayload(entry); setLibStatus('Loaded "' + (entry.name||id) + '"') }
+  async function handleLibLoad(id) {
+    if (dirty && !window.confirm('Discard unsaved changes?')) return
+    try {
+      const record = await fetchTab(id)
+      applyFromRecord(record)
+      setLibStatus('Loaded "' + (record.title||id) + '"')
+    } catch (e) { console.error('Failed to load tab', e) }
     setLibDropOpen(false)
   }
 
-  function handleLibDelete(id) {
-    const entry = lib[id]
-    const newLib = { ...lib }; delete newLib[id]; setLib(newLib); persistLib(newLib)
-    if (curId === id) { setCurId(null); setLibName('') }
-    setLibStatus('Deleted "' + (entry?.name||id) + '"')
+  async function handleLibDelete(id, tabTitle, e) {
+    e.stopPropagation()
+    if (!window.confirm(`Delete "${tabTitle}"?`)) return
+    try {
+      await deleteTab(id)
+      if (curId === id) handleNew()
+      await refreshLib()
+    } catch (e) { console.error('Failed to delete tab', e) }
   }
 
   function handleNew() {
@@ -331,8 +366,8 @@ export default function TabStudio() {
     document.querySelector(`[data-r="${nr}"][data-c="${nc}"]`)?.focus()
   }
 
-  /* ── Sorted library list ── */
-  const libList = Object.values(lib).sort((a,b) => (b.updated||'').localeCompare(a.updated||''))
+  /* ── Library list (already sorted by title from Supabase) ── */
+  const libList = tabs
 
   /* ── Render ── */
   return (
@@ -345,8 +380,8 @@ export default function TabStudio() {
             <h2 className="ts-page-title">🎸 Tab Studio</h2>
           </div>
           <div className="cc-savebar ts-savebar">
-            <button className="cc-btn-solid cc-btn-save" onClick={handleSave}>
-              {curId ? 'Save Changes' : 'Save Tab'}
+            <button className="cc-btn-solid cc-btn-save" onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving…' : curId ? 'Save Changes' : 'Save Tab'}
             </button>
             <button className="cc-btn-ghost" onClick={handleNew}>+ New</button>
             <button className="cc-btn-ghost" onClick={handleExport}>⬇ Export .tab.json</button>
@@ -369,11 +404,13 @@ export default function TabStudio() {
                   setLibDropOpen(o => !o)
                 }}
               >
-                Library {libList.length > 0 && `(${libList.length})`}
+                Library {tabs.length > 0 && `(${tabs.length})`}
               </button>
               {libDropOpen && (
                 <div className="cc-library-menu" style={{ left: libMenuPos.left, top: libMenuPos.top }}>
-                  {libList.length === 0 ? (
+                  {loadingLib ? (
+                    <div className="cc-lib-item disabled">Loading…</div>
+                  ) : libList.length === 0 ? (
                     <div className="cc-lib-item disabled">No saved tabs</div>
                   ) : libList.map(entry => (
                     <div
@@ -381,8 +418,8 @@ export default function TabStudio() {
                       className={`cc-lib-item${curId === entry.id ? ' active' : ''}`}
                       onClick={() => handleLibLoad(entry.id)}
                     >
-                      <span className="cc-lib-title">{entry.name || 'Untitled'}</span>
-                      <button className="cc-lib-delete" onClick={e => { e.stopPropagation(); handleLibDelete(entry.id) }}>✕</button>
+                      <span className="cc-lib-title">{entry.title || 'Untitled'}</span>
+                      <button className="cc-lib-delete" onClick={e => handleLibDelete(entry.id, entry.title || 'Untitled', e)}>✕</button>
                     </div>
                   ))}
                 </div>

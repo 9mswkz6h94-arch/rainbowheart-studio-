@@ -15,6 +15,7 @@ import OpenMicTerms from './pages/OpenMicTerms'
 import Admin from './pages/Admin'
 import GrooveBuilder from './pages/GrooveBuilder'
 import GrooveSheet from './pages/GrooveSheet'
+import TabSheet from './pages/TabSheet'
 import ChordScaleExplorer from './pages/ChordScaleExplorer'
 import Tuner from './pages/Tuner'
 import Metronome from './pages/Metronome'
@@ -45,6 +46,9 @@ export default function App() {
           } />
           <Route path="/studio/groove-sheet" element={
             <ProtectedRoute><GrooveSheet /></ProtectedRoute>
+          } />
+          <Route path="/studio/tab-sheet" element={
+            <ProtectedRoute><TabSheet /></ProtectedRoute>
           } />
           <Route path="/tools" element={<Tools />} />
           <Route path="/tools/chord-scale-explorer" element={<ChordScaleExplorer />} />
