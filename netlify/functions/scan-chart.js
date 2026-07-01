@@ -23,7 +23,7 @@ DIALECT RULES:
 - Prefix a lyric line with "*" (and a space) to mark it bold (use sparingly, only for a clearly emphasized hook/title line if the chart marks it that way).
 - Write chords exactly as they appear on the source (sharps or flats) — do not transpose or respell.
 - If the same section repeats later with identical chords and lyrics, write it out again in full each time; do not use any shorthand for repeated sections.
-- You may be given multiple pages, either as several separate photos or as pages within one PDF. Treat every page you're given as ONE continuous song that simply didn't fit on a single page — read them in the order given (the first image or page is page 1, and so on) and produce a single unbroken "source" value spanning every page. Do not restart or repeat title/key/tempo per page, do not treat a later page as a new song, and do not insert any page-break marker into the source text.
+- You are always given exactly one image, or one PDF (which may itself contain multiple pages). If given a multi-page PDF, treat all of its pages as ONE continuous song that simply didn't fit on a single page — read them in page order and produce a single unbroken "source" value spanning every page, with no page-break marker inserted into the text.
 
 OUTPUT FORMAT:
 Respond with ONLY a single JSON object, no prose, no markdown code fences, matching this shape:

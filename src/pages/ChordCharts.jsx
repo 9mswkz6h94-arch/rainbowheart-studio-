@@ -51,6 +51,8 @@ export default function ChordCharts() {
   const [libDropOpen,  setLibDropOpen]  = useState(false)
   const [scanning,     setScanning]     = useState(false)
   const [scanFiles,    setScanFiles]    = useState([])
+  const [pageSources,  setPageSources]  = useState([])
+  const [pageMeta,     setPageMeta]     = useState(null)
 
   /* ── Resizable panel ── */
   const [panelW, setPanelW] = useState(380)
@@ -252,13 +254,17 @@ export default function ChordCharts() {
   function handleLoadFile(file) {
     const r = new FileReader()
     r.onload = () => {
-      try { const d = JSON.parse(r.result); applyLoaded(d.meta || {}, d.source || ''); setScanFiles([]) }
+      try { const d = JSON.parse(r.result); applyLoaded(d.meta || {}, d.source || ''); setScanFiles([]); setPageSources([]); setPageMeta(null) }
       catch (e) { alert('Could not read that file.') }
     }
     r.readAsText(file)
   }
 
-  /* ── Scan photo(s)/PDF of a chart and transcribe into this app's chart format ── */
+  /* ── Scan photo(s)/PDF of a chart and transcribe into this app's chart format ──
+     Each file is transcribed in its own request (one image per Claude call) and
+     merged client-side — sending multiple images in a single request was slow
+     enough to hit Netlify's function time limit and unreliable at picking out
+     which page was which. */
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const r = new FileReader()
@@ -268,29 +274,40 @@ export default function ChordCharts() {
     })
   }
 
+  async function transcribeOne(file) {
+    const dataBase64 = await fileToBase64(file)
+    const res = await fetch('/.netlify/functions/scan-chart', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ files: [{ mediaType: file.type, dataBase64 }] }),
+    })
+    const result = await res.json()
+    if (!result.ok) throw new Error(result.error || 'Transcription failed')
+    return result
+  }
+
   async function handleScanFiles(newFiles, append) {
-    const combined = append ? [...scanFiles, ...newFiles] : newFiles
-    if (combined.filter(f => f.type === 'application/pdf').length > 0 && combined.length > 1) {
+    if (newFiles.some(f => f.type === 'application/pdf') && (newFiles.length > 1 || (append && scanFiles.length > 0))) {
       alert('Please scan a PDF by itself, not combined with photos.')
       return
     }
     setScanning(true); setSaveMsg(null)
     try {
-      const files = await Promise.all(
-        combined.map(async f => ({ mediaType: f.type, dataBase64: await fileToBase64(f) }))
-      )
-      const res = await fetch('/.netlify/functions/scan-chart', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ files }),
-      })
-      const result = await res.json()
-      if (!result.ok) throw new Error(result.error || 'Transcription failed')
-      applyLoaded(result.meta || {}, result.source || '', null)
-      setScanFiles(combined)
-      const n = combined.length
-      setSaveMsg(`Transcribed ${n} page${n > 1 ? 's' : ''} — check chords/lyrics before saving`)
-      setTimeout(() => setSaveMsg(null), 4000)
+      const newResults = await Promise.all(newFiles.map(transcribeOne))
+      const allSources = append ? [...pageSources, ...newResults.map(r => r.source || '')] : newResults.map(r => r.source || '')
+      const firstMeta = append ? (pageMeta || newResults[0].meta) : newResults[0].meta
+      const combinedFiles = append ? [...scanFiles, ...newFiles] : newFiles
+
+      applyLoaded(firstMeta || {}, allSources.join('\n\n'), null)
+      setScanFiles(combinedFiles)
+      setPageSources(allSources)
+      if (!append) setPageMeta(newResults[0].meta)
+
+      const n = combinedFiles.length
+      setSaveMsg(n > 1
+        ? `Transcribed ${n} pages — check chords/lyrics and the seam between pages before saving`
+        : 'Transcribed — check chords/lyrics before saving')
+      setTimeout(() => setSaveMsg(null), 5000)
     } catch (e) {
       console.error('Scan failed', e)
       alert('Could not transcribe that chart. Try a clearer photo, or a smaller file.')
@@ -328,7 +345,7 @@ export default function ChordCharts() {
     if (dirty && !window.confirm('Discard unsaved changes?')) return
     setMeta(BLANK_META); setSongText('')
     setCurrentId(null); setDirty(false); setSaveMsg(null)
-    setScanFiles([])
+    setScanFiles([]); setPageSources([]); setPageMeta(null)
   }
 
   /* ── Save to Supabase ── */
@@ -357,7 +374,7 @@ export default function ChordCharts() {
     try {
       const song = await fetchSong(id)
       applyLoaded(song.meta || {}, song.song_text || '', song.id)
-      setScanFiles([])
+      setScanFiles([]); setPageSources([]); setPageMeta(null)
     } catch (e) { console.error('Failed to load song', e) }
   }
 
@@ -369,7 +386,7 @@ export default function ChordCharts() {
       await deleteSong(id)
       if (currentId === id) {
         setMeta(BLANK_META); setSongText('')
-        setCurrentId(null); setDirty(false); setScanFiles([])
+        setCurrentId(null); setDirty(false); setScanFiles([]); setPageSources([]); setPageMeta(null)
       }
       await refreshList()
     } catch (e) { console.error('Failed to delete', e) }
