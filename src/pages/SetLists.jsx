@@ -379,8 +379,9 @@ export default function SetLists() {
       h1 { font-size: 1.5rem; margin-bottom: 0.15rem; }
       .sub { color: #555; font-size: 0.82rem; }
       .details { color: #555; font-size: 0.8rem; white-space: pre-wrap; margin-top: 0.5rem; border-left: 3px solid #ddd; padding-left: 0.6rem; }
-      .list { column-count: 1; column-gap: 1.4rem; margin-top: 0.4rem; }
-      .item { break-inside: avoid; -webkit-column-break-inside: avoid; display: flex; gap: 0.4rem; align-items: baseline;
+      .cols { display: flex; gap: 1.4rem; align-items: flex-start; margin-top: 0.4rem; }
+      .col { flex: 1 1 0; min-width: 0; }
+      .item { display: flex; gap: 0.4rem; align-items: baseline;
               border-bottom: 1px solid #eee; padding: 0.28rem 0; font-size: 0.9rem; line-height: 1.25; }
       .num { flex: 0 0 auto; min-width: 1.7rem; font-weight: 700; color: #888; }
       .title { flex: 1 1 auto; font-weight: 600; }
@@ -393,6 +394,7 @@ export default function SetLists() {
       .note-row { flex-direction: column; background: #fafafa; border-left: 3px solid #f5c842; padding-left: 0.5rem; font-size: 0.85rem; }
       .note-row .note-text { white-space: pre-wrap; color: #555; font-size: 0.8rem; margin-top: 0.2rem; }
       .total { display: flex; justify-content: space-between; border-top: 2px solid #111; font-weight: 700; padding-top: 0.4rem; margin-top: 0.5rem; }
+      @media print { html, body { margin: 0; } .sheet { max-height: 9.9in; overflow: hidden; } }
       </style></head><body>
       <div class="sheet">
         <header>
@@ -402,17 +404,28 @@ export default function SetLists() {
           ${totalStr ? `<div class="sub" style="margin-top:0.3rem">⏱ ~${totalStr} total</div>` : ''}
           ${eventDetails ? `<div class="details">${esc(eventDetails)}</div>` : ''}
         </header>
-        <div class="list">${list}</div>
+        <div class="cols"><div class="col" id="col1">${list}</div><div class="col" id="col2" style="display:none"></div></div>
         ${totalStr ? `<div class="total"><span>Total</span><span>~${totalStr}</span></div>` : ''}
       </div>
       <script>
         (function () {
           function fit() {
-            var USABLE_H = 10 * 96;               // letter 11in minus 0.5in top+bottom margins
+            var USABLE_H = 9.8 * 96;              // one-page budget (letter minus 0.5in margins) with a small safety margin
             var sheet = document.querySelector('.sheet');
-            var list  = document.querySelector('.list');
-            list.style.columnCount = '1';         // prefer a single clean column
-            if (sheet.scrollHeight > USABLE_H) list.style.columnCount = '2';
+            var col1  = document.getElementById('col1');
+            var col2  = document.getElementById('col2');
+            if (sheet.scrollHeight > USABLE_H) {  // too tall for one column — split into two real columns
+              col2.style.display = '';
+              var kids = Array.prototype.slice.call(col1.children);
+              var base = col1.getBoundingClientRect().top;
+              var half = col1.scrollHeight / 2;
+              for (var k = 0; k < kids.length; k++) {
+                if (kids[k].getBoundingClientRect().top - base >= half) {
+                  for (var j = k; j < kids.length; j++) col2.appendChild(kids[j]);
+                  break;
+                }
+              }
+            }
             var fs = 100;                          // last resort: shrink to fit one page
             while (sheet.scrollHeight > USABLE_H && fs > 55) {
               fs -= 3;
