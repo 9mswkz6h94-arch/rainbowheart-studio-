@@ -4223,6 +4223,28 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 .pc-chords-toggle:hover { background: #1a1a1a; }
 
+.pc-midi-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: #6cc26c;
+  text-align: center;
+  padding: 0.4rem;
+  background: #0a0a0a;
+  border-top: 1px solid #222;
+}
+.pc-midi-connect-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: #aaa;
+  text-align: center;
+  padding: 0.5rem;
+  background: #0a0a0a;
+  border: none;
+  border-top: 1px solid #222;
+  cursor: pointer;
+}
+.pc-midi-connect-btn:hover { color: #fff; background: #151515; }
+
 .pc-loading {
   display: flex;
   flex-direction: column;

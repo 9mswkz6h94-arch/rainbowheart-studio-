@@ -24,6 +24,7 @@ export default function PresentControl() {
   })
   const [copied,    setCopied]    = useState(false)
   const [connected, setConnected] = useState(false)
+  const [midiDevice, setMidiDevice] = useState(null)
 
   const channelRef = useRef(null)
   // Kept up to date every render so a reconnect can re-track the *current* position,
@@ -102,6 +103,77 @@ export default function PresentControl() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [goNext, goPrev])
+
+  /* ── MIDI foot pedal (e.g. a sustain pedal plugged into a keyboard's pedal jack) ──
+     A pedal press arrives as a MIDI message over USB, not a keystroke — Control Change
+     #64 (the standard "sustain" controller) is the common case, but some pedals send
+     Note On or Program Change instead, so all three are treated as a "click". Since a
+     single-button pedal can't send Next and Prev separately, one click advances and a
+     second click within 350ms counts as a double-click that goes back instead — the
+     click is held for that window before acting, so every press has a brief delay
+     while it waits to see if a second one follows.
+
+     Connection is triggered by an explicit button tap (connectMIDI), not automatically
+     on page load — browsers require a real user gesture to reliably grant the MIDI
+     permission prompt; requesting it from an effect on mount can silently fail. */
+  const midiAccessRef = useRef(null)
+  const midiStateRef  = useRef({ clickTimer: null, clickCount: 0, lastCCValue: {} })
+
+  const connectMIDI = useCallback(() => {
+    if (!navigator.requestMIDIAccess) { setMidiDevice('unsupported'); return }
+
+    function registerClick() {
+      const s = midiStateRef.current
+      s.clickCount++
+      if (s.clickCount === 1) {
+        s.clickTimer = setTimeout(() => {
+          if (s.clickCount === 1) goNext()
+          else goPrev()
+          s.clickCount = 0
+        }, 350)
+      }
+    }
+
+    function onMIDIMessage(e) {
+      const [status, data1, data2] = e.data
+      const type = status & 0xf0
+      const s = midiStateRef.current
+      if (type === 0xb0) {
+        // Latching/toggle footswitches (e.g. a PSK FS-2 in its default polarity) flip the
+        // CC value on *every* physical press — off→on AND on→off — rather than sending a
+        // clean press/release pair. Reacting to any change of state (not just off→on) means
+        // every real press registers exactly once, and wiring polarity stops mattering.
+        const key = `${e.target.id}:${data1}`
+        const prevVal = s.lastCCValue[key] || 0
+        s.lastCCValue[key] = data2
+        if ((prevVal >= 64) !== (data2 >= 64)) registerClick()
+      } else if (type === 0x90 && data2 > 0) {
+        registerClick()
+      } else if (type === 0xc0) {
+        registerClick()
+      }
+    }
+
+    function attachAll(midiAccess) {
+      for (const input of midiAccess.inputs.values()) input.onmidimessage = onMIDIMessage
+      const first = [...midiAccess.inputs.values()][0]
+      setMidiDevice(first ? first.name : 'connected — no device detected')
+    }
+
+    navigator.requestMIDIAccess().then(access => {
+      midiAccessRef.current = access
+      attachAll(access)
+      access.onstatechange = () => attachAll(access)
+    }).catch(() => setMidiDevice('permission denied'))
+  }, [goNext, goPrev])
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(midiStateRef.current.clickTimer)
+      const access = midiAccessRef.current
+      if (access) for (const input of access.inputs.values()) input.onmidimessage = null
+    }
+  }, [])
 
   /* ── Keep the screen awake ── */
   useEffect(() => {
@@ -183,6 +255,14 @@ export default function PresentControl() {
       <button className="pc-chords-toggle" onClick={toggleChords}>
         {showChords ? '🎸 Chords: On' : '🎤 Chords: Off'}
       </button>
+
+      {midiDevice ? (
+        <div className="pc-midi-tag">🎹 {midiDevice} — 1 click Next, 2 quick clicks Prev</div>
+      ) : (
+        <button className="pc-midi-connect-btn" onClick={connectMIDI}>
+          🎹 Connect MIDI Pedal
+        </button>
+      )}
     </div>
   )
 }
