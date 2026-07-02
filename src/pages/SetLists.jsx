@@ -338,7 +338,8 @@ export default function SetLists() {
   function handlePrintSetList() {
     const w = window.open('', '_blank')
     if (!w) return
-    let sn = 0, printTotal = 0, rows = ''
+    const esc = s => String(s == null ? '' : s).replace(/</g, '&lt;')
+    let sn = 0, printTotal = 0, list = ''
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
       const dur = parseFloat(item.duration) || 0
@@ -347,60 +348,85 @@ export default function SetLists() {
         sn = 0
         const stats = setStats[i] || { songs: 0, mins: 0 }
         const sub = stats.mins > 0 ? `~${fmtDuration(stats.mins)}` : ''
-        rows += `<tr class="set-row"><td></td><td colspan="2">${item.label || 'Set'}</td><td class="dur">${sub}</td></tr>`
+        list += `<div class="item set-row"><span class="set-name">${esc(item.label || 'Set')}</span><span class="dur">${sub}</span></div>`
       } else if (item._type === 'break') {
         const durStr = dur ? fmtSongDur(dur) : ''
-        rows += `<tr class="break-row"><td colspan="3">— ${item.label || 'Break'} —</td><td class="dur">${durStr}</td></tr>`
+        list += `<div class="item break-row"><span>— ${esc(item.label || 'Break')} —</span>${durStr ? `<span class="dur">${durStr}</span>` : ''}</div>`
       } else if (item._type === 'note') {
-        const label = (item.label || 'Note').replace(/</g, '&lt;')
-        const text  = (item.text || '').replace(/</g, '&lt;')
-        rows += `<tr class="note-row"><td colspan="4">📝 <strong>${label}</strong>${text ? `<div class="note-text">${text}</div>` : ''}</td></tr>`
+        const text = esc(item.text || '')
+        list += `<div class="item note-row">📝 <strong>${esc(item.label || 'Note')}</strong>${text ? `<div class="note-text">${text}</div>` : ''}</div>`
       } else {
         sn++
         const key = item.meta?.key
-          ? `Key of ${item.meta.key}${item.meta.capo ? ` · Capo ${item.meta.capo}` : ''}`
+          ? `Key of ${esc(item.meta.key)}${item.meta.capo ? ` · Capo ${esc(item.meta.capo)}` : ''}`
           : ''
-        const writer = item.meta?.writer ? item.meta.writer : ''
+        const writer = item.meta?.writer ? esc(item.meta.writer) : ''
         const durStr = dur ? fmtSongDur(dur) : ''
-        rows += `<tr><td class="num">${sn}.</td><td class="title">${item.title || 'Untitled'}${writer ? `<span class="writer"> — ${writer}</span>` : ''}</td><td class="key">${key}</td><td class="dur">${durStr}</td></tr>`
+        list += `<div class="item song-row"><span class="num">${sn}.</span><span class="title">${esc(item.title || 'Untitled')}${writer ? `<span class="writer"> — ${writer}</span>` : ''}</span>${key ? `<span class="key">${key}</span>` : ''}${durStr ? `<span class="dur">${durStr}</span>` : ''}</div>`
       }
     }
     const totalStr = printTotal > 0 ? fmtDuration(printTotal) : ''
     const dateStr = eventDate ? fmtDate(eventDate) : ''
-    w.document.write(`<!DOCTYPE html><html><head><title>${name}</title><style>
+    w.document.write(`<!DOCTYPE html><html><head><title>${esc(name)}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+      <style>
+      @page { size: letter; margin: 0.5in; }
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: 'Space Mono', 'Courier New', monospace; padding: 2rem; color: #111; }
-      h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
-      .sub { color: #555; font-size: 0.85rem; margin-bottom: 0.15rem; }
-      .total-badge { display: inline-block; margin-top: 0.5rem; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 0.3rem 0.75rem; font-size: 0.9rem; font-weight: 700; }
-      .details { color: #555; font-size: 0.82rem; white-space: pre-wrap; margin-bottom: 1.5rem; margin-top: 0.75rem; border-left: 3px solid #ddd; padding-left: 0.75rem; }
-      table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-      tr { border-bottom: 1px solid #eee; }
-      td { padding: 0.5rem 0.5rem; vertical-align: top; }
-      .num { width: 2.5rem; font-weight: 700; color: #888; }
-      .title { font-weight: 600; font-size: 0.95rem; }
-      .writer { font-weight: 400; color: #888; font-size: 0.82rem; }
-      .key { color: #555; font-size: 0.82rem; white-space: nowrap; }
-      .dur { color: #888; font-size: 0.82rem; text-align: right; white-space: nowrap; width: 3rem; }
-      tr.break-row td { text-align: center; color: #888; font-style: italic; font-size: 0.85rem; padding: 0.6rem; border-bottom: 2px dashed #ccc; }
-      tr.break-row .dur { text-align: right; font-style: normal; }
-      tr.note-row td { padding: 0.6rem 0.5rem; background: #fafafa; border-left: 3px solid #f5c842; font-size: 0.85rem; }
-      tr.note-row .note-text { white-space: pre-wrap; color: #555; font-size: 0.8rem; margin-top: 0.25rem; }
-      tr.set-row td { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.95rem; padding-top: 1.1rem; border-bottom: 2px solid #111; }
-      tr.set-row .dur { font-weight: 400; }
-      .total-row td { border-top: 2px solid #111; font-weight: 700; padding-top: 0.6rem; }
-      @media print { body { padding: 1rem; } }
-    </style></head><body>
-      <h1>${name}</h1>
-      ${dateStr ? `<div class="sub">📅 ${dateStr}</div>` : ''}
-      ${eventUrl ? `<div class="sub">🔗 ${eventUrl}</div>` : ''}
-      ${totalStr ? `<div class="sub" style="margin-top:0.4rem">⏱ ~${totalStr} total</div>` : ''}
-      ${eventDetails ? `<div class="details">${eventDetails.replace(/</g, '&lt;')}</div>` : ''}
-      <table><tbody>${rows}${totalStr ? `<tr class="total-row"><td></td><td>Total</td><td></td><td class="dur">~${totalStr}</td></tr>` : ''}</tbody></table>
+      html { font-size: 16px; }
+      body { font-family: 'Space Mono', 'Courier New', monospace; color: #111; }
+      .sheet { width: 7.5in; }
+      header { margin-bottom: 0.55rem; }
+      h1 { font-size: 1.5rem; margin-bottom: 0.15rem; }
+      .sub { color: #555; font-size: 0.82rem; }
+      .details { color: #555; font-size: 0.8rem; white-space: pre-wrap; margin-top: 0.5rem; border-left: 3px solid #ddd; padding-left: 0.6rem; }
+      .list { column-count: 1; column-gap: 1.4rem; margin-top: 0.4rem; }
+      .item { break-inside: avoid; -webkit-column-break-inside: avoid; display: flex; gap: 0.4rem; align-items: baseline;
+              border-bottom: 1px solid #eee; padding: 0.28rem 0; font-size: 0.9rem; line-height: 1.25; }
+      .num { flex: 0 0 auto; min-width: 1.7rem; font-weight: 700; color: #888; }
+      .title { flex: 1 1 auto; font-weight: 600; }
+      .writer { font-weight: 400; color: #888; font-size: 0.82em; }
+      .key { flex: 0 0 auto; color: #555; font-size: 0.82em; white-space: nowrap; }
+      .dur { flex: 0 0 auto; color: #888; font-size: 0.82em; text-align: right; white-space: nowrap; min-width: 2.2rem; margin-left: auto; }
+      .set-row { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid #111; margin-top: 0.5rem; }
+      .set-row .set-name { flex: 1 1 auto; }
+      .break-row { justify-content: center; font-style: italic; color: #888; border-bottom: 2px dashed #ccc; }
+      .note-row { flex-direction: column; background: #fafafa; border-left: 3px solid #f5c842; padding-left: 0.5rem; font-size: 0.85rem; }
+      .note-row .note-text { white-space: pre-wrap; color: #555; font-size: 0.8rem; margin-top: 0.2rem; }
+      .total { display: flex; justify-content: space-between; border-top: 2px solid #111; font-weight: 700; padding-top: 0.4rem; margin-top: 0.5rem; }
+      </style></head><body>
+      <div class="sheet">
+        <header>
+          <h1>${esc(name)}</h1>
+          ${dateStr ? `<div class="sub">📅 ${dateStr}</div>` : ''}
+          ${eventUrl ? `<div class="sub">🔗 ${esc(eventUrl)}</div>` : ''}
+          ${totalStr ? `<div class="sub" style="margin-top:0.3rem">⏱ ~${totalStr} total</div>` : ''}
+          ${eventDetails ? `<div class="details">${esc(eventDetails)}</div>` : ''}
+        </header>
+        <div class="list">${list}</div>
+        ${totalStr ? `<div class="total"><span>Total</span><span>~${totalStr}</span></div>` : ''}
+      </div>
+      <script>
+        (function () {
+          function fit() {
+            var USABLE_H = 10 * 96;               // letter 11in minus 0.5in top+bottom margins
+            var sheet = document.querySelector('.sheet');
+            var list  = document.querySelector('.list');
+            list.style.columnCount = '1';         // prefer a single clean column
+            if (sheet.scrollHeight > USABLE_H) list.style.columnCount = '2';
+            var fs = 100;                          // last resort: shrink to fit one page
+            while (sheet.scrollHeight > USABLE_H && fs > 55) {
+              fs -= 3;
+              document.documentElement.style.fontSize = fs + '%';
+            }
+            setTimeout(function () { window.print(); }, 60);
+          }
+          var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+          ready.then(function () { requestAnimationFrame(fit); });
+        })();
+      <\/script>
     </body></html>`)
     w.document.close()
     w.focus()
-    setTimeout(() => w.print(), 200)
   }
 
   const editing = active !== null
