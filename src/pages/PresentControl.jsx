@@ -22,9 +22,19 @@ export default function PresentControl() {
   const [showChords, setShowChords] = useState(() => {
     try { return localStorage.getItem('present-show-chords') === '1' } catch { return false }
   })
-  const [copied,    setCopied]    = useState(false)
-  const [connected, setConnected] = useState(false)
+  const [copied,     setCopied]     = useState(false)
+  const [connected,  setConnected]  = useState(false)
   const [midiDevice, setMidiDevice] = useState(null)
+  // Dedicated Next/Prev pad assignment (e.g. two Launchpad pads) — each value is a signal
+  // key like "note:36" or "cc:64". Falls back to generic 1-click-Next/2-click-Prev when
+  // unset, since a single-button pedal can't be assigned two different pads.
+  const [midiMapping, setMidiMapping] = useState(() => {
+    try {
+      const raw = localStorage.getItem('present-midi-mapping')
+      return raw ? JSON.parse(raw) : { next: null, prev: null }
+    } catch { return { next: null, prev: null } }
+  })
+  const [learning, setLearning] = useState(null) // null | 'next' | 'prev'
 
   const channelRef = useRef(null)
   // Kept up to date every render so a reconnect can re-track the *current* position,
@@ -104,20 +114,36 @@ export default function PresentControl() {
     return () => window.removeEventListener('keydown', onKey)
   }, [goNext, goPrev])
 
-  /* ── MIDI foot pedal (e.g. a sustain pedal plugged into a keyboard's pedal jack) ──
-     A pedal press arrives as a MIDI message over USB, not a keystroke — Control Change
-     #64 (the standard "sustain" controller) is the common case, but some pedals send
-     Note On or Program Change instead, so all three are treated as a "click". Since a
-     single-button pedal can't send Next and Prev separately, one click advances and a
-     second click within 350ms counts as a double-click that goes back instead — the
-     click is held for that window before acting, so every press has a brief delay
-     while it waits to see if a second one follows.
+  /* ── MIDI foot pedal / pad controller (e.g. a sustain pedal in a keyboard's pedal jack,
+     or a Launchpad's pads) ── Every button press arrives as a MIDI message over USB —
+     Control Change (the standard pedal/sustain case), Note On (pads, keys), or Program
+     Change. Each is reduced to a "signal key" like "note:36" or "cc:64" identifying which
+     specific button fired.
 
-     Connection is triggered by an explicit button tap (connectMIDI), not automatically
-     on page load — browsers require a real user gesture to reliably grant the MIDI
-     permission prompt; requesting it from an effect on mount can silently fail. */
+     Two modes:
+     - No mapping assigned: any signal counts as a generic "click" — one click advances,
+       a second click within 350ms counts as a double-click that goes back instead, since
+       a single-button pedal can't send Next and Prev separately.
+     - Mapping assigned (via "Set Next/Prev Pad"): only the two assigned signals do
+       anything, each acting immediately with no click-counting delay — for a multi-pad
+       controller like a Launchpad, dedicating two specific pads is far more reliable than
+       guessing whether two presses on different pads were meant as a "double-click".
+
+     Connection is triggered by an explicit button tap (connectMIDI), not automatically on
+     page load — browsers require a real user gesture to reliably grant the MIDI permission
+     prompt; requesting it from an effect on mount can silently fail. */
   const midiAccessRef = useRef(null)
   const midiStateRef  = useRef({ clickTimer: null, clickCount: 0, lastCCValue: {} })
+  const mappingRef  = useRef(midiMapping)
+  mappingRef.current = midiMapping
+  const learningRef = useRef(learning)
+  learningRef.current = learning
+
+  function saveMapping(next) {
+    setMidiMapping(next)
+    try { localStorage.setItem('present-midi-mapping', JSON.stringify(next)) } catch { /* private mode */ }
+  }
+  function clearMapping() { saveMapping({ next: null, prev: null }) }
 
   const connectMIDI = useCallback(() => {
     if (!navigator.requestMIDIAccess) { setMidiDevice('unsupported'); return }
@@ -138,20 +164,46 @@ export default function PresentControl() {
       const [status, data1, data2] = e.data
       const type = status & 0xf0
       const s = midiStateRef.current
-      if (type === 0xb0) {
-        // Latching/toggle footswitches (e.g. a PSK FS-2 in its default polarity) flip the
-        // CC value on *every* physical press — off→on AND on→off — rather than sending a
-        // clean press/release pair. Reacting to any change of state (not just off→on) means
-        // every real press registers exactly once, and wiring polarity stops mattering.
+
+      let signalKey = null
+      let isPress   = false
+
+      if (type === 0x90 && data2 > 0) {
+        signalKey = `note:${data1}`
+        isPress = true
+      } else if (type === 0xb0) {
+        signalKey = `cc:${data1}`
+        // Latching/toggle footswitches flip the CC value on *every* physical press —
+        // off→on AND on→off — rather than a clean press/release pair. Reacting to any
+        // change of state (not just off→on) means every real press registers exactly
+        // once, and wiring polarity stops mattering.
         const key = `${e.target.id}:${data1}`
         const prevVal = s.lastCCValue[key] || 0
         s.lastCCValue[key] = data2
-        if ((prevVal >= 64) !== (data2 >= 64)) registerClick()
-      } else if (type === 0x90 && data2 > 0) {
-        registerClick()
+        isPress = (prevVal >= 64) !== (data2 >= 64)
       } else if (type === 0xc0) {
-        registerClick()
+        signalKey = `pc:${data1}`
+        isPress = true
       }
+
+      if (!isPress || !signalKey) return
+
+      const mode = learningRef.current
+      if (mode === 'next' || mode === 'prev') {
+        saveMapping({ ...mappingRef.current, [mode]: signalKey })
+        setLearning(null)
+        return
+      }
+
+      const mapping = mappingRef.current
+      if (mapping.next || mapping.prev) {
+        if (signalKey === mapping.next) goNext()
+        else if (signalKey === mapping.prev) goPrev()
+        // Any other pad/note is ignored once dedicated pads are assigned.
+        return
+      }
+
+      registerClick()
     }
 
     function attachAll(midiAccess) {
@@ -256,12 +308,47 @@ export default function PresentControl() {
         {showChords ? '🎸 Chords: On' : '🎤 Chords: Off'}
       </button>
 
-      {midiDevice ? (
-        <div className="pc-midi-tag">🎹 {midiDevice} — 1 click Next, 2 quick clicks Prev</div>
-      ) : (
+      {!midiDevice && (
         <button className="pc-midi-connect-btn" onClick={connectMIDI}>
-          🎹 Connect MIDI Pedal
+          🎹 Connect MIDI Pedal / Pad Controller
         </button>
+      )}
+
+      {midiDevice === 'unsupported' && (
+        <div className="pc-midi-tag pc-midi-warn">MIDI isn't supported in this browser — try Chrome or Edge</div>
+      )}
+      {midiDevice === 'permission denied' && (
+        <div className="pc-midi-tag pc-midi-warn">MIDI permission denied — allow it in the browser and try again</div>
+      )}
+
+      {midiDevice && !['unsupported', 'permission denied'].includes(midiDevice) && (
+        <div className="pc-midi-panel">
+          <div className="pc-midi-tag">🎹 {midiDevice}</div>
+
+          {midiMapping.next || midiMapping.prev ? (
+            <div className="pc-midi-mode">
+              Dedicated pads — Next {midiMapping.next ? '✓' : '—'} · Prev {midiMapping.prev ? '✓' : '—'}
+              <button className="pc-midi-reset" onClick={clearMapping}>↺ Reset to click/double-click</button>
+            </div>
+          ) : (
+            <div className="pc-midi-mode">1 click Next · 2 quick clicks Prev</div>
+          )}
+
+          <div className="pc-midi-learn-row">
+            <button
+              className="pc-midi-learn-btn"
+              onClick={() => setLearning(learning === 'next' ? null : 'next')}
+            >
+              {learning === 'next' ? 'Press the Next pad…' : '🎯 Set Next Pad'}
+            </button>
+            <button
+              className="pc-midi-learn-btn"
+              onClick={() => setLearning(learning === 'prev' ? null : 'prev')}
+            >
+              {learning === 'prev' ? 'Press the Prev pad…' : '🎯 Set Prev Pad'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

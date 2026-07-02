@@ -4244,6 +4244,50 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   cursor: pointer;
 }
 .pc-midi-connect-btn:hover { color: #fff; background: #151515; }
+.pc-midi-tag.pc-midi-warn { color: #f5c842; }
+
+.pc-midi-panel {
+  background: #0a0a0a;
+  border-top: 1px solid #222;
+  padding: 0.4rem 0.75rem 0.6rem;
+}
+.pc-midi-mode {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.66rem;
+  color: #888;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.4rem;
+}
+.pc-midi-reset {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  color: #888;
+  background: none;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+}
+.pc-midi-reset:hover { color: #fff; border-color: #555; }
+
+.pc-midi-learn-row { display: flex; gap: 0.5rem; justify-content: center; }
+.pc-midi-learn-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.66rem;
+  color: #aaa;
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  border-radius: 5px;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  flex: 1;
+  max-width: 220px;
+}
+.pc-midi-learn-btn:hover { color: #fff; border-color: #444; }
 
 .pc-loading {
   display: flex;
