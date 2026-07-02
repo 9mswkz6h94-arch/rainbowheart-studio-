@@ -25,6 +25,15 @@ function CueBody({ item, showChords, big }) {
     return <div className="pd-divider-label">{item.label}</div>
   }
 
+  if (item.type === 'note') {
+    return (
+      <div className="pd-note">
+        <div className="pd-note-label">📝 {item.label}</div>
+        <div className="pd-note-text">{item.text || '(empty note)'}</div>
+      </div>
+    )
+  }
+
   // Instrumental sections (intros, solos, instrumental hits) have no lyric lines at all —
   // fall back to the chord/rhythm content even in lyrics-only mode, otherwise the section
   // renders as a bare title with nothing underneath it.
@@ -78,6 +87,59 @@ function StructureHeader({ transition, activeIndex }) {
   )
 }
 
+/** Full-show song list — always visible (unlike the structure bar, which hides on
+ *  breaks/sets/notes), so you can see where you are in the whole set at a glance, not
+ *  just within the current song. A single scrollable row rather than wrapping, so it stays
+ *  compact regardless of setlist length; auto-scrolls the active song into view. */
+function SongListHeader({ songList, activeSongIndex }) {
+  const activeRef = useRef(null)
+
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [activeSongIndex])
+
+  if (!songList.length) return null
+  return (
+    <div className="pd-songlist-bar">
+      {songList.map((s, i) => (
+        <span
+          key={s.songIndex}
+          ref={s.songIndex === activeSongIndex ? activeRef : null}
+          className={`pd-songlist-item${s.songIndex === activeSongIndex ? ' active' : ''}`}
+        >
+          {i + 1}. {s.title}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * A quiet visual metronome for the title/transition screen only — flashes a thin bar at
+ * the very bottom of the screen once per beat, using the tempo already pulled from the
+ * chart (meta.tempo/meter/note, same fields the printed chart's masthead shows). Purely
+ * visual reference, not synced to real playback — restarts fresh each time the transition
+ * screen appears. Re-keying the bar element every beat (rather than toggling a class) is
+ * what makes the CSS flash-and-fade animation restart cleanly on each tick.
+ */
+function MetronomeBar({ tempo, tempoNote }) {
+  const [beat, setBeat] = useState(0)
+
+  useEffect(() => {
+    const bpm = parseInt(tempo, 10)
+    if (!bpm) return
+    // chartEngine's own convention: a 'half' note tempo marking means the printed number
+    // is a half-note beat, i.e. half the quarter-note BPM.
+    const quarterBpm = tempoNote === 'half' ? bpm * 2 : bpm
+    const beatMs = 60000 / quarterBpm
+    const id = setInterval(() => setBeat(b => b + 1), beatMs)
+    return () => clearInterval(id)
+  }, [tempo, tempoNote])
+
+  if (!parseInt(tempo, 10)) return null
+  return <div key={beat} className="pd-metronome-bar" />
+}
+
 export default function PresentDisplay() {
   const { token } = useParams()
 
@@ -103,6 +165,9 @@ export default function PresentDisplay() {
   }, [token])
 
   const sequence = useMemo(() => setlist ? buildPresentSequence(setlist) : [], [setlist])
+  const songList = useMemo(() => (setlist?.songs || [])
+    .map((s, songIndex) => ({ title: s.title || 'Untitled', songIndex, isReal: !s._type }))
+    .filter(s => s.isReal), [setlist])
 
   /* Self-heals like the controller's channel: if this socket drops (tab backgrounded,
      wifi blip), reconnect automatically instead of sitting on a dead channel forever. */
@@ -164,21 +229,32 @@ export default function PresentDisplay() {
   const next = cueIndex < total - 1 ? sequence[cueIndex + 1] : null
 
   // Nearest transition at or before the current cue — anchors the structure progress bar
-  // to whichever song is actually playing. Hidden entirely on break/set dividers, where
-  // "which song's structure" doesn't apply.
+  // to whichever song is actually playing. Hidden entirely on break/set/note screens,
+  // where "which song's structure" doesn't apply.
   let activeTransition = null
-  if (current && current.type !== 'break' && current.type !== 'set') {
+  if (current && !['break', 'set', 'note'].includes(current.type)) {
     for (let i = cueIndex; i >= 0; i--) {
       if (sequence[i]?.type === 'transition') { activeTransition = sequence[i]; break }
     }
   }
   const activeSectionIndex = current?.type === 'section' ? current.sectionIndex : -1
 
+  // Nearest real song at or before the current cue — stays put through breaks/notes
+  // between songs, and highlights the just-finished song rather than jumping to null.
+  let activeSongIndex = null
+  if (current) {
+    for (const s of songList) {
+      if (s.songIndex <= current.songIndex) activeSongIndex = s.songIndex
+      else break
+    }
+  }
+
   return (
     <div className="pd-root">
       <button className="pd-fullscreen-btn" onClick={toggleFullscreen} title="Toggle fullscreen">⛶</button>
       {!connected && <div className="pd-waiting">Waiting for controller…</div>}
 
+      <SongListHeader songList={songList} activeSongIndex={activeSongIndex} />
       <StructureHeader transition={activeTransition} activeIndex={activeSectionIndex} />
 
       <div className="pd-layout">
@@ -200,6 +276,10 @@ export default function PresentDisplay() {
           </FitBox>
         </div>
       </div>
+
+      {current?.type === 'transition' && (
+        <MetronomeBar tempo={current.tempo} tempoNote={current.tempoNote} />
+      )}
     </div>
   )
 }

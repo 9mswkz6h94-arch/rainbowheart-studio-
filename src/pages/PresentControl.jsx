@@ -9,6 +9,7 @@ function cuePreview(item) {
   if (!item) return ''
   if (item.type === 'transition') return item.title
   if (item.type === 'break' || item.type === 'set') return item.label
+  if (item.type === 'note') return item.text || 'No text yet — edit this note in the setlist builder'
   return item.lyricLines[0]?.text || item.songTitle
 }
 

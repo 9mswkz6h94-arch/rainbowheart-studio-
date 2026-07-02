@@ -221,6 +221,7 @@ export default function SetListView() {
   const current = songs[songIdx]
   const isBreak = current?._type === 'break'
   const isSet   = current?._type === 'set'
+  const isNote  = current?._type === 'note'
 
   const songsOnly    = songs.filter(s => !s._type)
   const songPosition = current?._type
@@ -246,7 +247,9 @@ export default function SetListView() {
     ? (current.label || 'Break')
     : isSet
       ? (current.label || 'Set')
-      : setLabel && posInSet != null
+      : isNote
+        ? (current.label || 'Note')
+        : setLabel && posInSet != null
         ? `${setLabel} · ${posInSet} / ${setSongCount}`
         : songPosition != null
           ? `${songPosition} / ${songsOnly.length}`
@@ -312,6 +315,14 @@ export default function SetListView() {
             </div>
             {upNext && <div className="slv-set-next">Up first: {upNext.title || 'Untitled'}</div>}
           </div>
+        ) : isNote ? (
+          <div className="slv-break-screen">
+            <div className="slv-break-icon">📝</div>
+            <div className="slv-break-label" style={{ color: '#7ec8e3' }}>{current.label || 'Note'}</div>
+            <div className="slv-set-meta" style={{ whiteSpace: 'pre-wrap', maxWidth: '640px', textAlign: 'center' }}>
+              {current.text || '(empty note)'}
+            </div>
+          </div>
         ) : (
           <div ref={stageRef} className="stagewrap compact" />
         )}
@@ -332,9 +343,9 @@ export default function SetListView() {
             {songs.map((s, i) => (
               <button
                 key={i}
-                className={`slv-dot${i === songIdx ? ' active' : ''}${s._type === 'break' ? ' break' : ''}${s._type === 'set' ? ' set' : ''}`}
+                className={`slv-dot${i === songIdx ? ' active' : ''}${s._type === 'break' ? ' break' : ''}${s._type === 'set' ? ' set' : ''}${s._type === 'note' ? ' note' : ''}`}
                 onClick={() => setSongIdx(i)}
-                title={s._type === 'break' ? (s.label || 'Break') : s._type === 'set' ? (s.label || 'Set') : s.title}
+                title={s._type === 'break' ? (s.label || 'Break') : s._type === 'set' ? (s.label || 'Set') : s._type === 'note' ? (s.label || 'Note') : s.title}
               />
             ))}
           </div>

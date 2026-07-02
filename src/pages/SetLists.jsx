@@ -197,8 +197,18 @@ export default function SetLists() {
     setDirty(true)
   }
 
+  function handleAddNote() {
+    setItems(prev => [...prev, { _type: 'note', label: 'Note', text: '' }])
+    setDirty(true)
+  }
+
   function handleBreakLabelChange(idx, val) {
     setItems(prev => prev.map((it, i) => i === idx ? { ...it, label: val } : it))
+    setDirty(true)
+  }
+
+  function handleNoteTextChange(idx, val) {
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, text: val } : it))
     setDirty(true)
   }
 
@@ -341,6 +351,10 @@ export default function SetLists() {
       } else if (item._type === 'break') {
         const durStr = dur ? fmtSongDur(dur) : ''
         rows += `<tr class="break-row"><td colspan="3">— ${item.label || 'Break'} —</td><td class="dur">${durStr}</td></tr>`
+      } else if (item._type === 'note') {
+        const label = (item.label || 'Note').replace(/</g, '&lt;')
+        const text  = (item.text || '').replace(/</g, '&lt;')
+        rows += `<tr class="note-row"><td colspan="4">📝 <strong>${label}</strong>${text ? `<div class="note-text">${text}</div>` : ''}</td></tr>`
       } else {
         sn++
         const key = item.meta?.key
@@ -370,6 +384,8 @@ export default function SetLists() {
       .dur { color: #888; font-size: 0.82rem; text-align: right; white-space: nowrap; width: 3rem; }
       tr.break-row td { text-align: center; color: #888; font-style: italic; font-size: 0.85rem; padding: 0.6rem; border-bottom: 2px dashed #ccc; }
       tr.break-row .dur { text-align: right; font-style: normal; }
+      tr.note-row td { padding: 0.6rem 0.5rem; background: #fafafa; border-left: 3px solid #f5c842; font-size: 0.85rem; }
+      tr.note-row .note-text { white-space: pre-wrap; color: #555; font-size: 0.8rem; margin-top: 0.25rem; }
       tr.set-row td { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.95rem; padding-top: 1.1rem; border-bottom: 2px solid #111; }
       tr.set-row .dur { font-weight: 400; }
       .total-row td { border-top: 2px solid #111; font-weight: 700; padding-top: 0.6rem; }
@@ -400,6 +416,7 @@ export default function SetLists() {
   const songCount  = _songTotal
   const breakCount = items.filter(it => it._type === 'break').length
   const setCount   = items.filter(it => it._type === 'set').length
+  const noteCount  = items.filter(it => it._type === 'note').length
   const totalMins = items.reduce((s, it) => s + (parseFloat(it.duration) || 0), 0)
 
   /* Per-set song count + running time, keyed by the set header's index */
@@ -611,6 +628,7 @@ export default function SetLists() {
                   Set Order · {songCount} song{songCount !== 1 ? 's' : ''}
                   {setCount > 0 ? ` · ${setCount} set${setCount !== 1 ? 's' : ''}` : ''}
                   {breakCount > 0 ? ` · ${breakCount} break${breakCount !== 1 ? 's' : ''}` : ''}
+                  {noteCount > 0 ? ` · ${noteCount} note${noteCount !== 1 ? 's' : ''}` : ''}
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {songCount > 0 && (
@@ -638,6 +656,14 @@ export default function SetLists() {
                     onClick={handleAddBreak}
                   >
                     ☕ Add Break
+                  </button>
+                  <button
+                    className="cc-btn-ghost"
+                    style={{ fontSize: '0.75rem' }}
+                    onClick={handleAddNote}
+                    title="Add a note or announcement reminder — shows on the Live Stage Cue controller and display"
+                  >
+                    📝 Add Note
                   </button>
                   <button
                     className="cc-btn-ghost"
@@ -718,6 +744,32 @@ export default function SetLists() {
                           />
                           <span className="sl-duration-unit">min</span>
                           <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove break">✕</button>
+                        </div>
+                      )
+                    }
+                    if (song._type === 'note') {
+                      return (
+                        <div key={idx} className={`sl-note-row${dragClass}`} {...dragProps}>
+                          <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
+                          <span className="sl-note-icon">📝</span>
+                          <div className="sl-note-body">
+                            <input
+                              className="sl-note-label-input"
+                              value={song.label || ''}
+                              placeholder="Note title (e.g. Announcement)…"
+                              onChange={e => handleBreakLabelChange(idx, e.target.value)}
+                              onClick={e => e.stopPropagation()}
+                            />
+                            <textarea
+                              className="sl-note-text-input"
+                              value={song.text || ''}
+                              placeholder="Type or paste what you don't want to forget — thank the venue, mention merch, introduce the band…"
+                              rows={2}
+                              onChange={e => handleNoteTextChange(idx, e.target.value)}
+                              onClick={e => e.stopPropagation()}
+                            />
+                          </div>
+                          <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove note">✕</button>
                         </div>
                       )
                     }

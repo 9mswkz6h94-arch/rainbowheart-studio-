@@ -19,6 +19,16 @@ export function buildPresentSequence(setlist) {
       return
     }
 
+    if (entry._type === 'note') {
+      items.push({
+        type: 'note',
+        label: entry.label || 'Note',
+        text: entry.text || '',
+        songIndex,
+      })
+      return
+    }
+
     const meta = entry.meta || {}
     const parsed = parseSong(entry.song_text || '', meta)
     const title = entry.title || meta.title || 'Untitled'
@@ -30,6 +40,9 @@ export function buildPresentSequence(setlist) {
       key: meta.key || '',
       tempo: meta.tempo || '',
       meter: meta.meter || '',
+      // 'half' means the tempo number is a half-note beat (chartEngine's own tempoHTML
+      // convention) — the display's metronome needs this to convert to quarter-note BPM.
+      tempoNote: meta.note || 'quarter',
       // Full section order for this song — lets the display show a chart-style
       // "STRUCTURE" progress header (same labels as the printed chart's structure line).
       structure: parsed.structure,
