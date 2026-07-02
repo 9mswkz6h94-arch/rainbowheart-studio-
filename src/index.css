@@ -1632,7 +1632,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
 .page {
   width: 8.5in;
-  height: 10in;
+  height: 10.75in;
   padding: 0.45in 0.62in 0.6in;
   position: relative;
   overflow: hidden;
@@ -2580,7 +2580,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   }
   .page {
     width: 8.5in !important;
-    height: 10in !important;
+    height: 10.75in !important;
     box-sizing: border-box !important;
     box-shadow: none !important;
     page-break-after: always;
@@ -2866,6 +2866,36 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   min-width: 0;
 }
 .sl-break-label-input:focus { outline: none; }
+
+.sl-note-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  background: #fffbee;
+  border: 1px dashed #e8c97a;
+  cursor: grab;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+.sl-note-row:active { cursor: grabbing; }
+.sl-note-row.sl-dragging { opacity: 0.35; }
+.sl-note-row.sl-drag-over { border-color: var(--accent); background: #f0f4ff; }
+.sl-note-row:hover .sl-drag-handle { color: #aaa; }
+.sl-note-row:hover .cc-lib-delete { opacity: 1; color: #e74c3c; }
+.sl-note-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.3rem; }
+.sl-note-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.sl-note-label-input {
+  border: none; background: transparent; font-size: 0.85rem;
+  font-weight: 600; color: #8a6c1a; font-family: inherit; cursor: text;
+}
+.sl-note-label-input:focus { outline: none; }
+.sl-note-text-input {
+  border: 1px solid #e8c97a; border-radius: 5px; background: #fff;
+  font-size: 0.8rem; font-family: inherit; color: var(--text);
+  padding: 0.35rem 0.5rem; resize: vertical; min-height: 2.2rem;
+}
+.sl-note-text-input:focus { outline: none; border-color: var(--accent); }
 
 /* Duplicate button on sidebar items */
 .sl-dup-btn {
@@ -4172,6 +4202,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .pc-cue-label.pc-cue-transition { color: #f5c842; }
 .pc-cue-label.pc-cue-break      { color: #e8a945; }
 .pc-cue-label.pc-cue-set        { color: #a99bff; }
+.pc-cue-label.pc-cue-note       { color: #7ec8e3; }
 .pc-transition-meta {
   font-family: 'Space Mono', monospace;
   font-size: 1rem;
@@ -4182,6 +4213,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   font-size: 1.1rem;
   color: #aaa;
   max-width: 32rem;
+  white-space: pre-wrap;
 }
 .pc-empty { color: #888; padding: 4rem; }
 
@@ -4492,6 +4524,23 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   color: #e8a945;
 }
 .pd-blank { color: #444; font-size: 2rem; }
+
+/* Visual metronome — title/transition screen only. A quiet flash-and-fade at the very
+   bottom edge: bright enough to catch peripherally, gone quickly enough to ignore. */
+.pd-metronome-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  background: #fff;
+  pointer-events: none;
+  animation: pd-metro-flash 0.55s ease-out forwards;
+}
+@keyframes pd-metro-flash {
+  0%   { opacity: 0.9; }
+  100% { opacity: 0; }
+}
 
 .pd-loading {
   display: flex;
