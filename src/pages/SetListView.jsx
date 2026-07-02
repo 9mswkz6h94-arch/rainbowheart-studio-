@@ -3,6 +3,22 @@ import { useParams } from 'react-router-dom'
 import { fetchSetListByToken } from '../lib/setlists'
 import { parseSong, layout, fitTitles, rescale } from '../lib/chartEngine'
 
+/* Resolve a song's render settings from its saved meta so the show matches the
+   Chart Studio builder (text size, write-in bars, collapsed repeats). Older songs that
+   predate a setting fall back to the builder's default. */
+function songRenderConfig(song) {
+  const m = song.meta || {}
+  return {
+    meta:  m,
+    scale: (m.scale || 100) / 100,
+    opts: {
+      compact:   true,                    // show is always compact
+      collapse:  m.collapse  !== false,   // honor per-song "Collapse repeats" (default on)
+      writeBars: m.writeBars !== false,   // honor per-song "Write-in bars" (default on)
+    },
+  }
+}
+
 /* Fit the current song's pages into the performer stage.
    On desktop, a 2-page song is shown side-by-side so both pages are visible at once
    (no scrolling up/down mid-song). Everything else — single-page songs, 3+ page songs,
@@ -70,12 +86,14 @@ export default function SetListView() {
 
     await document.fonts.ready
 
-    const parsed = parseSong(song.song_text || '', song.meta || {})
-    const opts   = { compact: true, collapse: true, writeBars: true }
+    const { meta, scale, opts } = songRenderConfig(song)
+    document.documentElement.style.setProperty('--bscale', scale)   // size measurement to this song
+    const parsed = parseSong(song.song_text || '', meta)
     const { html } = layout(parsed, 'full', opts, measureRef.current)
 
     stageRef.current.className = 'stagewrap compact'
     stageRef.current.innerHTML = html
+    stageRef.current.querySelectorAll('.page').forEach(pg => pg.style.setProperty('--bscale', scale))
     fitTitles(stageRef.current)
     fitPerformerStage(stageRef.current)
   }, [setlist])
@@ -112,16 +130,23 @@ export default function SetListView() {
     setPrinting(true)
     await document.fonts.ready
 
-    let allHtml = ''
+    // Build each song at its own saved text size. --bscale is a single global var, so we
+    // set it per song for correct measurement, then stamp it onto that song's pages so each
+    // chart keeps its size in the combined print (later songs can't clobber earlier ones).
+    stageRef.current.className = 'stagewrap compact'
+    stageRef.current.innerHTML = ''
     for (const song of setlist.songs) {
       if (song._type) continue
-      const parsed = parseSong(song.song_text || '', song.meta || {})
-      const opts   = { compact: true, collapse: true, writeBars: true }
-      allHtml += layout(parsed, 'full', opts, measureRef.current).html
+      const { meta, scale, opts } = songRenderConfig(song)
+      document.documentElement.style.setProperty('--bscale', scale)
+      const parsed = parseSong(song.song_text || '', meta)
+      const { html } = layout(parsed, 'full', opts, measureRef.current)
+      const tmp = document.createElement('div')
+      tmp.innerHTML = html
+      tmp.querySelectorAll('.page').forEach(pg => pg.style.setProperty('--bscale', scale))
+      while (tmp.firstChild) stageRef.current.appendChild(tmp.firstChild)
     }
-
-    stageRef.current.className = 'stagewrap compact'
-    stageRef.current.innerHTML = allHtml
+    document.documentElement.style.removeProperty('--bscale')
     fitTitles(stageRef.current)
 
     const prevTitle = document.title

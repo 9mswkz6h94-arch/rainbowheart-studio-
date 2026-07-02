@@ -239,7 +239,7 @@ export default function ChordCharts() {
     const data = {
       app: 'Rainbow Hearts Chart Studio',
       savedAt: new Date().toISOString(),
-      meta: { ...meta },
+      meta: { ...meta, collapse, compact },
       source: songText,
     }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -335,6 +335,8 @@ export default function ChordCharts() {
       writeBars:   m.writeBars !== false,
       scale:       m.scale || 100,
     })
+    setCompact(m.compact !== false)     // restore builder toggles (default on for older songs)
+    setCollapse(m.collapse !== false)
     setSongText(src)
     setCurrentId(id)
     setDirty(false)
@@ -344,6 +346,7 @@ export default function ChordCharts() {
   function handleNew() {
     if (dirty && !window.confirm('Discard unsaved changes?')) return
     setMeta(BLANK_META); setSongText('')
+    setCompact(true); setCollapse(true)
     setCurrentId(null); setDirty(false); setSaveMsg(null)
     setScanFiles([]); setPageSources([]); setPageMeta(null)
   }
@@ -356,7 +359,7 @@ export default function ChordCharts() {
         id:        currentId,
         title:     meta.title || 'Untitled',
         song_text: songText,
-        meta:      { ...meta },
+        meta:      { ...meta, collapse, compact },
       })
       setCurrentId(saved.id); setDirty(false); setSaveMsg('Saved!')
       await refreshList()
@@ -423,7 +426,7 @@ export default function ChordCharts() {
             {currentId && (
               <button className="cc-btn-ghost" onClick={() => {
                 setSaving(true); setSaveMsg(null)
-                saveSong({ id: null, title: meta.title || 'Untitled', song_text: songText, meta: { ...meta } })
+                saveSong({ id: null, title: meta.title || 'Untitled', song_text: songText, meta: { ...meta, collapse, compact } })
                   .then(saved => { setCurrentId(saved.id); setDirty(false); setSaveMsg('Saved as new!'); refreshList(); setTimeout(() => setSaveMsg(null), 2000) })
                   .catch(e => { setSaveMsg('Error saving'); console.error(e) })
                   .finally(() => setSaving(false))
