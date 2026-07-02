@@ -3092,6 +3092,16 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 .slv-stage-wrap .stagewrap { width: 100%; max-width: 860px; }
 
+/* Two-up: show both pages of a 2-page song side by side on desktop */
+.slv-stage-wrap .stagewrap.slv-twoup {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  max-width: none;
+}
+
 .slv-no-songs {
   color: #888;
   font-size: 0.95rem;

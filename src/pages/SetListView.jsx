@@ -3,6 +3,34 @@ import { useParams } from 'react-router-dom'
 import { fetchSetListByToken } from '../lib/setlists'
 import { parseSong, layout, fitTitles, rescale } from '../lib/chartEngine'
 
+/* Fit the current song's pages into the performer stage.
+   On desktop, a 2-page song is shown side-by-side so both pages are visible at once
+   (no scrolling up/down mid-song). Everything else — single-page songs, 3+ page songs,
+   and narrow/mobile screens — falls back to the shared fit-to-width column scaling. */
+function fitPerformerStage(stageEl) {
+  if (!stageEl) return
+  const pages = [...stageEl.querySelectorAll('.page')]
+  if (!pages.length) return
+
+  const PAGE_W = 8.5 * 96                                   // 816px — one page wide
+  const twoUp  = window.innerWidth > 900 && pages.length === 2
+  stageEl.classList.toggle('slv-twoup', twoUp)
+
+  if (twoUp) {
+    const GAP = 24, PAD = 32
+    const avail = stageEl.clientWidth - PAD
+    const z = Math.min(1, (avail - GAP) / (2 * PAGE_W))     // scale so both pages fit across
+    pages.forEach(pg => {
+      pg.style.transform    = ''                            // clear any single-column transform
+      pg.style.marginBottom = ''
+      pg.style.zoom         = String(z)                     // zoom shrinks the layout box so flex can lay them out
+    })
+  } else {
+    pages.forEach(pg => { pg.style.zoom = '' })
+    rescale(stageEl)
+  }
+}
+
 export default function SetListView() {
   const { token } = useParams()
 
@@ -49,7 +77,7 @@ export default function SetListView() {
     stageRef.current.className = 'stagewrap compact'
     stageRef.current.innerHTML = html
     fitTitles(stageRef.current)
-    rescale(stageRef.current)
+    fitPerformerStage(stageRef.current)
   }, [setlist])
 
   useEffect(() => {
@@ -58,7 +86,7 @@ export default function SetListView() {
 
   /* ── Window resize ── */
   useEffect(() => {
-    const handler = () => { if (stageRef.current) rescale(stageRef.current) }
+    const handler = () => { if (stageRef.current) fitPerformerStage(stageRef.current) }
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
   }, [])
