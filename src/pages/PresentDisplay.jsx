@@ -115,12 +115,12 @@ function SongListHeader({ songList, activeSongIndex }) {
 }
 
 /**
- * A quiet visual metronome for the title/transition screen only — flashes a thin bar at
- * the very bottom of the screen once per beat, using the tempo already pulled from the
- * chart (meta.tempo/meter/note, same fields the printed chart's masthead shows). Purely
- * visual reference, not synced to real playback — restarts fresh each time the transition
- * screen appears. Re-keying the bar element every beat (rather than toggling a class) is
- * what makes the CSS flash-and-fade animation restart cleanly on each tick.
+ * A quiet visual metronome for the title/transition screen only — flashes both a thin bar at
+ * the very bottom of the screen and a subtle background pulse once per beat, using the tempo
+ * already pulled from the chart (meta.tempo/meter/note, same fields the printed chart's masthead
+ * shows). Purely visual reference, not synced to real playback — restarts fresh each time the
+ * transition screen appears. Re-keying the bar element every beat (rather than toggling a class)
+ * is what makes the CSS flash-and-fade animation restart cleanly on each tick.
  */
 function MetronomeBar({ tempo, tempoNote }) {
   const [beat, setBeat] = useState(0)
@@ -137,7 +137,12 @@ function MetronomeBar({ tempo, tempoNote }) {
   }, [tempo, tempoNote])
 
   if (!parseInt(tempo, 10)) return null
-  return <div key={beat} className="pd-metronome-bar" />
+  return (
+    <>
+      <div key={beat} className="pd-metronome-bar" />
+      <div key={`bg-${beat}`} className="pd-metronome-pulse" />
+    </>
+  )
 }
 
 export default function PresentDisplay() {

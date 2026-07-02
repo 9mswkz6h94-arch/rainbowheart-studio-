@@ -4574,10 +4574,27 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   background: #fff;
   pointer-events: none;
   animation: pd-metro-flash 0.55s ease-out forwards;
+  z-index: 1000;
 }
 @keyframes pd-metro-flash {
   0%   { opacity: 0.9; }
   100% { opacity: 0; }
+}
+
+/* Subtle full-screen background pulse synchronized with the metronome beat.
+   Provides a clear visual cue for starting the song at tempo without being annoying. */
+.pd-metronome-pulse {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  animation: pd-metro-pulse 0.55s ease-out forwards;
+  z-index: 999;
+}
+@keyframes pd-metro-pulse {
+  0%   { opacity: 1; background: rgba(255, 255, 255, 0.12); }
+  50%  { opacity: 0.5; background: rgba(255, 255, 255, 0.06); }
+  100% { opacity: 0; background: rgba(255, 255, 255, 0); }
 }
 
 .pd-loading {
