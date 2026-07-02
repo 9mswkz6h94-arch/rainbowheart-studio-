@@ -276,6 +276,15 @@ export default function SetListView() {
         >
           {darkCharts ? '☀ Light' : '🌙 Dark'}
         </button>
+        <a
+          className="slv-print-btn"
+          href={`/present/${token}/control`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open the Live Stage Cue controller — walk section by section, broadcast to a stage monitor"
+        >
+          🎤 Go Live
+        </a>
         <button
           className="slv-print-btn"
           onClick={handlePrintAll}

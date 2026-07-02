@@ -204,7 +204,7 @@ const ABBR = {
   Verse: 'V', Chorus: 'C', Instrumental: 'Inst', 'Pre-Chorus': 'PC',
   Bridge: 'Br', Intro: 'Intro', Outro: 'Outro', Interlude: 'Int', Solo: 'Solo'
 }
-function abbr(label) {
+export function abbr(label) {
   for (const k in ABBR) { if (label.startsWith(k)) return (ABBR[k] + label.slice(k.length)).replace(/ /g, '') }
   return label
 }

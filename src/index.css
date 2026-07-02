@@ -4105,3 +4105,350 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .metronome-tap-btn {
   padding: 0.75rem 1.75rem;
 }
+
+/* ══════════════════════════════════════════════
+   Live Stage Cue — Controller  (/present/:token/control)
+   ══════════════════════════════════════════════ */
+.pc-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #1c1c1e;
+  color: #fff;
+}
+.pc-topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: #111;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+.pc-set-name { font-size: 0.95rem; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-conn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: #f5c842;
+  white-space: nowrap;
+}
+.pc-conn-ok { color: #6cc26c; }
+.pc-link-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pc-link-btn:hover { background: #444; }
+
+.pc-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 2rem 1.5rem;
+}
+.pc-song-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.9rem;
+  color: #999;
+  letter-spacing: 0.04em;
+}
+.pc-cue-label {
+  font-family: 'Rye', serif;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  color: #fff;
+  line-height: 1.15;
+}
+.pc-cue-label.pc-cue-transition { color: #f5c842; }
+.pc-cue-label.pc-cue-break      { color: #e8a945; }
+.pc-cue-label.pc-cue-set        { color: #a99bff; }
+.pc-transition-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem;
+  color: #ccc;
+}
+.pc-preview {
+  font-family: 'Atkinson Hyperlegible', sans-serif;
+  font-size: 1.1rem;
+  color: #aaa;
+  max-width: 32rem;
+}
+.pc-empty { color: #888; padding: 4rem; }
+
+.pc-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.5rem;
+  background: #111;
+  border-top: 1px solid #333;
+  gap: 1rem;
+}
+.pc-nav-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background: #2a2a2e;
+  color: #fff;
+  cursor: pointer;
+  min-width: 120px;
+}
+.pc-nav-btn:hover:not(:disabled) { background: #3a3a40; }
+.pc-nav-btn:disabled { opacity: 0.3; cursor: default; }
+.pc-position { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: #aaa; }
+
+.pc-chords-toggle {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-top: 1px solid #333;
+  padding: 0.6rem;
+  cursor: pointer;
+}
+.pc-chords-toggle:hover { background: #1a1a1a; }
+
+.pc-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #1c1c1e;
+  color: #aaa;
+  gap: 1rem;
+}
+.pc-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #333;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: slv-spin 0.8s linear infinite;
+}
+
+/* ══════════════════════════════════════════════
+   Live Stage Cue — Display  (/present/:token/display)
+   ══════════════════════════════════════════════ */
+.pd-root {
+  height: 100vh;
+  background: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'OpenDyslexic Mono', monospace;
+}
+.pd-fullscreen-btn {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 10;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  font-size: 1.1rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+.pd-fullscreen-btn:hover { background: rgba(255,255,255,0.18); }
+.pd-waiting {
+  position: fixed;
+  top: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.85rem;
+  color: #f5c842;
+  z-index: 10;
+}
+
+/* Chart-style "STRUCTURE" progress bar — same abbreviations as the printed chart's own
+   structure line, current section highlighted like a slideshow progress indicator. */
+.pd-structure-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.6rem 1.5rem;
+  background: #111;
+  border-bottom: 1px solid #333;
+  font-size: clamp(0.75rem, 1.3vw, 1rem);
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.pd-structure-song {
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  margin-right: 0.5rem;
+}
+.pd-structure-item { color: #555; padding: 0.15rem 0.55rem; border-radius: 4px; }
+.pd-structure-item.active { color: #17171a; background: #f5c842; font-weight: 700; }
+
+.pd-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 2.6fr 1fr;
+  align-items: stretch;
+  min-height: 0;
+  overflow: hidden;
+}
+.pd-side {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.5rem;
+  opacity: 0.45;
+  overflow: hidden;
+  min-height: 0;
+}
+.pd-prev { border-right: 1px solid #222; align-items: flex-end; text-align: right; }
+.pd-next { border-left: 1px solid #222; align-items: flex-start; text-align: left; }
+.pd-side-tag {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+}
+.pd-side .pd-section-label,
+.pd-side .pd-transition-title { font-size: 1.3rem; }
+.pd-side .pd-line { font-size: 1rem; }
+
+/* FitBox outer wrapper for both side previews — grows to fill the space left under the
+   tag, and shrinks its content (via FitBox's zoom logic) so the whole "just finished" or
+   "coming up" block is always fully visible, matching the center panel's behavior. */
+.pd-fitbox {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.pd-prev .pd-fitbox { justify-content: flex-end; }
+.pd-next .pd-fitbox { justify-content: flex-start; }
+
+.pd-center {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2rem;
+  text-align: left;
+  overflow: hidden;
+  min-height: 0;
+  height: 100%;
+}
+
+.pd-section-song {
+  font-size: 1.1rem;
+  color: #999;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+.pd-section-label {
+  font-size: clamp(1.5rem, 3.5vw, 2.75rem);
+  font-weight: 700;
+  color: #f5c842;
+  margin-bottom: 1rem;
+}
+.pd-section-body { display: flex; flex-direction: column; gap: 0.4rem; }
+.pd-line {
+  font-size: clamp(1.2rem, 3.2vw, 2.6rem);
+  line-height: 1.35;
+  color: #fff;
+}
+.pd-center .pd-line { font-size: clamp(1.5rem, 4.2vw, 3.4rem); }
+.pd-line.pd-bold { font-weight: 700; }
+.pd-line.pd-rhythm { color: #ccc; }
+
+/* Chord + lyric lines — same structural technique as the chart engine itself
+   (chartEngine.js renderLine: .line/.seg/.ch/.ly), just scaled up for a stage
+   monitor. A flex row of chord-over-word columns that wraps and reads as one
+   continuous line, chord sitting directly above its own word — not stacked
+   chord/lyric blocks. Left-aligned (flex-start) to match the printed chart's
+   own ragged-right layout instead of centering each line. */
+.pd-chartline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-start;
+  margin-bottom: 0.3em;
+}
+.pd-chartline.pd-bold .pd-ly { font-weight: 700; }
+.pd-seg { display: inline-flex; flex-direction: column; flex: 0 0 auto; }
+.pd-ch {
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3.6vw, 2.9rem);
+  line-height: 1.2;
+  color: #f5c842;
+  white-space: pre;
+}
+.pd-ly {
+  font-size: clamp(1.2rem, 3.2vw, 2.6rem);
+  line-height: 1.35;
+  color: #fff;
+  white-space: pre;
+}
+.pd-center .pd-ly { font-size: clamp(1.5rem, 4.2vw, 3.4rem); }
+
+.pd-transition-title {
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+.pd-transition-meta {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  color: #ccc;
+}
+.pd-divider-label {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e8a945;
+}
+.pd-blank { color: #444; font-size: 2rem; }
+
+.pd-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #000;
+  color: #aaa;
+  gap: 1rem;
+}
+.pd-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #333;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: slv-spin 0.8s linear infinite;
+}
+
+@media (max-width: 900px) {
+  .pd-layout { grid-template-columns: 0.6fr 3fr 0.6fr; }
+  .pd-side .pd-line, .pd-side .pd-section-label,
+  .pd-side .pd-transition-title, .pd-side .pd-transition-meta,
+  .pd-side .pd-section-song { display: none; }
+}

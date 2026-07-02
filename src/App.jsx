@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ScrollToTopButton from './components/ScrollToTopButton'
@@ -11,6 +11,8 @@ import ChordCharts from './pages/ChordCharts'
 import TabStudio from './pages/TabStudio'
 import SetLists from './pages/SetLists'
 import SetListView from './pages/SetListView'
+import PresentControl from './pages/PresentControl'
+import PresentDisplay from './pages/PresentDisplay'
 import OpenMicPrivacy from './pages/OpenMicPrivacy'
 import OpenMicTerms from './pages/OpenMicTerms'
 import Admin from './pages/Admin'
@@ -23,9 +25,14 @@ import Metronome from './pages/Metronome'
 import Tools from './pages/Tools'
 
 export default function App() {
+  // Live Stage Cue control/display run full-screen on a phone or stage monitor —
+  // the site nav and footer would eat screen space and show to the audience.
+  const { pathname } = useLocation()
+  const isPresenting = pathname.startsWith('/present/')
+
   return (
     <>
-      <Navbar />
+      {!isPresenting && <Navbar />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -56,6 +63,8 @@ export default function App() {
           <Route path="/studio/tuner" element={<Tuner />} />
           <Route path="/studio/metronome" element={<Metronome />} />
           <Route path="/setlist/:token" element={<SetListView />} />
+          <Route path="/present/:token/control" element={<PresentControl />} />
+          <Route path="/present/:token/display" element={<PresentDisplay />} />
           <Route path="/admin" element={
             <AdminRoute><Admin /></AdminRoute>
           } />
@@ -63,8 +72,8 @@ export default function App() {
           <Route path="/terms/open-mic" element={<OpenMicTerms />} />
         </Routes>
       </main>
-      <Footer />
-      <ScrollToTopButton />
+      {!isPresenting && <Footer />}
+      {!isPresenting && <ScrollToTopButton />}
     </>
   )
 }
