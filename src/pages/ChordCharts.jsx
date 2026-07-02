@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { parseSong, layout, fitTitles, rescale, shiftKey } from '../lib/chartEngine'
 import { fetchSongs, fetchSong, saveSong, deleteSong, timeAgo } from '../lib/songs'
 import { useAuth } from '../context/AuthContext'
+import TapMetronome from '../components/TapMetronome'
 
 const VARIANTS = [
   ['full',   'Full Chart'],  ['chords', 'Chords'],
@@ -581,10 +582,21 @@ export default function ChordCharts() {
             <span>Capo</span>
             <input value={meta.capo} onChange={e => updateMeta('capo', e.target.value)} placeholder="(optional)" />
           </label>
-          <label className="cc-field">
+          <div className="cc-field">
             <span>Tempo (BPM)</span>
-            <input value={meta.tempo} onChange={e => updateMeta('tempo', e.target.value)} placeholder="120" />
-          </label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <input
+                style={{ flex: 1 }}
+                value={meta.tempo}
+                onChange={e => updateMeta('tempo', e.target.value)}
+                placeholder="120"
+              />
+              <TapMetronome
+                onTempoChange={v => updateMeta('tempo', v)}
+                currentTempo={meta.tempo}
+              />
+            </div>
+          </div>
           <label className="cc-field">
             <span>Duration (min)</span>
             <input type="number" min="0.25" max="20" step="0.25" value={meta.duration || ''} onChange={e => updateMeta('duration', e.target.value ? parseFloat(e.target.value) : '')} placeholder="3.5" title="Minutes · 0.25 = 15 sec, 0.5 = 30 sec" />
