@@ -349,10 +349,13 @@ function secSheets(song, kind, opts) {
   const showRepeats = !!opts.sheetRepeats
   return song.full.map(sec => {
     let h = `<div class="section"><div class="seclabel">${esc(sec.label)}</div>`
-    if (sec.repeatOf && !showRepeats) {
+    // A section's own assignment always wins (and always renders);
+    // unassigned repeats inherit from the section they repeat
+    const own = objs[sec.label]
+    if (sec.repeatOf && !own && !showRepeats) {
       return h + `<div class="repeat-ref">Repeat ${esc(sec.repeatOf)}</div></div>`
     }
-    const obj = objs[sec.repeatOf || sec.label]
+    const obj = own || (sec.repeatOf ? objs[sec.repeatOf] : null)
     if (!obj) return h + `<div class="sheet-none">—</div></div>`
     return h + `<div class="sheet-item">${kind === 'groove' ? grooveItemHTML(obj) : tabItemHTML(obj)}</div></div>`
   })

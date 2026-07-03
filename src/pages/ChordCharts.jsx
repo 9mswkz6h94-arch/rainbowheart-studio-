@@ -114,11 +114,20 @@ export default function ChordCharts() {
     fetchTabs().then(t => setTabLib(t || [])).catch(e => console.error('Failed to load tabs', e))
   }, [])
 
-  /* ── Unique structure sections (first occurrence of each distinct part) ── */
-  const uniqueSections = useMemo(() => {
+  /* ── Structure sections for the sheet panel — EVERY labelled section gets its
+     own row so grooves/tabs can be assigned per section, even when two sections
+     share identical chord/lyric content (the engine marks those as repeats).
+     Unassigned repeats inherit from the section they repeat. ── */
+  const sheetSections = useMemo(() => {
     try {
       const s = parseSong(songText || '', { meter: meta.meter, accidentals: meta.accidentals })
-      return s.full.filter(x => !x.repeatOf).map(x => x.label)
+      const seen = new Set(), out = []
+      for (const x of s.full) {
+        if (seen.has(x.label)) continue
+        seen.add(x.label)
+        out.push({ label: x.label, repeatOf: x.repeatOf })
+      }
+      return out
     } catch { return [] }
   }, [songText, meta.meter, meta.accidentals])
 
@@ -715,18 +724,18 @@ export default function ChordCharts() {
                   Show repeats
                 </label>
               </div>
-              {uniqueSections.length === 0 ? (
+              {sheetSections.length === 0 ? (
                 <p className="cc-sheet-empty">
                   Add sections to the song (<code>#v</code> <code>#c</code> <code>#inst</code>…) and they'll show up here to assign.
                 </p>
-              ) : uniqueSections.map(label => (
+              ) : sheetSections.map(({ label, repeatOf }) => (
                 <label key={label} className="cc-sheet-row">
                   <span className="cc-sheet-label">{label}</span>
                   <select
                     value={map[label] || ''}
                     onChange={e => assignSheet(isGroove ? 'groove' : 'tab', label, e.target.value)}
                   >
-                    <option value="">— none —</option>
+                    <option value="">{repeatOf ? `— same as ${repeatOf} —` : '— none —'}</option>
                     {lib.map(item => (
                       <option key={item.id} value={item.id}>{item.title || 'Untitled'}</option>
                     ))}
