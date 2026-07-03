@@ -1,12 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { parseSong, layout, fitTitles, rescale, shiftKey } from '../lib/chartEngine'
 import { fetchSongs, fetchSong, saveSong, deleteSong, timeAgo } from '../lib/songs'
+import { fetchGrooves } from '../lib/grooves'
+import { fetchTabs } from '../lib/tabs'
 import { useAuth } from '../context/AuthContext'
 import TapMetronome from '../components/TapMetronome'
 
 const VARIANTS = [
-  ['full',   'Full Chart'],  ['chords', 'Chords'],
-  ['lyrics', 'Lyrics'],
+  ['full',    'Full Chart'], ['grooves', 'Grooves'],
+  ['tabs',    'Tabs'],       ['lyrics',  'Lyrics'],
 ]
 
 const BLANK_META = {
@@ -25,6 +28,10 @@ const BLANK_META = {
   structFull:  false,
   writeBars:   true,
   scale:       100,
+  lyricsScale: 100,
+  grooveMap:   {},
+  tabMap:      {},
+  sheetRepeats: false,
   draft:       false,
   duration:    '',
 }
@@ -44,6 +51,8 @@ export default function ChordCharts() {
   const [libraryOpen,  setLibraryOpen]  = useState(false)
 
   const [songs,        setSongs]        = useState([])
+  const [grooveLib,    setGrooveLib]    = useState([])
+  const [tabLib,       setTabLib]       = useState([])
   const [currentId,    setCurrentId]    = useState(null)
   const [dirty,        setDirty]        = useState(false)
   const [saving,       setSaving]       = useState(false)
@@ -99,6 +108,46 @@ export default function ChordCharts() {
   }, [])
   useEffect(() => { refreshList() }, [refreshList])
 
+  /* ── Groove + tab libraries (for the Grooves / Tabs sheet variants) ── */
+  useEffect(() => {
+    fetchGrooves().then(g => setGrooveLib(g || [])).catch(e => console.error('Failed to load grooves', e))
+    fetchTabs().then(t => setTabLib(t || [])).catch(e => console.error('Failed to load tabs', e))
+  }, [])
+
+  /* ── Unique structure sections (first occurrence of each distinct part) ── */
+  const uniqueSections = useMemo(() => {
+    try {
+      const s = parseSong(songText || '', { meter: meta.meter, accidentals: meta.accidentals })
+      return s.full.filter(x => !x.repeatOf).map(x => x.label)
+    } catch { return [] }
+  }, [songText, meta.meter, meta.accidentals])
+
+  /* ── Per-variant text scale — Lyrics keeps its own size ── */
+  const activeScale = variant === 'lyrics' ? (meta.lyricsScale || 100) : (meta.scale || 100)
+
+  /* ── Resolve groove/tab attachments (section label → full object) ── */
+  const buildSheetOpts = useCallback(() => {
+    const grooveObjs = {}, tabObjs = {}
+    for (const [label, id] of Object.entries(meta.grooveMap || {})) {
+      const g = grooveLib.find(x => x.id === id)
+      if (g) grooveObjs[label] = g
+    }
+    for (const [label, id] of Object.entries(meta.tabMap || {})) {
+      const t = tabLib.find(x => x.id === id)
+      if (t) tabObjs[label] = t
+    }
+    return { grooveObjs, tabObjs, sheetRepeats: !!meta.sheetRepeats }
+  }, [meta.grooveMap, meta.tabMap, meta.sheetRepeats, grooveLib, tabLib])
+
+  function assignSheet(kind, label, id) {
+    const key = kind === 'groove' ? 'grooveMap' : 'tabMap'
+    setMeta(m => {
+      const map = { ...(m[key] || {}) }
+      if (id) map[label] = id; else delete map[label]
+      return { ...m, [key]: map }
+    })
+    setDirty(true)
+  }
 
   /* ── Render engine (runs every render, debounced 160 ms) ── */
   useEffect(() => {
@@ -109,9 +158,9 @@ export default function ChordCharts() {
 
       const fullMeta = { ...meta }
       const song     = parseSong(songText || '', fullMeta)
-      const opts     = { compact, collapse, writeBars: meta.writeBars }
+      const opts     = { compact, collapse, writeBars: meta.writeBars, scale: activeScale, ...buildSheetOpts() }
 
-      document.documentElement.style.setProperty('--bscale', (meta.scale || 100) / 100)
+      document.documentElement.style.setProperty('--bscale', activeScale / 100)
 
       const { html, N, cols } = layout(song, variant, opts, measureRef.current)
 
@@ -173,17 +222,14 @@ export default function ChordCharts() {
     updateMeta('transpose', Math.max(-11, Math.min(11, n)))
   }
 
-  /* ── Auto-fit ── */
+  /* ── Auto-fit — sizes the scale field belonging to the active variant ── */
   function handleAutoFit() {
     if (!measureRef.current) return
     const fullMeta = { ...meta }
     const song     = parseSong(songText || '', fullMeta)
-    const opts     = { compact, collapse, writeBars: meta.writeBars }
+    const baseOpts = { compact, collapse, writeBars: meta.writeBars, ...buildSheetOpts() }
 
-    const pagesAt = p => {
-      document.documentElement.style.setProperty('--bscale', p / 100)
-      return layout(song, variant, opts, measureRef.current).N
-    }
+    const pagesAt = p => layout(song, variant, { ...baseOpts, scale: p }, measureRef.current).N
     const LO = 70, HI = 160
     const minN = pagesAt(LO)
     let lo = LO, hi = HI
@@ -191,7 +237,7 @@ export default function ChordCharts() {
       const mid = (lo + hi) / 2
       if (pagesAt(mid) <= minN) lo = mid; else hi = mid
     }
-    updateMeta('scale', Math.max(LO, Math.floor((lo - 1) / 2) * 2))
+    updateMeta(variant === 'lyrics' ? 'lyricsScale' : 'scale', Math.max(LO, Math.floor((lo - 1) / 2) * 2))
   }
 
   /* ── Print current variant ── */
@@ -213,12 +259,13 @@ export default function ChordCharts() {
 
     const fullMeta = { ...meta }
     const song     = parseSong(songText || '', fullMeta)
-    const opts     = { compact, collapse, writeBars: meta.writeBars }
-
-    document.documentElement.style.setProperty('--bscale', (meta.scale || 100) / 100)
+    const baseOpts = { compact, collapse, writeBars: meta.writeBars, ...buildSheetOpts() }
 
     let html = ''
-    for (const [k] of VARIANTS) html += layout(song, k, opts, measureRef.current).html
+    for (const [k] of VARIANTS) {
+      const scale = k === 'lyrics' ? (meta.lyricsScale || 100) : (meta.scale || 100)
+      html += layout(song, k, { ...baseOpts, scale }, measureRef.current).html
+    }
 
     stageRef.current.className = 'stagewrap' + (compact ? ' compact' : '')
     stageRef.current.innerHTML = html
@@ -335,6 +382,12 @@ export default function ChordCharts() {
       structFull:  !!m.structFull,
       writeBars:   m.writeBars !== false,
       scale:       m.scale || 100,
+      lyricsScale: m.lyricsScale || m.scale || 100,
+      grooveMap:   m.grooveMap || {},
+      tabMap:      m.tabMap || {},
+      sheetRepeats: !!m.sheetRepeats,
+      draft:       !!m.draft,
+      duration:    m.duration || '',
     })
     setCompact(m.compact !== false)     // restore builder toggles (default on for older songs)
     setCollapse(m.collapse !== false)
@@ -644,6 +697,51 @@ export default function ChordCharts() {
           ))}
         </div>
 
+        {/* Groove / tab attachments — one per structure section */}
+        {(variant === 'grooves' || variant === 'tabs') && (() => {
+          const isGroove = variant === 'grooves'
+          const map = (isGroove ? meta.grooveMap : meta.tabMap) || {}
+          const lib = isGroove ? grooveLib : tabLib
+          return (
+            <div className="cc-sheet-assign">
+              <div className="cc-sheet-assign-head">
+                <span>{isGroove ? 'Groove' : 'Tab'} for each section</span>
+                <label className="cc-sheet-repeats" title="On: repeated sections print again in structure order (longer sheet). Off: repeats collapse to a 'Repeat …' line (fits one page).">
+                  <input
+                    type="checkbox"
+                    checked={!!meta.sheetRepeats}
+                    onChange={e => updateMeta('sheetRepeats', e.target.checked)}
+                  />
+                  Show repeats
+                </label>
+              </div>
+              {uniqueSections.length === 0 ? (
+                <p className="cc-sheet-empty">
+                  Add sections to the song (<code>#v</code> <code>#c</code> <code>#inst</code>…) and they'll show up here to assign.
+                </p>
+              ) : uniqueSections.map(label => (
+                <label key={label} className="cc-sheet-row">
+                  <span className="cc-sheet-label">{label}</span>
+                  <select
+                    value={map[label] || ''}
+                    onChange={e => assignSheet(isGroove ? 'groove' : 'tab', label, e.target.value)}
+                  >
+                    <option value="">— none —</option>
+                    {lib.map(item => (
+                      <option key={item.id} value={item.id}>{item.title || 'Untitled'}</option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+              <p className="cc-sheet-empty">
+                {isGroove
+                  ? <>Build new grooves in the <Link to="/studio/groove-builder">Groove Builder</Link> — saved grooves appear here.</>
+                  : <>Build new tabs in <Link to="/studio/tab-studio">Tab Studio</Link> — saved tabs appear here.</>}
+              </p>
+            </div>
+          )
+        })()}
+
         {/* Song source */}
         <label className="cc-field cc-field-full">
           <span>Song — chords + lyrics</span>
@@ -665,14 +763,14 @@ export default function ChordCharts() {
           <label className={meta.draft ? 'cc-draft-label' : ''}><input type="checkbox" checked={!!meta.draft} onChange={e => updateMeta('draft', e.target.checked)} /> Draft — work in progress</label>
         </div>
 
-        {/* Text size */}
+        {/* Text size — Lyrics variant keeps its own size, independent of the chart */}
         <div className="cc-field">
-          <span>Text size · {meta.scale}%</span>
+          <span>{variant === 'lyrics' ? 'Lyrics text size' : 'Text size'} · {activeScale}%</span>
           <div className="cc-size-row">
             <input
               type="range" min="70" max="160" step="2"
-              value={meta.scale}
-              onChange={e => updateMeta('scale', parseInt(e.target.value, 10))}
+              value={activeScale}
+              onChange={e => updateMeta(variant === 'lyrics' ? 'lyricsScale' : 'scale', parseInt(e.target.value, 10))}
             />
             <button className="cc-btn-ghost" onClick={handleAutoFit}>Auto-fit</button>
           </div>

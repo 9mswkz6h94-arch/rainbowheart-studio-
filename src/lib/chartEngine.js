@@ -10,6 +10,8 @@
  *   shiftKey(key, n, acc)
  */
 
+import { renderGrooveSVG } from './grooveRenderer'
+
 /* ── Chord / transposition helpers ── */
 const SCALE_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
 const SCALE_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
@@ -189,6 +191,9 @@ export function parseSong(src, meta) {
         i += 1
       }
     }
+    // Total bars in the section — lets the Lyrics variant show a bar count
+    // for instrumental sections that have no lyric lines
+    Ly.bars = G.lines.reduce((a, ln) => a + (ln.chord && ln.bars ? ln.bars.length : 0), 0)
     full.push(F); grid.push(G); lyrics.push(Ly)
   }
 
@@ -297,11 +302,59 @@ function secGrid(song, collapse, withTab, write) {
 function secLyrics(song) {
   return song.lyrics.map(sec => {
     let h = `<div class="section"><div class="seclabel">${esc(sec.label)}</div>`
+    if (sec.lines.length === 0 && sec.bars > 0) {
+      h += `<div class="lyric-bars">${sec.bars} bar${sec.bars === 1 ? '' : 's'}</div>`
+    }
     sec.lines.forEach((o, j) => {
       const cls = 'lyric-big' + (j === 0 ? ' hook' : '') + (o.bold ? ' bold' : '')
       h += `<div class="${cls}">${esc(o.text)}</div>`
     })
     return h + '</div>'
+  })
+}
+
+/* ── Grooves / Tabs sheet variants — one attachment per structure section ── */
+function sheetItemHead(title, metaLine) {
+  return `<div class="sheet-item-head"><span class="sheet-item-title">${esc(title || 'Untitled')}</span>`
+    + (metaLine ? `<span class="sheet-item-meta">${esc(metaLine)}</span>` : '')
+    + `</div>`
+}
+
+function grooveItemHTML(g) {
+  const d    = g.groove_data || {}
+  const ts   = d.timeSig     || { n: 4, d: 4 }
+  const rows = d.rows        || []
+  let svgStr = ''
+  if (rows.length) {
+    const svg = renderGrooveSVG(rows, d.grid || {}, ts, d.feel || 'straight', d.beatGrouping || [1, 1, 1, 1])
+    svgStr = new XMLSerializer().serializeToString(svg)
+  }
+  const metaLine = `${ts.n}/${ts.d} · ${d.feel || 'straight'}${d.tempo ? ` · ♩= ${d.tempo}` : ''}`
+  return sheetItemHead(g.title, metaLine)
+    + (svgStr ? `<div class="sheet-svg">${svgStr}</div>` : '')
+    + (d.notes ? `<div class="sheet-notes">${esc(d.notes)}</div>` : '')
+}
+
+function tabItemHTML(t) {
+  const d = t.tab_data || {}
+  const metaLine = `${d.instrument || 'bass'} · ${d.timeSignature || '4/4'}${d.tempo ? ` · ♩= ${d.tempo}` : ''}`
+  return sheetItemHead(t.title, metaLine)
+    + (d.ascii
+        ? `<pre class="tabblk">${esc(d.ascii)}</pre>`
+        : `<div class="sheet-none">No tab preview — re-save this tab in Tab Studio</div>`)
+}
+
+function secSheets(song, kind, opts) {
+  const objs = (kind === 'groove' ? opts.grooveObjs : opts.tabObjs) || {}
+  const showRepeats = !!opts.sheetRepeats
+  return song.full.map(sec => {
+    let h = `<div class="section"><div class="seclabel">${esc(sec.label)}</div>`
+    if (sec.repeatOf && !showRepeats) {
+      return h + `<div class="repeat-ref">Repeat ${esc(sec.repeatOf)}</div></div>`
+    }
+    const obj = objs[sec.repeatOf || sec.label]
+    if (!obj) return h + `<div class="sheet-none">—</div></div>`
+    return h + `<div class="sheet-item">${kind === 'groove' ? grooveItemHTML(obj) : tabItemHTML(obj)}</div></div>`
   })
 }
 
@@ -400,18 +453,26 @@ export function layout(song, key, opts, measureEl) {
   const FOOTER_CLR = 52  // reserve for the footer + a safety buffer (measured heights slightly underestimate rendered heights); tuned so full pages use more of the sheet without content reaching the footer
 
   const VAR = {
-    full:   ['Full Chart',    () => secFull(song, opts.collapse, opts.tabOnFull, opts.tabOnUke)],
-    bass:   ['Bass / Chords', () => secGrid(song, opts.collapse, opts.tabOnBass)],
-    chords: ['Chords',        () => secGrid(song, opts.collapse, false, opts.writeBars)],
-    lyrics: ['Lyrics',        () => secLyrics(song)],
+    full:    ['Full Chart',    () => secFull(song, opts.collapse, opts.tabOnFull, opts.tabOnUke)],
+    bass:    ['Bass / Chords', () => secGrid(song, opts.collapse, opts.tabOnBass)],
+    chords:  ['Chords',        () => secGrid(song, opts.collapse, false, opts.writeBars)],
+    lyrics:  ['Lyrics',        () => secLyrics(song)],
+    grooves: ['Grooves',       () => secSheets(song, 'groove', opts)],
+    tabs:    ['Tabs',          () => secSheets(song, 'tab', opts)],
   }
   const [vlabel, builder] = VAR[key] || VAR['full']
   const secs = builder()
 
+  /* Per-variant text scale — inline on each page so variants with different
+     scales (e.g. Lyrics vs Full Chart) can coexist in one print run */
+  const pageOpen = opts.scale
+    ? `<div class="page" style="--bscale:${opts.scale / 100}">`
+    : `<div class="page">`
+
   /* Measure section heights offscreen */
   measureEl.className = compact ? 'compact' : ''
   measureEl.innerHTML =
-    `<div class="page"><header>${masthead(song)}</header>`
+    `${pageOpen}<header>${masthead(song)}</header>`
     + `<div id="mD" class="col rc-narrow" style="width:${COL_W}px">${secs.join('')}</div>`
     + `<div id="mS" class="col"           style="width:${FULL_W}px">${secs.join('')}</div></div>`
   fitTitles(measureEl)
@@ -437,7 +498,8 @@ export function layout(song, key, opts, measureEl) {
 
   const fullHasTab = (opts.tabOnFull && (song.tab || []).some(t => t.target === 'full'))
     || (opts.tabOnUke && (song.tab || []).some(t => t.target === 'uke'))
-  if (key === 'bass' || key === 'chords' || (key === 'full' && fullHasTab)) cols = 1
+  if (key === 'bass' || key === 'chords' || key === 'grooves' || key === 'tabs'
+    || (key === 'full' && fullHasTab)) cols = 1
 
   /* Pack sections into pages */
   const sh    = cols === 1 ? S : D
@@ -463,7 +525,7 @@ export function layout(song, key, opts, measureEl) {
     }
     const divider = cols === 2 ? '<div class="divider"></div>' : ''
     html +=
-      `<div class="page">`
+      pageOpen
       + `<header>${masthead(song)}</header>`
       + `<div class="pbody${cols === 2 ? ' two' : ''}">${divider}${colHTML}</div>`
       + `<footer><span class="variant">${esc(vlabel)}</span>`

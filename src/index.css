@@ -1334,6 +1334,58 @@ a  { color: inherit; text-decoration: none; }
 }
 .cc-variant-btn:not(.active):hover { border-color: var(--ink); color: var(--ink); }
 
+/* ── Groove / tab per-section assignment panel ── */
+.cc-sheet-assign {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.cc-sheet-assign-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--val);
+}
+.cc-sheet-repeats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.cc-sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.cc-sheet-label {
+  flex: 0 0 38%;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cc-sheet-row select { flex: 1; min-width: 0; }
+.cc-sheet-empty {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.cc-sheet-empty a { color: var(--primary); }
+
 /* ── Textareas ── */
 .cc-textarea {
   resize: vertical;
@@ -1717,6 +1769,18 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 
 .repeat-ref { font-family: 'Spectral', serif; font-style: italic; font-size: 0.8125em; color: var(--val); }
 
+/* Bar count shown for instrumental (lyric-less) sections on the Lyrics variant */
+.lyric-bars { font-family: 'Spectral', serif; font-style: italic; font-size: 0.9375em; color: var(--val); margin-bottom: 2px; }
+
+/* Groove / tab sheet items (Grooves + Tabs variants) */
+.sheet-item { margin: 2px 0 10px; }
+.sheet-item-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+.sheet-item-title { font-family: 'Spectral', serif; font-weight: 700; font-size: 0.9375em; color: var(--ink); }
+.sheet-item-meta  { font-family: 'Space Mono', monospace; font-size: 0.65625em; color: var(--lab); }
+.sheet-svg svg { max-width: 100%; height: auto; }
+.sheet-notes { font-family: 'Spectral', serif; font-style: italic; font-size: 0.75em; color: var(--val); margin-top: 2px; }
+.sheet-none  { font-family: 'Spectral', serif; font-style: italic; font-size: 0.8125em; color: var(--lab); }
+
 .page footer {
   position: absolute;
   bottom: 0.4in; left: 0.62in; right: 0.62in;
@@ -1756,6 +1820,8 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .compact .lyric-big     { font-size: 0.9375em; line-height: 1.24; }
 .compact .tabblk        { font-size: 0.5625em; line-height: 1.16; padding: 5px 7px; margin: 1px 0 5px; }
 .compact .repeat-ref    { font-size: 0.75em; }
+.compact .lyric-bars    { font-size: 0.8125em; }
+.compact .sheet-item    { margin: 1px 0 6px; }
 
 /* ── Narrow column modifier ── */
 .rc-narrow .grp .rch    { font-size: 0.6875em; height: 1.25em; }
