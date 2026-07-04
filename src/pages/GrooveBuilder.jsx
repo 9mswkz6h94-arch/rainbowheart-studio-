@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { fetchGrooves, fetchGroove, saveGroove, deleteGroove } from '../lib/grooves'
 import { useAuth } from '../context/AuthContext'
-import { INSTRUMENTS as ALL_INSTRUMENTS, renderGrooveSVG } from '../lib/grooveRenderer'
+import { INSTRUMENTS as ALL_INSTRUMENTS, renderGrooveSVG, countSyllable } from '../lib/grooveRenderer'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -648,6 +648,20 @@ export default function GrooveBuilder() {
         <div className="gb-grid-wrap">
           <table className="gb-grid">
             <tbody>
+              {/* Count header — "1 e & a 2 e & a …" so the grid is easy to count */}
+              <tr className="gb-count-hdr">
+                <td></td>
+                {Array.from({ length: cols }, (_, c) => {
+                  const spb    = subdivsPerBeat(meta.timeSig.d, meta.feel)
+                  const isBeat = c % spb === 0
+                  return (
+                    <td key={c} className={isBeat ? 'gb-count-beat' : 'gb-count-sub'}>
+                      {countSyllable(c, spb)}
+                    </td>
+                  )
+                })}
+                <td></td>
+              </tr>
               {rows.map((instId, rowIdx) => {
                 const inst = INSTRUMENTS.find(i => i.id === instId) || { label: instId, short: instId }
                 const hits = grid[instId] || Array(cols).fill(0)

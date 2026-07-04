@@ -337,7 +337,7 @@ function grooveItemHTML(g) {
 
 function tabItemHTML(t) {
   const d = t.tab_data || {}
-  const metaLine = `${d.instrument || 'bass'} · ${d.timeSignature || '4/4'}${d.tempo ? ` · ♩= ${d.tempo}` : ''}`
+  const metaLine = `${d.instrumentLabel || d.instrument || 'bass'} · ${d.timeSignature || '4/4'}${d.tempo ? ` · ♩= ${d.tempo}` : ''}`
   return sheetItemHead(t.title, metaLine)
     + (d.ascii
         ? `<pre class="tabblk">${esc(d.ascii)}</pre>`
@@ -345,9 +345,9 @@ function tabItemHTML(t) {
 }
 
 function secSheets(song, kind, opts) {
-  const objs = (kind === 'groove' ? opts.grooveObjs : opts.tabObjs) || {}
+  const objs = opts.sheetObjs || {}
   const showRepeats = !!opts.sheetRepeats
-  return song.full.map(sec => {
+  const out = song.full.map(sec => {
     let h = `<div class="section"><div class="seclabel">${esc(sec.label)}</div>`
     // A section's own assignment always wins (and always renders);
     // unassigned repeats inherit from the section they repeat
@@ -359,6 +359,9 @@ function secSheets(song, kind, opts) {
     if (!obj) return h + `<div class="sheet-none">—</div></div>`
     return h + `<div class="sheet-item">${kind === 'groove' ? grooveItemHTML(obj) : tabItemHTML(obj)}</div></div>`
   })
+  // Named sheet heading (shown when a song has more than one groove/tab sheet)
+  if (opts.sheetName) out.unshift(`<div class="section"><div class="sheet-name">${esc(opts.sheetName)}</div></div>`)
+  return out
 }
 
 function tempoHTML(m) {
@@ -463,7 +466,8 @@ export function layout(song, key, opts, measureEl) {
     grooves: ['Grooves',       () => secSheets(song, 'groove', opts)],
     tabs:    ['Tabs',          () => secSheets(song, 'tab', opts)],
   }
-  const [vlabel, builder] = VAR[key] || VAR['full']
+  const [vlabelDefault, builder] = VAR[key] || VAR['full']
+  const vlabel = opts.variantLabel || vlabelDefault
   const secs = builder()
 
   /* Per-variant text scale — inline on each page so variants with different

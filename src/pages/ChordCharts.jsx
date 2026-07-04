@@ -29,11 +29,19 @@ const BLANK_META = {
   writeBars:   true,
   scale:       100,
   lyricsScale: 100,
-  grooveMap:   {},
-  tabMap:      {},
+  grooveSheets: [],   // [{ name: 'Kit', map: { 'Verse': grooveId, … } }]
+  tabSheets:    [],   // [{ name: 'Bass', map: { 'Verse': tabId, … } }]
   sheetRepeats: false,
   draft:       false,
   duration:    '',
+}
+
+/* Legacy songs stored a single flat map (grooveMap/tabMap) — fold it into the
+   sheets model as one unnamed sheet */
+function migrateSheets(sheets, legacyMap) {
+  if (Array.isArray(sheets) && sheets.length) return sheets
+  if (legacyMap && Object.keys(legacyMap).length) return [{ name: 'Sheet 1', map: legacyMap }]
+  return []
 }
 
 
@@ -134,29 +142,68 @@ export default function ChordCharts() {
   /* ── Per-variant text scale — Lyrics keeps its own size ── */
   const activeScale = variant === 'lyrics' ? (meta.lyricsScale || 100) : (meta.scale || 100)
 
-  /* ── Resolve groove/tab attachments (section label → full object) ── */
-  const buildSheetOpts = useCallback(() => {
-    const grooveObjs = {}, tabObjs = {}
-    for (const [label, id] of Object.entries(meta.grooveMap || {})) {
-      const g = grooveLib.find(x => x.id === id)
-      if (g) grooveObjs[label] = g
-    }
-    for (const [label, id] of Object.entries(meta.tabMap || {})) {
-      const t = tabLib.find(x => x.id === id)
-      if (t) tabObjs[label] = t
-    }
-    return { grooveObjs, tabObjs, sheetRepeats: !!meta.sheetRepeats }
-  }, [meta.grooveMap, meta.tabMap, meta.sheetRepeats, grooveLib, tabLib])
+  /* ── Groove/tab sheets — a song can carry several per kind (Kit + Percussion,
+     Uke + Bass + Mandolin…); each prints as its own sheet ── */
+  const [activeGrooveSheet, setActiveGrooveSheet] = useState(0)
+  const [activeTabSheet,    setActiveTabSheet]    = useState(0)
 
-  function assignSheet(kind, label, id) {
-    const key = kind === 'groove' ? 'grooveMap' : 'tabMap'
+  function getSheets(kind) {
+    const arr = kind === 'groove' ? meta.grooveSheets : meta.tabSheets
+    return Array.isArray(arr) && arr.length ? arr : [{ name: 'Sheet 1', map: {} }]
+  }
+
+  function updateSheets(kind, updater) {
+    const key = kind === 'groove' ? 'grooveSheets' : 'tabSheets'
     setMeta(m => {
-      const map = { ...(m[key] || {}) }
-      if (id) map[label] = id; else delete map[label]
-      return { ...m, [key]: map }
+      const cur = Array.isArray(m[key]) && m[key].length ? m[key] : [{ name: 'Sheet 1', map: {} }]
+      return { ...m, [key]: updater(cur) }
     })
     setDirty(true)
   }
+
+  function assignSheet(kind, sheetIdx, label, id) {
+    updateSheets(kind, sheets => sheets.map((s, i) => {
+      if (i !== sheetIdx) return s
+      const map = { ...(s.map || {}) }
+      if (id) map[label] = id; else delete map[label]
+      return { ...s, map }
+    }))
+  }
+
+  /* Resolve sheet maps (label → id) into label → full library object */
+  const resolveSheets = useCallback((kind) => {
+    const lib = kind === 'groove' ? grooveLib : tabLib
+    const raw = kind === 'groove' ? meta.grooveSheets : meta.tabSheets
+    const sheets = Array.isArray(raw) && raw.length ? raw : [{ name: 'Sheet 1', map: {} }]
+    return sheets.map(s => {
+      const objs = {}
+      for (const [label, id] of Object.entries(s.map || {})) {
+        const o = lib.find(x => x.id === id)
+        if (o) objs[label] = o
+      }
+      return { name: s.name || 'Sheet', objs }
+    })
+  }, [meta.grooveSheets, meta.tabSheets, grooveLib, tabLib])
+
+  /* Render html for the grooves/tabs variants — one layout pass per sheet so
+     each sheet starts on its own page with its own footer label */
+  const layoutSheetVariant = useCallback((song, key, baseOpts, measureEl) => {
+    const kind   = key === 'grooves' ? 'groove' : 'tab'
+    const base   = key === 'grooves' ? 'Grooves' : 'Tabs'
+    const sheets = resolveSheets(kind)
+    const multi  = sheets.length > 1
+    let html = '', N = 0, cols = 1
+    for (const s of sheets) {
+      const r = layout(song, key, {
+        ...baseOpts,
+        sheetObjs:    s.objs,
+        sheetName:    multi ? s.name : '',
+        variantLabel: multi ? `${base} — ${s.name}` : base,
+      }, measureEl)
+      html += r.html; N += r.N; cols = r.cols
+    }
+    return { html, N, cols }
+  }, [resolveSheets])
 
   /* ── Render engine (runs every render, debounced 160 ms) ── */
   useEffect(() => {
@@ -167,11 +214,13 @@ export default function ChordCharts() {
 
       const fullMeta = { ...meta }
       const song     = parseSong(songText || '', fullMeta)
-      const opts     = { compact, collapse, writeBars: meta.writeBars, scale: activeScale, ...buildSheetOpts() }
+      const opts     = { compact, collapse, writeBars: meta.writeBars, scale: activeScale, sheetRepeats: !!meta.sheetRepeats }
 
       document.documentElement.style.setProperty('--bscale', activeScale / 100)
 
-      const { html, N, cols } = layout(song, variant, opts, measureRef.current)
+      const { html, N, cols } = (variant === 'grooves' || variant === 'tabs')
+        ? layoutSheetVariant(song, variant, opts, measureRef.current)
+        : layout(song, variant, opts, measureRef.current)
 
       stageRef.current.className = 'stagewrap' + (compact ? ' compact' : '')
       stageRef.current.innerHTML =
@@ -236,9 +285,11 @@ export default function ChordCharts() {
     if (!measureRef.current) return
     const fullMeta = { ...meta }
     const song     = parseSong(songText || '', fullMeta)
-    const baseOpts = { compact, collapse, writeBars: meta.writeBars, ...buildSheetOpts() }
+    const baseOpts = { compact, collapse, writeBars: meta.writeBars, sheetRepeats: !!meta.sheetRepeats }
 
-    const pagesAt = p => layout(song, variant, { ...baseOpts, scale: p }, measureRef.current).N
+    const pagesAt = p => (variant === 'grooves' || variant === 'tabs')
+      ? layoutSheetVariant(song, variant, { ...baseOpts, scale: p }, measureRef.current).N
+      : layout(song, variant, { ...baseOpts, scale: p }, measureRef.current).N
     const LO = 70, HI = 160
     const minN = pagesAt(LO)
     let lo = LO, hi = HI
@@ -268,12 +319,14 @@ export default function ChordCharts() {
 
     const fullMeta = { ...meta }
     const song     = parseSong(songText || '', fullMeta)
-    const baseOpts = { compact, collapse, writeBars: meta.writeBars, ...buildSheetOpts() }
+    const baseOpts = { compact, collapse, writeBars: meta.writeBars, sheetRepeats: !!meta.sheetRepeats }
 
     let html = ''
     for (const [k] of VARIANTS) {
       const scale = k === 'lyrics' ? (meta.lyricsScale || 100) : (meta.scale || 100)
-      html += layout(song, k, { ...baseOpts, scale }, measureRef.current).html
+      html += (k === 'grooves' || k === 'tabs')
+        ? layoutSheetVariant(song, k, { ...baseOpts, scale }, measureRef.current).html
+        : layout(song, k, { ...baseOpts, scale }, measureRef.current).html
     }
 
     stageRef.current.className = 'stagewrap' + (compact ? ' compact' : '')
@@ -392,8 +445,8 @@ export default function ChordCharts() {
       writeBars:   m.writeBars !== false,
       scale:       m.scale || 100,
       lyricsScale: m.lyricsScale || m.scale || 100,
-      grooveMap:   m.grooveMap || {},
-      tabMap:      m.tabMap || {},
+      grooveSheets: migrateSheets(m.grooveSheets, m.grooveMap),
+      tabSheets:    migrateSheets(m.tabSheets, m.tabMap),
       sheetRepeats: !!m.sheetRepeats,
       draft:       !!m.draft,
       duration:    m.duration || '',
@@ -706,15 +759,19 @@ export default function ChordCharts() {
           ))}
         </div>
 
-        {/* Groove / tab attachments — one per structure section */}
+        {/* Groove / tab sheets — several per song, each with per-section attachments */}
         {(variant === 'grooves' || variant === 'tabs') && (() => {
           const isGroove = variant === 'grooves'
-          const map = (isGroove ? meta.grooveMap : meta.tabMap) || {}
-          const lib = isGroove ? grooveLib : tabLib
+          const kind   = isGroove ? 'groove' : 'tab'
+          const lib    = isGroove ? grooveLib : tabLib
+          const sheets = getSheets(kind)
+          const active = Math.min(isGroove ? activeGrooveSheet : activeTabSheet, sheets.length - 1)
+          const setActive = isGroove ? setActiveGrooveSheet : setActiveTabSheet
+          const map = sheets[active]?.map || {}
           return (
             <div className="cc-sheet-assign">
               <div className="cc-sheet-assign-head">
-                <span>{isGroove ? 'Groove' : 'Tab'} for each section</span>
+                <span>{isGroove ? 'Groove' : 'Tab'} sheets</span>
                 <label className="cc-sheet-repeats" title="On: repeated sections print again in structure order (longer sheet). Off: repeats collapse to a 'Repeat …' line (fits one page).">
                   <input
                     type="checkbox"
@@ -724,6 +781,46 @@ export default function ChordCharts() {
                   Show repeats
                 </label>
               </div>
+
+              {/* Sheet chips — one printed sheet each (Kit, Percussion, Uke, Bass…) */}
+              <div className="cc-sheet-chips">
+                {sheets.map((s, i) => (
+                  <button
+                    key={i}
+                    className={`cc-sheet-chip${i === active ? ' active' : ''}`}
+                    onClick={() => setActive(i)}
+                  >{s.name || 'Sheet'}</button>
+                ))}
+                <button
+                  className="cc-sheet-chip cc-sheet-chip-add"
+                  title="Add another sheet — e.g. a Percussion sheet next to the Kit sheet"
+                  onClick={() => {
+                    updateSheets(kind, list => [...list, { name: `Sheet ${list.length + 1}`, map: {} }])
+                    setActive(sheets.length)
+                  }}
+                >+ Sheet</button>
+              </div>
+
+              <div className="cc-sheet-namerow">
+                <input
+                  className="cc-sheet-name-input"
+                  value={sheets[active]?.name || ''}
+                  placeholder={isGroove ? 'Sheet name — Kit, Percussion…' : 'Sheet name — Uke, Bass, Mandolin…'}
+                  onChange={e => updateSheets(kind, list => list.map((s, i) => i === active ? { ...s, name: e.target.value } : s))}
+                />
+                {sheets.length > 1 && (
+                  <button
+                    className="cc-lib-delete"
+                    title="Delete this sheet"
+                    onClick={() => {
+                      if (!window.confirm(`Delete sheet "${sheets[active]?.name || 'Sheet'}"?`)) return
+                      updateSheets(kind, list => list.filter((_, i) => i !== active))
+                      setActive(Math.max(0, active - 1))
+                    }}
+                  >✕</button>
+                )}
+              </div>
+
               {sheetSections.length === 0 ? (
                 <p className="cc-sheet-empty">
                   Add sections to the song (<code>#v</code> <code>#c</code> <code>#inst</code>…) and they'll show up here to assign.
@@ -733,7 +830,7 @@ export default function ChordCharts() {
                   <span className="cc-sheet-label">{label}</span>
                   <select
                     value={map[label] || ''}
-                    onChange={e => assignSheet(isGroove ? 'groove' : 'tab', label, e.target.value)}
+                    onChange={e => assignSheet(kind, active, label, e.target.value)}
                   >
                     <option value="">{repeatOf ? `— same as ${repeatOf} —` : '— none —'}</option>
                     {lib.map(item => (

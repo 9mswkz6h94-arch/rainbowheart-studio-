@@ -6,7 +6,7 @@ import { fetchTabSheets, fetchTabSheet, saveTabSheet, deleteTabSheet } from '../
 
 function TabRow({ tab, index, total, onMoveUp, onMoveDown, onRemove }) {
   const d = tab.tab_data || {}
-  const instrument  = d.instrument    || 'bass'
+  const instrument  = d.instrumentLabel || d.instrument || 'bass'
   const timeSig     = d.timeSignature || '4/4'
   const tempo       = d.tempo         || null
   const ascii       = d.ascii         || ''
@@ -283,7 +283,7 @@ export default function TabSheet() {
                   return (
                     <button key={t.id} className="tsh-picker-item" onClick={() => addTab(t)}>
                       <span className="tsh-picker-title">{t.title || 'Untitled'}</span>
-                      <span className="tsh-picker-meta">{d.instrument || 'bass'} · {d.timeSignature || '4/4'}</span>
+                      <span className="tsh-picker-meta">{d.instrumentLabel || d.instrument || 'bass'} · {d.timeSignature || '4/4'}</span>
                     </button>
                   )
                 })

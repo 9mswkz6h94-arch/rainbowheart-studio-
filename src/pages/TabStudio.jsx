@@ -1,9 +1,33 @@
 import { useState, useEffect, useRef, useCallback, Fragment } from 'react'
 import { fetchTabs, fetchTab, saveTab, deleteTab } from '../lib/tabs'
 
-/* ── Static data ── */
-const ROWS   = { bass: ['G','D','A','E'], guitar: ['e','B','G','D','A','E'] }
-const TUNING = { bass: 'E1 A1 D2 G2', guitar: 'E2 A2 D3 G3 B3 E4' }
+/* ── Instruments ──
+   rows   = string labels top-to-bottom as drawn in the grid (highest string first)
+   tuning = pitches in the SAME order (string 1 first) — alphaTex's \tuning maps
+   its first value to string 1, which is how note tokens like `3.1` are addressed.
+   (The old code listed tunings low-to-high, which mirrored every riff across the
+   strings in playback/notation — fixed 2026-07.) */
+const BUILTIN_INSTRUMENTS = [
+  { id: 'bass',       label: 'Bass',        rows: ['G','D','A','E'],         tuning: ['G2','D2','A1','E1'] },
+  { id: 'guitar',     label: 'Guitar',      rows: ['e','B','G','D','A','E'], tuning: ['E4','B3','G3','D3','A2','E2'] },
+  { id: 'uke',        label: 'Ukulele',     rows: ['A','E','C','G'],         tuning: ['A4','E4','C4','G4'] },
+  { id: 'guitarlele', label: 'Guitarlele',  rows: ['a','E','C','G','D','A'], tuning: ['A4','E4','C4','G3','D3','A2'] },
+  { id: 'banjo',      label: 'Banjo (5-str)', rows: ['D','B','G','D','g'],   tuning: ['D4','B3','G3','D3','G4'] },
+]
+
+/* Custom instruments live in localStorage; every saved tab also embeds its
+   instrument definition (label, string labels, tuning) so tabs made with a
+   custom instrument still load and render anywhere. */
+const CUSTOM_INST_KEY = 'rh_custom_instruments_v1'
+function loadCustomInstruments() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_INST_KEY)) || [] } catch { return [] }
+}
+function persistCustomInstruments(list) {
+  try { localStorage.setItem(CUSTOM_INST_KEY, JSON.stringify(list)) } catch {}
+}
+
+const PITCH_RE = /^[A-G](#|b)?[0-8]$/
+
 const SIG_OPTIONS = ['4/4','3/4','2/4','6/8','12/8','5/4','7/8']
 
 const NOTE_DURS = [
@@ -27,22 +51,22 @@ function calcDims(sig, gridDiv) {
   }
 }
 
-function makeGrid(inst, cellsPerBar, bars) {
+function makeGrid(stringCount, cellsPerBar, bars) {
   const cols = cellsPerBar * bars
-  return Array.from({ length: ROWS[inst].length }, () => Array(cols).fill(''))
+  return Array.from({ length: stringCount }, () => Array(cols).fill(''))
 }
 
-function resizeGrid(old, inst, cellsPerBar, bars) {
+function resizeGrid(old, stringCount, cellsPerBar, bars) {
   const cols = cellsPerBar * bars
-  return Array.from({ length: ROWS[inst].length }, (_, r) =>
+  return Array.from({ length: stringCount }, (_, r) =>
     Array.from({ length: cols }, (_, c) => old[r]?.[c] ?? '')
   )
 }
 
 function seedGrid() {
   const d = calcDims('4/4', 16)
-  const g = makeGrid('bass', d.cellsPerBar, 2)
-  const E = ROWS.bass.length - 1
+  const g = makeGrid(4, d.cellsPerBar, 2)
+  const E = 3
   const cpb = d.cellsPerBar
   g[E][0]='1'; g[E][4]='3'; g[E][cpb]='1'; g[E][cpb+4]='3'; g[E][cpb+8]='6'; g[E][cpb+12]='3'
   return g
@@ -78,9 +102,9 @@ function barToTex(onset, spb) {
   return beats.join(' ')
 }
 
-function buildTex(inst, sig, gridDiv, bars, frets, title, tempo) {
+function buildTex(instDef, sig, gridDiv, bars, frets, title, tempo) {
   const d    = calcDims(sig, gridDiv)
-  const rows = ROWS[inst]
+  const rows = instDef.rows
   const out  = []
   for (let b = 0; b < bars; b++) {
     const onset = {}
@@ -98,16 +122,17 @@ function buildTex(inst, sig, gridDiv, bars, frets, title, tempo) {
     out.push(barToTex(onset, d.slotsPerBar))
   }
   const T = (title || 'Untitled').replace(/"/g, '\\"')
+  const L = (instDef.label || 'Tab').replace(/"/g, '\\"')
   return (
     `\\title "${T}"\n\\subtitle "Brother Jon & The Rainbow Hearts"\n\\tempo ${tempo}\n.\n` +
-    `\\track "${inst === 'bass' ? 'Bass' : 'Guitar'}" \\staff{tabs} \\tuning ${TUNING[inst]}\n` +
+    `\\track "${L}" \\staff{tabs} \\tuning ${instDef.tuning.join(' ')}\n` +
     `\\ts ${d.num} ${d.den}\n` + out.join(' |\n') + ' |'
   )
 }
 
-function buildAscii(inst, sig, gridDiv, bars, frets) {
+function buildAscii(instDef, sig, gridDiv, bars, frets) {
   const d    = calcDims(sig, gridDiv)
-  const rows = ROWS[inst]
+  const rows = instDef.rows
   let w = 1
   frets.forEach(r => r.forEach(f => { if (f && (''+f).length > w) w = (''+f).length }))
   const cw = Math.max(2, w+1)
@@ -136,6 +161,26 @@ export default function TabStudio() {
   const [title,   setTitle]   = useState('Bloody Knuckles — Intro Riff')
   const [tempo,   setTempo]   = useState(124)
 
+  /* custom instruments */
+  const [customInsts, setCustomInsts] = useState(loadCustomInstruments)
+  const [instEditorOpen, setInstEditorOpen] = useState(false)
+  const [ciName,    setCiName]    = useState('')
+  const [ciStrings, setCiStrings] = useState([
+    { label: 'A', pitch: 'A4' }, { label: 'E', pitch: 'E4' },
+    { label: 'C', pitch: 'C4' }, { label: 'G', pitch: 'G4' },
+  ])
+
+  const allInsts = [...BUILTIN_INSTRUMENTS, ...customInsts]
+  const instDef  = allInsts.find(i => i.id === inst) || BUILTIN_INSTRUMENTS[0]
+
+  function registerCustom(def) {
+    setCustomInsts(list => {
+      const next = [...list.filter(i => i.id !== def.id), def]
+      persistCustomInstruments(next)
+      return next
+    })
+  }
+
   /* library */
   const [tabs,        setTabs]        = useState([])
   const [loadingLib,  setLoadingLib]  = useState(true)
@@ -161,7 +206,7 @@ export default function TabStudio() {
 
   /* derived */
   const d    = calcDims(sig, gridDiv)
-  const rows = ROWS[inst]
+  const rows = instDef.rows
 
   /* ── Load tab library from Supabase ── */
   const refreshLib = useCallback(async () => {
@@ -213,7 +258,7 @@ export default function TabStudio() {
 
   /* ── Resize frets when grid config changes ── */
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setFrets(prev => resizeGrid(prev, inst, d.cellsPerBar, bars)) }, [inst, sig, gridDiv, bars])
+  useEffect(() => { setFrets(prev => resizeGrid(prev, instDef.rows.length, d.cellsPerBar, bars)) }, [inst, sig, gridDiv, bars, instDef.rows.length])
 
   /* ── Debounced alphaTex render ── */
   useEffect(() => {
@@ -221,12 +266,12 @@ export default function TabStudio() {
     renderTimerRef.current = setTimeout(() => {
       if (!atApiRef.current) return
       try {
-        atApiRef.current.tex(buildTex(inst, sig, gridDiv, bars, frets, title, tempo))
+        atApiRef.current.tex(buildTex(instDef, sig, gridDiv, bars, frets, title, tempo))
         setPlayerStatus(p => playerReady ? 'updated.' : p)
       } catch (e) { setPlayerStatus('alphaTex error: ' + e.message) }
     }, 300)
     return () => clearTimeout(renderTimerRef.current)
-  }, [inst, sig, gridDiv, bars, frets, title, tempo, playerReady])
+  }, [inst, instDef, sig, gridDiv, bars, frets, title, tempo, playerReady])
 
   /* ── Close library dropdown on outside click ── */
   useEffect(() => {
@@ -237,55 +282,75 @@ export default function TabStudio() {
   }, [libDropOpen])
 
   /* ── Payload helpers ── */
-  function buildPayload() {
+  function buildTabData() {
     return {
-      format: 'rainbowhearts.tab', version: 1, id: curId || null,
-      name: libName || title || 'Untitled tab',
-      title, instrument: inst, tuning: TUNING[inst],
+      format: 'rainbowhearts.tab', version: 2,
+      title,
+      instrument:      inst,
+      instrumentLabel: instDef.label,
+      stringLabels:    instDef.rows,
+      tuning:          instDef.tuning.join(' '),
       timeSignature: sig, gridDivision: gridDiv, bars, tempo,
       grid:     frets.map(r => r.slice()),
-      alphaTex: buildTex(inst, sig, gridDiv, bars, frets, title, tempo),
-      ascii:    buildAscii(inst, sig, gridDiv, bars, frets),
-      updated:  new Date().toISOString(),
+      alphaTex: buildTex(instDef, sig, gridDiv, bars, frets, title, tempo),
+      ascii:    buildAscii(instDef, sig, gridDiv, bars, frets),
     }
+  }
+
+  function buildPayload() {
+    return {
+      ...buildTabData(),
+      id: curId || null,
+      name: libName || title || 'Untitled tab',
+      updated: new Date().toISOString(),
+    }
+  }
+
+  /* Resolve a payload's instrument. Unknown ids (a custom instrument made on
+     another machine) are reconstructed from the embedded definition and
+     re-registered locally so the tab keeps working everywhere. */
+  function resolveInstrument(p) {
+    const found = allInsts.find(i => i.id === p.instrument)
+    if (found) return found
+    const rowCount = p.stringLabels?.length || p.grid?.length || 4
+    const def = {
+      id:     p.instrument || 'custom_' + Date.now(),
+      label:  p.instrumentLabel || 'Custom',
+      rows:   p.stringLabels || Array.from({ length: rowCount }, (_, i) => String(rowCount - i)),
+      tuning: (p.tuning || '').split(/\s+/).filter(Boolean).length === rowCount
+        ? p.tuning.split(/\s+/)
+        : Array(rowCount).fill('C4'),
+    }
+    registerCustom(def)
+    return def
+  }
+
+  function applyTabData(p, name, id) {
+    const def = resolveInstrument(p)
+    const ns=p.timeSignature||'4/4', ng=p.gridDivision||16, nb=p.bars||2
+    setInst(def.id); setSig(ns); setGridDiv(ng); setBars(nb)
+    setTitle(p.title||''); setTempo(p.tempo||120)
+    setLibName(name); setCurId(id)
+    const d2 = calcDims(ns, ng)
+    const newFrets = makeGrid(def.rows.length, d2.cellsPerBar, nb)
+    if (p.grid) p.grid.forEach((row,r) => row.forEach((f,c) => { if (newFrets[r] && c < newFrets[r].length) newFrets[r][c] = f||'' }))
+    setFrets(newFrets); setDirty(false)
   }
 
   function applyPayload(p) {
     if (!p || p.format !== 'rainbowhearts.tab') { alert('Not a Tab Studio file.'); return }
-    const ni=p.instrument||'bass', ns=p.timeSignature||'4/4', ng=p.gridDivision||16, nb=p.bars||2
-    setInst(ni); setSig(ns); setGridDiv(ng); setBars(nb)
-    setTitle(p.title||''); setTempo(p.tempo||120)
-    setLibName(p.name||p.title||''); setCurId(null)
-    const d2 = calcDims(ns, ng)
-    const newFrets = makeGrid(ni, d2.cellsPerBar, nb)
-    if (p.grid) p.grid.forEach((row,r) => row.forEach((f,c) => { if (newFrets[r] && c < newFrets[r].length) newFrets[r][c] = f||'' }))
-    setFrets(newFrets); setDirty(false)
+    applyTabData(p, p.name || p.title || '', null)
   }
 
   function applyFromRecord(record) {
-    const p = record.tab_data || {}
-    const ni=p.instrument||'bass', ns=p.timeSignature||'4/4', ng=p.gridDivision||16, nb=p.bars||2
-    setInst(ni); setSig(ns); setGridDiv(ng); setBars(nb)
-    setTitle(p.title||''); setTempo(p.tempo||120)
-    setLibName(record.title||''); setCurId(record.id)
-    const d2 = calcDims(ns, ng)
-    const newFrets = makeGrid(ni, d2.cellsPerBar, nb)
-    if (p.grid) p.grid.forEach((row,r) => row.forEach((f,c) => { if (newFrets[r] && c < newFrets[r].length) newFrets[r][c] = f||'' }))
-    setFrets(newFrets); setDirty(false)
+    applyTabData(record.tab_data || {}, record.title || '', record.id)
   }
 
   /* ── Library actions ── */
   async function handleSave() {
     setSaving(true); setSaveMsg(null)
     try {
-      const tab_data = {
-        format: 'rainbowhearts.tab', version: 1,
-        title, instrument: inst, tuning: TUNING[inst],
-        timeSignature: sig, gridDivision: gridDiv, bars, tempo,
-        grid:     frets.map(r => r.slice()),
-        alphaTex: buildTex(inst, sig, gridDiv, bars, frets, title, tempo),
-        ascii:    buildAscii(inst, sig, gridDiv, bars, frets),
-      }
+      const tab_data = buildTabData()
       const saved = await saveTab({ id: curId, title: libName || title || 'Untitled Tab', tab_data })
       setCurId(saved.id); setLibName(saved.title); setDirty(false)
       setSaveMsg('Saved!'); await refreshLib()
@@ -320,7 +385,7 @@ export default function TabStudio() {
     setInst('bass'); setSig('4/4'); setGridDiv(16); setBars(2)
     setTitle('New Tab'); setTempo(120)
     setCurId(null); setLibName(''); setDirty(false); setSaveMsg(null)
-    setFrets(makeGrid('bass', calcDims('4/4',16).cellsPerBar, 2))
+    setFrets(makeGrid(4, calcDims('4/4',16).cellsPerBar, 2))
     setLibDropOpen(false)
   }
 
@@ -443,9 +508,35 @@ export default function TabStudio() {
           <div className="ts-controls">
             <div className="ts-ctrl-group">
               <span className="ts-ctrl-label">Instrument</span>
-              <div className="ts-seg">
-                <button className={`ts-seg-btn${inst==='bass'?' on':''}`} onClick={() => { setInst('bass'); setDirty(true) }}>Bass · 4</button>
-                <button className={`ts-seg-btn${inst==='guitar'?' on':''}`} onClick={() => { setInst('guitar'); setDirty(true) }}>Guitar · 6</button>
+              <div className="ts-inst-row">
+                <select
+                  className="ts-select"
+                  value={inst}
+                  onChange={e => {
+                    if (e.target.value === '__new') { setInstEditorOpen(true); return }
+                    setInst(e.target.value); setDirty(true)
+                  }}
+                >
+                  {allInsts.map(i => (
+                    <option key={i.id} value={i.id}>{i.label} · {i.rows.length} str</option>
+                  ))}
+                  <option value="__new">+ New instrument…</option>
+                </select>
+                {inst.startsWith('custom_') && (
+                  <button
+                    className="ts-inst-delete"
+                    title="Delete this custom instrument (saved tabs keep working)"
+                    onClick={() => {
+                      if (!window.confirm(`Delete instrument "${instDef.label}"? Tabs already saved with it keep working.`)) return
+                      setCustomInsts(list => {
+                        const next = list.filter(i => i.id !== inst)
+                        persistCustomInstruments(next)
+                        return next
+                      })
+                      setInst('bass')
+                    }}
+                  >✕</button>
+                )}
               </div>
             </div>
 
@@ -485,6 +576,68 @@ export default function TabStudio() {
                 onChange={e => { setTitle(e.target.value); setDirty(true) }} placeholder="Riff name…" />
             </div>
           </div>
+
+          {/* Custom instrument editor */}
+          {instEditorOpen && (
+            <div className="ts-inst-editor">
+              <div className="ts-inst-editor-head">
+                <strong>New instrument</strong>
+                <span className="ts-inst-editor-hint">Strings top → bottom as they'll appear in the grid (highest first). Pitch = note + octave, e.g. G4.</span>
+              </div>
+              <div className="ts-inst-editor-row">
+                <label className="ts-ctrl-group">
+                  <span className="ts-ctrl-label">Name</span>
+                  <input className="ts-input" value={ciName} onChange={e => setCiName(e.target.value)} placeholder="Mandolin, Dobro…" />
+                </label>
+                <div className="ts-ctrl-group">
+                  <span className="ts-ctrl-label">Strings</span>
+                  <div className="ts-stepper">
+                    <button className="ts-step-btn" onClick={() => setCiStrings(s => s.length > 2 ? s.slice(0, -1) : s)}>−</button>
+                    <span className="ts-step-val">{ciStrings.length}</span>
+                    <button className="ts-step-btn" onClick={() => setCiStrings(s => s.length < 8 ? [...s, { label: '?', pitch: 'C3' }] : s)}>+</button>
+                  </div>
+                </div>
+              </div>
+              <div className="ts-inst-strings">
+                {ciStrings.map((s, i) => (
+                  <div key={i} className="ts-inst-string-row">
+                    <span className="ts-inst-string-num">{i + 1}</span>
+                    <input
+                      className="ts-input ts-inst-string-label" maxLength={3}
+                      value={s.label} placeholder="G"
+                      onChange={e => setCiStrings(list => list.map((x, j) => j === i ? { ...x, label: e.target.value } : x))}
+                    />
+                    <input
+                      className={`ts-input ts-inst-string-pitch${PITCH_RE.test(s.pitch) ? '' : ' invalid'}`} maxLength={3}
+                      value={s.pitch} placeholder="G4"
+                      onChange={e => setCiStrings(list => list.map((x, j) => j === i
+                        ? { ...x, pitch: e.target.value.replace(/^[a-g]/, ch => ch.toUpperCase()) }
+                        : x))}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="ts-inst-editor-btns">
+                <button
+                  className="cc-btn-solid"
+                  disabled={!ciName.trim() || ciStrings.some(s => !s.label.trim() || !PITCH_RE.test(s.pitch))}
+                  onClick={() => {
+                    const def = {
+                      id:     'custom_' + Date.now(),
+                      label:  ciName.trim(),
+                      rows:   ciStrings.map(s => s.label.trim()),
+                      tuning: ciStrings.map(s => s.pitch),
+                    }
+                    registerCustom(def)
+                    setInst(def.id)
+                    setInstEditorOpen(false)
+                    setDirty(true)
+                  }}
+                >Save Instrument</button>
+                <button className="cc-btn-ghost" onClick={() => setInstEditorOpen(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
 
           {/* Fret grid */}
           <div className="ts-grid-wrap">
@@ -573,8 +726,8 @@ export default function TabStudio() {
           <div className="ts-export-btns">
             <button className="cc-btn-solid" onClick={handleExport}>⬇ Export .tab.json</button>
             <button className="cc-btn-ghost" onClick={() => fileInputRef.current?.click()}>⬆ Import .tab.json</button>
-            <button className="cc-btn-ghost" onClick={e => handleCopy(buildTex(inst,sig,gridDiv,bars,frets,title,tempo), e.currentTarget)}>Copy alphaTex</button>
-            <button className="cc-btn-ghost" onClick={e => handleCopy(buildAscii(inst,sig,gridDiv,bars,frets), e.currentTarget)}>Copy ASCII tab</button>
+            <button className="cc-btn-ghost" onClick={e => handleCopy(buildTex(instDef,sig,gridDiv,bars,frets,title,tempo), e.currentTarget)}>Copy alphaTex</button>
+            <button className="cc-btn-ghost" onClick={e => handleCopy(buildAscii(instDef,sig,gridDiv,bars,frets), e.currentTarget)}>Copy ASCII tab</button>
           </div>
           <p className="ts-export-note">
             <strong>The contract.</strong> Export writes a <strong>.tab.json</strong> carrying three things: the re-editable <strong>grid</strong>, the <strong>alphaTex</strong> for notation + playback, and a Chart-Studio-ready <strong>ASCII</strong> block. Paste ASCII into a chord chart tab field today — when Chart Studio learns to render alphaTab, it will use the same file with no re-export needed.
