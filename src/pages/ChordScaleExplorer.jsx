@@ -123,9 +123,17 @@ function ChordBox({ tuning, voicing }) {
   const n = tuning.length
 
   // Compute fret offset so dots sit within the 4-row grid
+  const hasOpenString = voicing.some(p => p && p.fret === 0)
   const frettedFrets = voicing.filter(p => p && p.fret > 0).map(p => p.fret)
   const minFret  = frettedFrets.length ? Math.min(...frettedFrets) : 0
-  const offset   = Math.max(0, minFret - 1)   // row 1 = minFret
+  const maxFret  = frettedFrets.length ? Math.max(...frettedFrets) : 0
+  let offset     = Math.max(0, minFret - 1)   // row 1 = minFret
+
+  // Only adjust offset if there are no open strings (preserves visual spacing accuracy)
+  if (!hasOpenString && maxFret - offset > 4) {
+    offset = maxFret - 4
+  }
+
   const isOpen   = offset === 0
 
   const rPad = isOpen ? CB_RP : 36             // extra room for fret label
