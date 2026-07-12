@@ -2,6 +2,14 @@
 
 This document is a full context brief for any agent or chat continuing work on this project.
 
+> **Start here, then read `docs/PRODUCT-STRATEGY.md`** — it holds the business
+> strategy, the settled decisions, and the prioritized roadmap (July 2026). The
+> sellable spreadsheet product line lives in `products/` with its own README and
+> STYLEGUIDE. This file covers the web app's technical state; note that the app has
+> grown well past the "Current State" section below (Tab Studio, Groove Builder,
+> Set Lists/Shows with live present mode + MIDI pedals, Tuner, Metronome, Chord &
+> Scale Explorer — see `src/lib/tools.js` for the live tool list).
+
 ---
 
 ## What This Is
