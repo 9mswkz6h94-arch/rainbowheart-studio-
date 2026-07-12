@@ -45,26 +45,38 @@ point `ENGINE!H4` at the Netlify preview URL.
 
 ## Product: Kodály Stick Sheet Maker
 
-Infinite rhythm-material generator for the Kodály classroom. Teacher picks meter,
-switches ON the rhythm elements the class knows (in teaching order — ta and ti-ti
-through syncopa, tam-ti, ti-tam), types a Set # (1–999), and gets a matching
-collection: 8 flashcards, 8-pattern reading worksheet, 8-pattern dictation key with
-syllables, and compose-your-own pages with beat hearts and an element bank. Set #s
-are deterministic — Set 47 prints identically forever, so answer keys always match.
-Two-beat elements render a continuation dash in their second beat box.
+**A master-copy builder**: the teacher writes rhythms in the syllables they already
+think in, and gets a print-ready stick-notation master. The Builder tab is a grid of
+beat boxes (10 lines × 8 beats) — each box is a dropdown of syllables (ta, ti-ti,
+rest, ta-a, tika-tika, ti-tika, tika-ti, syncopa, tam-ti, ti-tam, plus "–" for the
+second beat of long elements), with a visual vocabulary legend below. The Master tab
+renders the sheet in stick notation with the teacher's title and a name/date line.
 
-- Full version: all 10 elements — target price $6–8.
-- FREE sampler: same tabs, elements limited to ta / ti-ti / rest.
+Two toggles on the Builder change what the same sheet prints:
+- **Syllables under sticks** — Yes = teaching master / answer key, No = clean
+  reading or assessment master.
+- **Display** — stick pictures (online) or syllables-only (offline mode).
+
+Empty boxes and lines simply don't print (line numbers vanish with them), so song
+rhythms, 4-beat echo lines, and full 8-beat reading lines all come out clean.
+
+- Full version: all 10 elements — target price $5–7.
+- FREE sampler: same builder, vocabulary limited to ta / ti-ti / rest.
+- `--with-generator` flag reserved for a future "deluxe" SKU with auto-generated
+  practice sets (implementation preserved at commit `35c444a`).
 
 ### Manual QA after importing to Google Sheets (required before listing)
 
-1. Setup: change meter → flashcards show 2/3/4 beats; change Set # → all tabs change;
-   toggle elements → only enabled ones appear; ta cannot be switched off.
-2. Confirm two-beat elements (ta-a, syncopa, tam-ti, ti-tam) always show a dash in
-   the following beat and never start on the last beat.
-3. Display mode "Syllables (text only)" renders syllables everywhere (offline mode).
-4. Print each output tab — one page, portrait, footer visible.
-5. Dictation Key syllable row matches its glyph row.
+1. Builder: every beat box shows the syllable dropdown; typing a wrong word shows a
+   friendly error; blanks are allowed.
+2. Enter a short rhythm ("ta ti-ti ta rest") → Master renders sticks in the right
+   boxes; untouched lines print nothing and show no line number.
+3. Write ta-a followed by "–" → half note then continuation dash on the Master.
+4. Toggle "Syllables under sticks" → syllable row appears/disappears under lines.
+5. Display "Syllables (text only)" → Master renders text everywhere (offline mode).
+6. Set a title on the Builder → Master heading updates; empty title falls back to
+   "Rhythm Master".
+7. Print the Master — one page, portrait, name/date line and footer visible.
 
 ### TPT listing checklist
 
