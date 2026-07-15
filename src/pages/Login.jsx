@@ -56,10 +56,9 @@ export default function Login() {
     if (error) {
       setError(error.message)
     } else {
-      setSuccess('Account created! Check your email to confirm, then sign in.')
-      setMode('signin')
-      setEmail('')
-      setPassword('')
+      // Email confirmation is disabled — signUp returns a live session,
+      // so the new student is already logged in. Go straight to the studio.
+      navigate('/studio')
     }
   }
 
