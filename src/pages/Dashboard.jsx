@@ -3,18 +3,19 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { STUDIO_TOOLS } from '../lib/tools'
 
-const HEARTBEATS_URL = 'https://heartbeats-practice-app.netlify.app'
-
 const tools = STUDIO_TOOLS.map(t => ({ ...t, status: 'ready' }))
 
-async function openHeartBeatsSSO() {
+// Open a studio app in a new tab, handing off the current Supabase session so
+// the user lands signed in — all studio apps share one Supabase project, so the
+// receiving app picks these tokens up from the URL hash (detectSessionInUrl).
+async function openToolSSO(baseUrl) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) {
-    window.open(HEARTBEATS_URL, '_blank', 'noopener')
+    window.open(baseUrl, '_blank', 'noopener')
     return
   }
   const { access_token, refresh_token } = session
-  const url = `${HEARTBEATS_URL}/#access_token=${access_token}&refresh_token=${refresh_token}&token_type=bearer`
+  const url = `${baseUrl.replace(/\/$/, '')}/#access_token=${access_token}&refresh_token=${refresh_token}&token_type=bearer`
   window.open(url, '_blank', 'noopener')
 }
 
@@ -36,7 +37,7 @@ export default function Dashboard() {
               <p>{tool.description}</p>
               {tool.status === 'ready' ? (
                 tool.sso ? (
-                  <button onClick={openHeartBeatsSSO} className="btn btn-primary">Open Tool</button>
+                  <button onClick={() => openToolSSO(tool.href)} className="btn btn-primary">Open Tool</button>
                 ) : tool.external ? (
                   <a href={tool.href} target="_blank" rel="noopener noreferrer" className="btn btn-primary">Open Tool</a>
                 ) : (
