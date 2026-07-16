@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- SCREEN STYLES --- */
+@media screen {
+  .canvas-bg {
+    background-color: #f8fafc;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* The 8.5x11 Box - Flexbox for dynamic header/footer heights */
+  .screen-page-box {
+    width: 816px;
+    height: 1056px;
+    background: white;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Locked Header on Screen */
+  .doc-header {
+    flex-shrink: 0;
+    background: white;
+    z-index: 10;
+  }
+
+  /* Locked Footer on Screen */
+  .doc-footer {
+    flex-shrink: 0;
+    background: white;
+    z-index: 10;
+  }
+
+  /* Scrollable Content on Screen */
+  .doc-content {
+    flex-grow: 1;
+    overflow-y: auto; /* Allows scrolling without moving header/footer */
+    background: white;
+  }
+
+  /* Hide print-specific table parts on screen */
+  .print-only-table-part {
+    display: none;
+  }
+}
+
+/* --- PRINT STYLES --- */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.5in; /* Physical margins */
+  }
+
+  /* 1. Nuke ALL layout constraints to prevent scrollbars and clipping */
+  *,
+  *::before,
+  *::after {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  html,
+  body,
+  #root,
+  .print-flatten,
+  .print-reset-transform {
+    height: auto !important;
+    width: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    display: block !important;
+    background: white !important;
+  }
+
+  /* The zoom wrapper carries an inline transform: scale(); a scaled element
+     renders as one fixed unit and cannot page-break, so it clips onto page 1.
+     Reset it (needs !important to beat the inline style) so print paginates. */
+  .print-reset-transform {
+    transform: none !important;
+    transform-origin: top left !important;
+    transition: none !important;
+  }
+
+  /* Rhythm glyphs (stems, beams, noteheads, barlines) are drawn as
+     background-color divs. Browsers omit background colors from printouts
+     by default. Force exact color rendering so notation prints. */
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  #printable-document,
+  #printable-document * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* 2. Hide UI elements */
+  .no-print {
+    display: none !important;
+  }
+
+  /* 3. The Document Box becomes fluid */
+  .screen-page-box {
+    width: 100% !important;
+    height: auto !important;
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* 4. Content flows naturally */
+  .doc-content {
+    position: static !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 5. Use native HTML tables for perfect repeating headers/footers */
+  table.print-table {
+    width: 100% !important;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .print-only-table-part.thead {
+    display: table-header-group !important;
+  }
+
+  .print-only-table-part.tfoot {
+    display: table-footer-group !important;
+  }
+
+  /* Prevent awkward breaks inside content blocks. Each stick-notation system
+     carries this class, so page breaks fall cleanly between lines — a system
+     is one atomic SVG and can never be clipped across a page boundary. */
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* CSS Page Numbers */
+  .page-number::after {
+    counter-increment: page;
+    content: 'PAGE ' counter(page);
+  }
+}
+
+/* Rainbow Heart Studio brand */
+.rainbow-stripe {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    #ff6b6b 0%,
+    #ff9f43 18%,
+    #feca57 36%,
+    #1dd1a1 54%,
+    #54a0ff 72%,
+    #a29bfe 88%,
+    #fd79a8 100%
+  );
+}
+.rh-link {
+  color: #6c5ce7;
+  font-weight: 500;
+  text-decoration: none;
+}
+.rh-link:hover {
+  color: #fd79a8;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ABCJS SVG Overrides for crisp printing and melisma lines */
+.abcjs-container svg {
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
