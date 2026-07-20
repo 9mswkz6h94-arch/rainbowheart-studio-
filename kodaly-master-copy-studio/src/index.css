@@ -148,6 +148,24 @@
     width: 100% !important;
     border-collapse: collapse;
     table-layout: fixed;
+    /* Stretch the table to the full page height so the tfoot lands at the
+       BOTTOM of the page instead of hugging the end of a short song's
+       content mid-page. 100vh is the page box (with @page margin 0);
+       shave a couple px so rounding never spills a blank second page.
+       Multi-page songs exceed this minimum, so pagination is unaffected. */
+    min-height: calc(100vh - 2px);
+  }
+
+  /* Give all the stretch to the body row (not header/footer), and keep the
+     body content pinned to the top of its stretched cell. */
+  table.print-table > tbody > tr {
+    height: 100%;
+  }
+  table.print-table > tbody > tr > td {
+    vertical-align: top;
+  }
+  table.print-table > tfoot td {
+    vertical-align: bottom;
   }
 
   .print-only-table-part.thead {
