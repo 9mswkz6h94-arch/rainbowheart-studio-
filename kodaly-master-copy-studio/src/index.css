@@ -79,6 +79,13 @@
     height: auto !important;
     width: auto !important;
     min-height: 0 !important;
+    /* min-width MUST be reset too: the preview canvas wrapper carries
+       Tailwind `min-w-max` (min-width: max-content). Under max-content
+       sizing, the fixed-layout print table resolves its 100% width to
+       Chromium's "infinite" fallback — 1,000,000px — hurling the centered
+       title and all right-aligned header/footer content miles off the
+       paper. Only the left column survived on the printed page. */
+    min-width: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     position: static !important;
