@@ -53,7 +53,14 @@
 @media print {
   @page {
     size: letter portrait;
-    margin: 0.5in; /* Physical margins */
+    /* No @page margin: the printed page must match the on-screen 8.5x11 box
+       (.screen-page-box is 816px = full letter width). The document's own
+       header/body/footer already inset their content by 0.5in (px-12), so
+       zeroing this makes the PDF/paper output pixel-match the mounted preview.
+       A 0.5in @page margin here stacked on top of that inset, squeezing the
+       content ~1in narrower and causing the title to wrap and the footer
+       columns to collide. */
+    margin: 0;
   }
 
   /* 1. Nuke ALL layout constraints to prevent scrollbars and clipping */
@@ -150,6 +157,18 @@
   .avoid-break {
     page-break-inside: avoid;
     break-inside: avoid;
+  }
+
+  /* Footer columns use Tailwind `truncate` (overflow:hidden + ellipsis) to stay
+     within their thirds on screen. The universal `overflow: visible !important`
+     reset above (needed so notation never clips across page breaks) switches
+     that off, letting the long left column bleed into the centered source line.
+     Re-enable clipping for footer truncated text so the printed footer matches
+     the on-screen preview. */
+  .print-only-table-part.tfoot .truncate {
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* CSS Page Numbers */

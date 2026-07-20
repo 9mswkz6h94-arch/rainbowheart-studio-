@@ -701,9 +701,17 @@ function Editor({ userId }: { userId: string }) {
       </div>
 
       {/* Preview Pane (Right Pane) — always shown on mobile (capture + render);
-          toggleable on desktop */}
-      {(isMobile || showPreview) && (
-      <div className="flex flex-1 flex-col relative z-10 bg-slate-50 min-w-0 print-flatten">
+          toggleable on desktop.
+          IMPORTANT: this pane is ALWAYS mounted so #printable-document is always
+          in the DOM. When the desktop user toggles the preview off we only hide it
+          ON SCREEN (display:none). The print stylesheet forces `.print-flatten`
+          back to `display:block !important`, so Ctrl+P / Print / Save-as-PDF still
+          produce the full document even when the preview is hidden. Unmounting it
+          here (the old behavior) made printing produce a blank page. */}
+      <div
+        className="flex flex-1 flex-col relative z-10 bg-slate-50 min-w-0 print-flatten"
+        style={{ display: isMobile || showPreview ? 'flex' : 'none' }}
+      >
         
         {/* Preview Toolbar — desktop only (zoom/pan/print) */}
         <div className="h-16 border-b border-slate-200 bg-white hidden md:flex items-center justify-between px-6 shadow-sm no-print z-20 flex-shrink-0">
@@ -779,7 +787,6 @@ function Editor({ userId }: { userId: string }) {
         </div>
 
       </div>
-      )}
     </div>
   );
 }
