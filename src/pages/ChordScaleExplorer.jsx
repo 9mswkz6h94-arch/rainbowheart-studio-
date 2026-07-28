@@ -127,9 +127,11 @@ function ChordBox({ tuning, voicing }) {
   const frettedFrets = voicing.filter(p => p && p.fret > 0).map(p => p.fret)
   const minFret  = frettedFrets.length ? Math.min(...frettedFrets) : 0
   const maxFret  = frettedFrets.length ? Math.max(...frettedFrets) : 0
-  let offset     = Math.max(0, minFret - 1)   // row 1 = minFret
+  // Chords with open strings always anchor to the nut, even if the lowest
+  // fretted note isn't on fret 1 (e.g. open G: 3-2-0-0-0-3) — otherwise the
+  // grid silently shifts and mislabels which fret each dot is actually on.
+  let offset = hasOpenString ? 0 : Math.max(0, minFret - 1)   // row 1 = minFret
 
-  // Only adjust offset if there are no open strings (preserves visual spacing accuracy)
   if (!hasOpenString && maxFret - offset > 4) {
     offset = maxFret - 4
   }
