@@ -11,6 +11,7 @@
  */
 
 import { renderGrooveSVG } from './grooveRenderer'
+import { isChordLine } from './chordGrammar'
 
 /* ── Chord / transposition helpers ── */
 const SCALE_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
@@ -41,12 +42,6 @@ function respell(ch, acc, shift) {
   }).join('/')
 }
 
-const CHORD_RE = /^(%|[A-G](#|b)?(maj|min|m|dim|aug|sus|add|M)?[0-9]*(\/[A-G](#|b)?)?)(\.*)$/
-const isChordTok = t => CHORD_RE.test(t)
-const isChordLine = l => {
-  const t = l.trim().split(/\s+/).filter(Boolean)
-  return t.length > 0 && t.every(isChordTok)
-}
 
 function barsFromTokens(tokens, bpb, acc, shift) {
   const bars = []; let cur = [], curB = 0

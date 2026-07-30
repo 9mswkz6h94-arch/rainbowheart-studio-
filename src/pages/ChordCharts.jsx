@@ -71,6 +71,8 @@ export default function ChordCharts() {
   const [scanFiles,    setScanFiles]    = useState([])
   const [pageSources,  setPageSources]  = useState([])
   const [pageMeta,     setPageMeta]     = useState(null)
+  const [scanWarnings, setScanWarnings] = useState([])
+  const [scanSplitWarnings, setScanSplitWarnings] = useState([])
 
   /* ── Resizable panel ── */
   const [panelW, setPanelW] = useState(380)
@@ -364,7 +366,7 @@ export default function ChordCharts() {
   function handleLoadFile(file) {
     const r = new FileReader()
     r.onload = () => {
-      try { const d = JSON.parse(r.result); applyLoaded(d.meta || {}, d.source || ''); setScanFiles([]); setPageSources([]); setPageMeta(null) }
+      try { const d = JSON.parse(r.result); applyLoaded(d.meta || {}, d.source || ''); setScanFiles([]); setPageSources([]); setPageMeta(null); setScanWarnings([]); setScanSplitWarnings([]) }
       catch (e) { alert('Could not read that file.') }
     }
     r.readAsText(file)
@@ -407,17 +409,27 @@ export default function ChordCharts() {
       const allSources = append ? [...pageSources, ...newResults.map(r => r.source || '')] : newResults.map(r => r.source || '')
       const firstMeta = append ? (pageMeta || newResults[0].meta) : newResults[0].meta
       const combinedFiles = append ? [...scanFiles, ...newFiles] : newFiles
+      const newWarnings = [...new Set(newResults.flatMap(r => r.unrecognizedChords || []))]
+      const allWarnings = [...new Set(append ? [...scanWarnings, ...newWarnings] : newWarnings)]
+      const newSplitWarnings = newResults.flatMap(r => r.splitWarnings || [])
+      const allSplitWarnings = append ? [...scanSplitWarnings, ...newSplitWarnings] : newSplitWarnings
 
       applyLoaded(firstMeta || {}, allSources.join('\n\n'), null)
       setScanFiles(combinedFiles)
       setPageSources(allSources)
+      setScanWarnings(allWarnings)
+      setScanSplitWarnings(allSplitWarnings)
       if (!append) setPageMeta(newResults[0].meta)
 
       const n = combinedFiles.length
-      setSaveMsg(n > 1
+      const base = n > 1
         ? `Transcribed ${n} pages — check chords/lyrics and the seam between pages before saving`
-        : 'Transcribed — check chords/lyrics before saving')
-      setTimeout(() => setSaveMsg(null), 5000)
+        : 'Transcribed — check chords/lyrics before saving'
+      const notes = []
+      if (allWarnings.length) notes.push(`${allWarnings.length} chord${allWarnings.length > 1 ? 's' : ''} didn't match the chart format: ${allWarnings.join(', ')}`)
+      if (allSplitWarnings.length) notes.push(`${allSplitWarnings.length} spot${allSplitWarnings.length > 1 ? 's' : ''} where a chord row may not be attached to its lyric — please verify against the photo`)
+      setSaveMsg(notes.length ? `${base}. ${notes.join('. ')}` : base)
+      setTimeout(() => setSaveMsg(null), notes.length ? 9000 : 5000)
     } catch (e) {
       console.error('Scan failed', e)
       alert('Could not transcribe that chart. Try a clearer photo, or a smaller file.')
@@ -464,7 +476,7 @@ export default function ChordCharts() {
     setMeta(BLANK_META); setSongText('')
     setCompact(true); setCollapse(true)
     setCurrentId(null); setDirty(false); setSaveMsg(null)
-    setScanFiles([]); setPageSources([]); setPageMeta(null)
+    setScanFiles([]); setPageSources([]); setPageMeta(null); setScanWarnings([]); setScanSplitWarnings([])
   }
 
   /* ── Save to Supabase ── */
@@ -493,7 +505,7 @@ export default function ChordCharts() {
     try {
       const song = await fetchSong(id)
       applyLoaded(song.meta || {}, song.song_text || '', song.id)
-      setScanFiles([]); setPageSources([]); setPageMeta(null)
+      setScanFiles([]); setPageSources([]); setPageMeta(null); setScanWarnings([]); setScanSplitWarnings([])
     } catch (e) { console.error('Failed to load song', e) }
   }
 
@@ -505,7 +517,7 @@ export default function ChordCharts() {
       await deleteSong(id)
       if (currentId === id) {
         setMeta(BLANK_META); setSongText('')
-        setCurrentId(null); setDirty(false); setScanFiles([]); setPageSources([]); setPageMeta(null)
+        setCurrentId(null); setDirty(false); setScanFiles([]); setPageSources([]); setPageMeta(null); setScanWarnings([]); setScanSplitWarnings([])
       }
       await refreshList()
     } catch (e) { console.error('Failed to delete', e) }

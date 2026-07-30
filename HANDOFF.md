@@ -61,7 +61,8 @@ rainbowheart-studio/
     ├── index.css               ← All styles (global + component + chart + print)
     ├── lib/
     │   ├── supabase.js         ← Supabase client (reads from import.meta.env)
-    │   ├── parseChordMark.js   ← ChordMark parser + roadmap builder
+    │   ├── chartEngine.js      ← ChordMark parser + layout engine (parseSong, layout, etc.)
+    │   ├── chordGrammar.js     ← Shared chord-token grammar (CHORD_RE, normalizeChord) — used by chartEngine.js and netlify/functions/scan-chart.js
     │   └── songs.js            ← CRUD for songs table (fetchSongs, fetchSong, saveSong, deleteSong, timeAgo)
     ├── context/
     │   └── AuthContext.jsx     ← Auth state (user, loading, signIn, signOut) via Supabase
@@ -122,7 +123,7 @@ Row Level Security is enabled — users can only read/write their own songs (`au
 **Route:** `/studio/chord-charts` (protected)
 
 **What works:**
-- ChordMark parser (`parseChordMark.js`) handles `#v`, `#c`, `#b`, `#intro`, `#outro`, `#inst`, `#pre`, `#tag`, `#solo` section labels
+- ChordMark parser (`chartEngine.js`) handles `#v`, `#c`, `#b`, `#intro`, `#outro`, `#inst`, `#pre`, `#tag`, `#solo` section labels (plus more — see the SECTION LABELS list in `netlify/functions/scan-chart.js`)
 - Parses chord lines (standalone chord symbols) and pairs them with the lyric line below
 - Three chart variants: Full Chart, Bass/Chords, Lyrics
 - Live preview renders in a letter-size white card (8.5in × 11in) with Rainbow Hearts styling:
