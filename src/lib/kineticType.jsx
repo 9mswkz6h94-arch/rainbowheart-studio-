@@ -18,12 +18,19 @@ export function sectionKineticTheme(label) {
 /** Splits a lyric line into per-word spans carrying a `--i` index, so CSS can stagger each
  *  word's entrance (kt-word, styled in index.css) instead of the whole line arriving at once.
  *  Whitespace is kept as plain text between spans so wrapping and spacing behave exactly like
- *  the unsplit line did. */
-export function KineticWords({ text, theme }) {
+ *  the unsplit line did.
+ *
+ *  `lineIndex`, when given (PresentAudience's phrase-by-phrase pacing), also stamps a `--li`
+ *  custom property so the per-word entrance delay can be offset by which line it's in
+ *  (see `--pa-line-step` in index.css) — a whole line gets its turn before the next one's
+ *  words start popping in, instead of every line's words starting at once. PresentDisplay
+ *  doesn't pass it, so its words keep starting together exactly as before. */
+export function KineticWords({ text, theme, lineIndex }) {
   let i = 0
+  const lineStyle = lineIndex != null ? { '--li': lineIndex } : null
   return text.split(/(\s+)/).map((tok, k) =>
     /^\s+$/.test(tok) || tok === ''
       ? tok
-      : <span key={k} className={`kt-word kt-${theme}`} style={{ '--i': i++ }}>{tok}</span>
+      : <span key={k} className={`kt-word kt-${theme}`} style={{ '--i': i++, ...lineStyle }}>{tok}</span>
   )
 }

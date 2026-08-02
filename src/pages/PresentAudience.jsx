@@ -41,11 +41,17 @@ function AudienceBody({ item }) {
     return <div className={`pa-instrumental kt-label-${theme}`}>{item.label}</div>
   }
 
+  const lastLine = item.lyricLines.length - 1
+
   return (
     <div className="pa-lyric">
       {item.lyricLines.map((ln, i) => (
-        <div key={i} className={`pa-line${ln.bold ? ' pa-bold' : ''}`}>
-          <KineticWords text={ln.text} theme={theme} />
+        <div
+          key={i}
+          className={`pa-line${ln.bold ? ' pa-bold' : ''}${i < lastLine ? ' pa-line--dim' : ''}`}
+          style={{ '--li': i }}
+        >
+          <KineticWords text={ln.text} theme={theme} lineIndex={i} />
         </div>
       ))}
     </div>

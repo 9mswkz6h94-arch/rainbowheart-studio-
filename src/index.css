@@ -4803,11 +4803,16 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 /* animation-delay is set *after* the `animation` shorthand in each rule below on purpose —
    the shorthand resets every sub-property it doesn't mention (including animation-delay)
    back to its initial value, so a delay declared only on the shared `.kt-word` base rule
-   above gets silently zeroed out the moment a theme rule's `animation:` shorthand applies. */
-.kt-word.kt-verse        { animation: kt-rise-in 520ms ease-out both;                            animation-delay: calc(var(--i, 0) * 55ms); }
-.kt-word.kt-instrumental { animation: kt-rise-in 520ms ease-out both; color: #9c9a97;             animation-delay: calc(var(--i, 0) * 55ms); }
-.kt-word.kt-chorus       { animation: kt-punch-in 420ms cubic-bezier(.2,.9,.3,1.4) both; color: #f5c842; animation-delay: calc(var(--i, 0) * 40ms); }
-.kt-word.kt-bridge       { animation: kt-flash-in 380ms ease-out both; color: #ff6b6b;            animation-delay: calc(var(--i, 0) * 35ms); }
+   above gets silently zeroed out the moment a theme rule's `animation:` shorthand applies.
+
+   The delay formula adds a `--li`-based line offset on top of the existing `--i` word
+   offset: `--pa-line-step` is only defined inside PresentAudience's `.pa-lyric` (see
+   further down), so on PresentDisplay (which never sets `--li` or `--pa-line-step`) this
+   falls back to the exact same per-word-only timing as before. */
+.kt-word.kt-verse        { animation: kt-rise-in 520ms ease-out both;                            animation-delay: calc(var(--li, 0) * var(--pa-line-step, 0ms) + var(--i, 0) * 55ms); }
+.kt-word.kt-instrumental { animation: kt-rise-in 520ms ease-out both; color: #9c9a97;             animation-delay: calc(var(--li, 0) * var(--pa-line-step, 0ms) + var(--i, 0) * 55ms); }
+.kt-word.kt-chorus       { animation: kt-punch-in 420ms cubic-bezier(.2,.9,.3,1.4) both; color: #f5c842; animation-delay: calc(var(--li, 0) * var(--pa-line-step, 0ms) + var(--i, 0) * 40ms); }
+.kt-word.kt-bridge       { animation: kt-flash-in 380ms ease-out both; color: #ff6b6b;            animation-delay: calc(var(--li, 0) * var(--pa-line-step, 0ms) + var(--i, 0) * 35ms); }
 
 .kt-block.kt-verse, .kt-block.kt-instrumental { animation: kt-fade-in 400ms ease-out both; }
 .kt-block.kt-chorus                           { animation: kt-fade-in 320ms ease-out both; }
@@ -4889,7 +4894,10 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   padding: 4vw 6vw;
 }
 
-.pa-lyric { display: flex; flex-direction: column; align-items: center; gap: 0.6em; text-align: center; }
+/* --pa-line-step paces the phrase-by-phrase reveal: each line's words start this much
+   later than the previous line's (picked up by the .kt-word delay formula above via
+   --li), and it's reused below for the dim-out timing so both stay in lockstep. */
+.pa-lyric { display: flex; flex-direction: column; align-items: center; gap: 0.6em; text-align: center; --pa-line-step: 1300ms; }
 .pa-line {
   font-size: clamp(2.2rem, 6.4vw, 6rem);
   line-height: 1.25;
@@ -4897,9 +4905,33 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   color: #fff;
 }
 .pa-line.pa-bold { text-decoration: underline; text-underline-offset: 0.15em; }
+/* Once a line's had its moment, it quietly fades to a low afterimage rather than
+   accumulating into a wall of equally-bright text — the spotlight moves to the next
+   line instead of staying on all of them at once. The last line in a section skips
+   this (see PresentAudience.jsx) since there's nothing after it to hand off to. */
+.pa-line.pa-line--dim {
+  animation: kt-line-dim 900ms ease-in-out both;
+  animation-delay: calc(var(--li, 0) * var(--pa-line-step, 1300ms) + 2200ms);
+}
+@keyframes kt-line-dim {
+  0%   { opacity: 1; }
+  100% { opacity: 0.22; }
+}
+
+/* Typography is deliberately different from PresentDisplay's functional monospace —
+   this screen only has to look good, not be glanceable mid-performance, so each section
+   type gets its own display face: Rye's poster-bold shape for the chorus punch, an
+   italic Fraunces for a quieter verse, bold upright Fraunces for the bridge. Scoped to
+   .pa-root so the performer's own cue sheet (PresentDisplay) is untouched. */
+.pa-root .kt-word.kt-verse        { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; }
+.pa-root .kt-word.kt-chorus       { font-family: 'Rye', system-ui; letter-spacing: 0.01em; }
+.pa-root .kt-word.kt-bridge       { font-family: 'Fraunces', serif; font-weight: 700; }
+.pa-root .kt-word.kt-instrumental { font-family: 'Fraunces', serif; font-weight: 700; }
 
 .pa-title { display: flex; align-items: center; justify-content: center; }
 .pa-title-song {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
   font-size: clamp(2.5rem, 7vw, 6.5rem);
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -4918,6 +4950,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 }
 
 .pa-instrumental {
+  font-family: 'Fraunces', serif;
   font-size: clamp(2rem, 5.5vw, 5rem);
   font-weight: 700;
   text-transform: uppercase;
