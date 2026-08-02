@@ -4787,6 +4787,60 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   animation: slv-spin 0.8s linear infinite;
 }
 
+/* Kinetic typography - per-section-type entrance treatments for the big lyric panel.
+   Each section type gets its own color and motion signature (chorus punches in gold,
+   bridge flashes red, verse/instrumental rise in quietly) so a chorus reads as a chorus
+   before anyone's eyes land on the words - same idea as a kinetic-type lyric video giving
+   the hook a different visual treatment than the verses. One-shot entrance only (nothing
+   loops), and disabled entirely under prefers-reduced-motion, since this has to stay
+   legible at a glance on a stage monitor first and be "artistic" second. */
+.kt-word {
+  display: inline-block;
+  opacity: 0;
+}
+.kt-block { opacity: 0; animation-fill-mode: both; }
+
+/* animation-delay is set *after* the `animation` shorthand in each rule below on purpose —
+   the shorthand resets every sub-property it doesn't mention (including animation-delay)
+   back to its initial value, so a delay declared only on the shared `.kt-word` base rule
+   above gets silently zeroed out the moment a theme rule's `animation:` shorthand applies. */
+.kt-word.kt-verse        { animation: kt-rise-in 520ms ease-out both;                            animation-delay: calc(var(--i, 0) * 55ms); }
+.kt-word.kt-instrumental { animation: kt-rise-in 520ms ease-out both; color: #9c9a97;             animation-delay: calc(var(--i, 0) * 55ms); }
+.kt-word.kt-chorus       { animation: kt-punch-in 420ms cubic-bezier(.2,.9,.3,1.4) both; color: #f5c842; animation-delay: calc(var(--i, 0) * 40ms); }
+.kt-word.kt-bridge       { animation: kt-flash-in 380ms ease-out both; color: #ff6b6b;            animation-delay: calc(var(--i, 0) * 35ms); }
+
+.kt-block.kt-verse, .kt-block.kt-instrumental { animation: kt-fade-in 400ms ease-out both; }
+.kt-block.kt-chorus                           { animation: kt-fade-in 320ms ease-out both; }
+.kt-block.kt-bridge                            { animation: kt-fade-in 320ms ease-out both; }
+
+.pd-section-label { color: #e8e8e8; }
+.pd-section-label.kt-label-chorus       { color: #f5c842; }
+.pd-section-label.kt-label-bridge       { color: #ff6b6b; }
+.pd-section-label.kt-label-instrumental { color: #9c9a97; }
+
+@keyframes kt-rise-in {
+  0%   { opacity: 0; transform: translateY(0.4em); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes kt-punch-in {
+  0%   { opacity: 0; transform: scale(1.3) translateY(0.15em); }
+  60%  { opacity: 1; transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes kt-flash-in {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+  45%  { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+@keyframes kt-fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kt-word, .kt-block { animation: none !important; opacity: 1 !important; }
+}
+
 @media (max-width: 900px) {
   .pd-layout { grid-template-columns: 0.6fr 3fr 0.6fr; }
   .pd-side .pd-line, .pd-side .pd-section-label,

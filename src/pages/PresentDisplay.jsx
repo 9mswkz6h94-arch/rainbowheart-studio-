@@ -5,6 +5,31 @@ import { buildPresentSequence } from '../lib/presentSequence'
 import { openDisplayChannel, closePresentChannel } from '../lib/presentChannel'
 import { abbr } from '../lib/chartEngine'
 
+/** Classifies a resolved section label (chartEngine's `resolveLabel` output, e.g. "Chorus",
+ *  "Verse 2", "Pre-Chorus") into one of the kinetic-type treatments below — each section
+ *  type gets its own color/motion signature on the big screen, the way a lyric video gives
+ *  the chorus a different visual treatment than the verses. */
+function sectionKineticTheme(label) {
+  if (label.startsWith('Chorus') || label.startsWith('Hook') || label.startsWith('Refrain')) return 'chorus'
+  if (label.startsWith('Bridge')) return 'bridge'
+  if (label.startsWith('Intro') || label.startsWith('Outro') || label.startsWith('Solo') ||
+      label.startsWith('Instrumental') || label.startsWith('Interlude')) return 'instrumental'
+  return 'verse'
+}
+
+/** Splits a lyric line into per-word spans carrying a `--i` index, so CSS can stagger each
+ *  word's entrance (kt-word, styled in index.css) instead of the whole line arriving at once.
+ *  Whitespace is kept as plain text between spans so wrapping and spacing behave exactly like
+ *  the unsplit line did. */
+function KineticWords({ text, theme }) {
+  let i = 0
+  return text.split(/(\s+)/).map((tok, k) =>
+    /^\s+$/.test(tok) || tok === ''
+      ? tok
+      : <span key={k} className={`kt-word kt-${theme}`} style={{ '--i': i++ }}>{tok}</span>
+  )
+}
+
 /** Renders one cue item's content. `big` = full center panel, otherwise a condensed preview. */
 function CueBody({ item, showChords, big }) {
   if (!item) return <div className="pd-blank">—</div>
@@ -38,11 +63,15 @@ function CueBody({ item, showChords, big }) {
   // fall back to the chord/rhythm content even in lyrics-only mode, otherwise the section
   // renders as a bare title with nothing underneath it.
   const useChords = showChords || item.lyricLines.length === 0
+  const theme = sectionKineticTheme(item.label)
+  // Word-level stagger only makes sense in pure-lyrics mode, and only on the big center
+  // panel - the side previews are condensed enough that per-word motion would just be noise.
+  const kinetic = big && !useChords
 
   return (
     <div className="pd-section">
       {big && <div className="pd-section-song">{item.songTitle}</div>}
-      <div className="pd-section-label">{item.label}</div>
+      <div className={`pd-section-label kt-label-${theme}`}>{item.label}</div>
       <div className="pd-section-body">
         {useChords
           ? item.chordLines.map((ln, i) => (
@@ -53,7 +82,10 @@ function CueBody({ item, showChords, big }) {
                   // renderLine): a flex row of chord-over-lyric-fragment columns that wraps and
                   // reads as one continuous line, chord sitting directly above its word — not a
                   // stack of separate chord/lyric blocks.
-                  <div key={i} className={`pd-chartline${ln.bold ? ' pd-bold' : ''}`}>
+                  <div
+                    key={i}
+                    className={`pd-chartline${ln.bold ? ' pd-bold' : ''}${big ? ` kt-block kt-${theme}` : ''}`}
+                  >
                     {ln.segs.map((s, j) => (
                       <span key={j} className="pd-seg">
                         <span className="pd-ch">{s.chord || ' '}</span>
@@ -64,7 +96,9 @@ function CueBody({ item, showChords, big }) {
                 )
             ))
           : item.lyricLines.map((ln, i) => (
-              <div key={i} className={`pd-line${ln.bold ? ' pd-bold' : ''}`}>{ln.text}</div>
+              <div key={i} className={`pd-line${ln.bold ? ' pd-bold' : ''}`}>
+                {kinetic ? <KineticWords text={ln.text} theme={theme} /> : ln.text}
+              </div>
             ))}
       </div>
     </div>
@@ -271,7 +305,10 @@ export default function PresentDisplay() {
         </div>
 
         <FitBox className="pd-center" deps={[cueIndex, showChords, current]}>
-          <CueBody item={current} showChords={showChords} big />
+          {/* Keyed on cueIndex so the kinetic-type spans are fresh DOM nodes each cue —
+              otherwise React would just patch text into the existing word spans and the
+              CSS entrance animations (which only fire on mount) would never replay. */}
+          <CueBody key={cueIndex} item={current} showChords={showChords} big />
         </FitBox>
 
         <div className="pd-side pd-next">
