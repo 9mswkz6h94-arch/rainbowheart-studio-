@@ -1,34 +1,11 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { fetchSetListByToken } from '../lib/setlists'
 import { buildPresentSequence } from '../lib/presentSequence'
 import { openDisplayChannel, closePresentChannel } from '../lib/presentChannel'
 import { abbr } from '../lib/chartEngine'
-
-/** Classifies a resolved section label (chartEngine's `resolveLabel` output, e.g. "Chorus",
- *  "Verse 2", "Pre-Chorus") into one of the kinetic-type treatments below — each section
- *  type gets its own color/motion signature on the big screen, the way a lyric video gives
- *  the chorus a different visual treatment than the verses. */
-function sectionKineticTheme(label) {
-  if (label.startsWith('Chorus') || label.startsWith('Hook') || label.startsWith('Refrain')) return 'chorus'
-  if (label.startsWith('Bridge')) return 'bridge'
-  if (label.startsWith('Intro') || label.startsWith('Outro') || label.startsWith('Solo') ||
-      label.startsWith('Instrumental') || label.startsWith('Interlude')) return 'instrumental'
-  return 'verse'
-}
-
-/** Splits a lyric line into per-word spans carrying a `--i` index, so CSS can stagger each
- *  word's entrance (kt-word, styled in index.css) instead of the whole line arriving at once.
- *  Whitespace is kept as plain text between spans so wrapping and spacing behave exactly like
- *  the unsplit line did. */
-function KineticWords({ text, theme }) {
-  let i = 0
-  return text.split(/(\s+)/).map((tok, k) =>
-    /^\s+$/.test(tok) || tok === ''
-      ? tok
-      : <span key={k} className={`kt-word kt-${theme}`} style={{ '--i': i++ }}>{tok}</span>
-  )
-}
+import { sectionKineticTheme, KineticWords } from '../lib/kineticType'
+import FitBox from '../components/FitBox'
 
 /** Renders one cue item's content. `big` = full center panel, otherwise a condensed preview. */
 function CueBody({ item, showChords, big }) {
@@ -322,48 +299,6 @@ export default function PresentDisplay() {
       {current?.type === 'transition' && (
         <MetronomeBar tempo={current.tempo} tempoNote={current.tempoNote} />
       )}
-    </div>
-  )
-}
-
-/**
- * Shrinks its content to fit the available height/width instead of letting a long section
- * (6–8 lines) overflow or clip off a stage monitor. Uses `zoom` (not `transform: scale`) so
- * the box itself shrinks and the browser reflows around it — same technique SetListView
- * already uses (`fitPerformerStage`) to fit chart pages to the screen. Scaling down the whole
- * already-wrapped block (rather than shrinking font-size directly) keeps the chart's line
- * breaks and proportions intact instead of causing it to rewrap into a different shape.
- * Used for the center panel and both side previews, so "just finished" and "coming up" are
- * always fully visible too, not just the current section.
- */
-function FitBox({ children, deps, className }) {
-  const outerRef = useRef(null)
-  const innerRef = useRef(null)
-
-  useLayoutEffect(() => {
-    const outer = outerRef.current
-    const inner = innerRef.current
-    if (!outer || !inner) return
-
-    function fit() {
-      inner.style.zoom = 1
-      const availH = outer.clientHeight
-      const availW = outer.clientWidth
-      const needH  = inner.scrollHeight
-      const needW  = inner.scrollWidth
-      const scale  = Math.min(1, availH / (needH || 1), availW / (needW || 1))
-      inner.style.zoom = Math.max(0.3, scale)
-    }
-
-    fit()
-    window.addEventListener('resize', fit)
-    return () => window.removeEventListener('resize', fit)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
-
-  return (
-    <div className={className} ref={outerRef}>
-      <div ref={innerRef} style={{ width: '100%' }}>{children}</div>
     </div>
   )
 }
