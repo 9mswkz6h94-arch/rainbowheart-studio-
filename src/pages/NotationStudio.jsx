@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import AlphaTabScore from '../components/AlphaTabScore'
 
-const STORE_KEY = 'rh_notation_studio_v1'
+export const NOTATION_STORE_KEY = 'rh_notation_studio_v1'
 const DURATIONS = [
   ['1', 'Whole'], ['2', 'Half'], ['4', 'Quarter'], ['8', 'Eighth'], ['16', '16th'], ['32', '32nd'],
 ]
@@ -112,7 +112,7 @@ function normalizeDoc(raw) {
   return next
 }
 
-function buildTex(doc) {
+export function buildNotationTex(doc) {
   const [num, den] = (doc.timeSignature || '4/4').split('/')
   const head = `\\title "${esc(doc.title)}"\n\\artist "${esc(doc.composer)}"\n\\tempo ${doc.tempo || 100}\n.`
   const tracks = doc.parts.map((part, partIndex) => {
@@ -137,8 +137,8 @@ function buildTex(doc) {
   return `${head}\n${tracks}`
 }
 
-function loadLibrary() {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]') }
+export function loadNotationLibrary() {
+  try { return JSON.parse(localStorage.getItem(NOTATION_STORE_KEY) || '[]') }
   catch { return [] }
 }
 
@@ -231,7 +231,7 @@ function PaletteGroup({ title, children, open = false }) {
 export default function NotationStudio() {
   const [doc, setDoc] = useState(freshDoc)
   const [activePart, setActivePart] = useState(0)
-  const [library, setLibrary] = useState(loadLibrary)
+  const [library, setLibrary] = useState(loadNotationLibrary)
   const [dirty, setDirty] = useState(false)
   const [sourceOpen, setSourceOpen] = useState(false)
   const [selected, setSelected] = useState({ measure: 0, event: 0 })
@@ -242,7 +242,7 @@ export default function NotationStudio() {
   const [caret, setCaret] = useState({ measure: 0, start: 0, pitch: 'C4' })
   const undoRef = useRef([]), redoRef = useRef([])
   const audioRef = useRef({ context: null, nodes: [], timer: null })
-  const tex = useMemo(() => buildTex(doc), [doc])
+  const tex = useMemo(() => buildNotationTex(doc), [doc])
   const part = doc.parts[activePart] || doc.parts[0]
   const selectedEvent = part?.measures[selected.measure]?.events[selected.event] || null
   const partTransposition = Number(part.transposition || 0)
@@ -377,7 +377,7 @@ export default function NotationStudio() {
   function save() {
     const saved = { ...doc, id: doc.id || uid(), updatedAt: new Date().toISOString() }
     const next = [...library.filter(item => item.id !== saved.id), saved].sort((a, b) => a.title.localeCompare(b.title))
-    localStorage.setItem(STORE_KEY, JSON.stringify(next)); setLibrary(next); setDoc(saved); setDirty(false)
+    localStorage.setItem(NOTATION_STORE_KEY, JSON.stringify(next)); setLibrary(next); setDoc(saved); setDirty(false)
   }
   function load(id) {
     if (dirty && !confirm('Discard unsaved notation changes?')) return
@@ -388,7 +388,7 @@ export default function NotationStudio() {
   function deleteScore(id) {
     const found = library.find(item => item.id === id)
     if (!found || !confirm(`Delete "${found.title}"?`)) return
-    const next = library.filter(item => item.id !== id); localStorage.setItem(STORE_KEY, JSON.stringify(next)); setLibrary(next)
+    const next = library.filter(item => item.id !== id); localStorage.setItem(NOTATION_STORE_KEY, JSON.stringify(next)); setLibrary(next)
     if (doc.id === id) { setDoc(freshDoc()); setActivePart(0); setDirty(false) }
   }
 

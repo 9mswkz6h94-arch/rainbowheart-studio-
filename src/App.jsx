@@ -24,6 +24,7 @@ import Tuner from './pages/Tuner'
 import Metronome from './pages/Metronome'
 import Tools from './pages/Tools'
 import NotationStudio from './pages/NotationStudio'
+import MelodySheet from './pages/MelodySheet'
 
 export default function App() {
   // Live Stage Cue control/display run full-screen on a phone or stage monitor —
@@ -61,6 +62,9 @@ export default function App() {
           } />
           <Route path="/studio/notation-studio" element={
             <ProtectedRoute><NotationStudio /></ProtectedRoute>
+          } />
+          <Route path="/studio/melody-sheet" element={
+            <ProtectedRoute><MelodySheet /></ProtectedRoute>
           } />
           <Route path="/tools" element={<Tools />} />
           <Route path="/tools/chord-scale-explorer" element={<ChordScaleExplorer />} />
