@@ -4787,7 +4787,127 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   animation: slv-spin 0.8s linear infinite;
 }
 
+/* ── Notation Studio ─────────────────────────────────────────────────────── */
+.ns-page { min-height: calc(100vh - 70px); display: grid; grid-template-columns: minmax(520px, 48%) 1fr; background: #e9ecef; }
+.ns-editor { background: #fff; border-right: 1px solid var(--border); padding: 1.25rem; overflow: auto; max-height: calc(100vh - 70px); }
+.ns-header, .ns-library, .ns-part-meta, .ns-measure header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.ns-header h1 { margin: 0; font-family: Fraunces, serif; }
+.ns-kicker { color: var(--text-muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; }
+.ns-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+.ns-library { margin: 1rem 0; padding: .65rem; background: var(--bg-subtle); border-radius: 8px; }
+.ns-library label { flex: 1; display: flex; align-items: center; gap: .5rem; font-weight: 700; }
+.ns-library select { flex: 1; }
+.ns-meta-grid { display: grid; grid-template-columns: 2fr 1.5fr .6fr .7fr .7fr; gap: .55rem; }
+.ns-meta-grid label, .ns-part-meta label { display: flex; flex-direction: column; gap: .2rem; font-size: .72rem; font-weight: 700; color: var(--text-muted); }
+.ns-meta-grid input, .ns-meta-grid select, .ns-part-meta input, .ns-part-meta select, .ns-event input, .ns-event select, .ns-library select { min-width: 0; padding: .48rem; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--text); }
+.ns-parts { display: flex; gap: .35rem; margin: 1.1rem 0 .55rem; overflow-x: auto; }
+.ns-parts button { border: 1px solid var(--border); background: #fff; border-radius: 999px; padding: .45rem .8rem; white-space: nowrap; }
+.ns-parts button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.ns-part-meta { justify-content: flex-start; padding: .65rem; border: 1px solid var(--border); border-radius: 7px; }
+.ns-part-meta label:first-child { flex: 1; }.ns-part-meta label:nth-child(2) { width: 90px; }.ns-part-meta label:nth-child(3) { width: 110px; }
+.ns-note-toolbar { position: sticky; top: -1.25rem; z-index: 8; display: flex; align-items: center; gap: 1rem; margin: 1rem -1.25rem 0; padding: .65rem 1.25rem; background: #fffdf8ee; border-block: 1px solid var(--border); backdrop-filter: blur(8px); box-shadow: 0 3px 10px #0001; }
+.ns-tool-group { display: flex; align-items: center; gap: .28rem; }.ns-tool-group strong { margin-right: .25rem; font-size: .7rem; text-transform: uppercase; color: var(--text-muted); }
+.ns-tool-group button { min-width: 38px; height: 36px; padding: .25rem .5rem; border: 1px solid var(--border); border-radius: 6px; background: #fff; font-size: 1rem; }
+.ns-tool-group button.active { background: #b66a18; border-color: #8c4c0c; color: #fff; box-shadow: inset 0 0 0 1px #fff6; }
+.ns-toolbar-help kbd { display: inline-block; min-width: 1.35em; padding: .08rem .25rem; border: 1px solid #bbb; border-bottom-width: 2px; border-radius: 3px; background: #fff; color: #333; text-align: center; font-family: inherit; }
+.ns-toolbar-help { margin-left: auto; color: var(--text-muted); font-size: .72rem; }
+.ns-danger, .ns-remove { color: #a32626; border: 1px solid #e7baba; background: #fff6f6; border-radius: 5px; padding: .45rem; }
+.ns-measures { margin-top: 1rem; display: grid; gap: .8rem; }
+.ns-measure { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.ns-measure header { background: #f4efe4; padding: .5rem .7rem; }
+.ns-measure header button { margin-left: .35rem; border: 0; background: transparent; color: var(--primary); font-weight: 700; }
+.ns-staff { width: 100%; min-height: 150px; display: block; cursor: crosshair; color: #222; user-select: none; }
+.ns-staff-note { cursor: pointer; color: #222; }.ns-staff-note:hover, .ns-staff-note.selected { color: #b66a18; }
+.ns-caret { stroke: #d77818; stroke-width: 2; stroke-dasharray: 3 2; pointer-events: none; }.ns-shadow-note { fill: #d7781855; stroke: #d77818; stroke-width: 1.5; pointer-events: none; }
+.ns-staff-chord { font-size: 13px; font-weight: 700; fill: currentColor; }.ns-staff-lyric { font-size: 11px; fill: #333; }.ns-click-hint { font-size: 9px; fill: #999; }
+.ns-event-head, .ns-event { display: grid; grid-template-columns: 1fr 1.05fr .8fr 1fr .65fr 1.25fr 30px; gap: .4rem; padding: .35rem .5rem; align-items: start; }
+.ns-event-head { font-size: .65rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; background: #fafafa; }
+.ns-event { border-top: 1px solid #eee; }
+.ns-event label { font-size: .66rem; display: flex; align-items: center; gap: .15rem; color: var(--text-muted); }
+.ns-pitch, .ns-event > div { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.ns-marks select, .ns-marks input { width: 100%; }
+.ns-add-measure { justify-self: start; }
+.ns-inspector { margin-top: 1rem; border: 2px solid #d7a466; border-radius: 9px; padding: .8rem; background: #fffbf3; }
+.ns-inspector header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }.ns-inspector header > div { display: flex; flex-direction: column; }
+.ns-inspector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem; margin-top: .7rem; }.ns-inspector-grid label { display: flex; flex-direction: column; gap: .2rem; font-size: .7rem; font-weight: 700; color: var(--text-muted); }.ns-inspector-grid input, .ns-inspector-grid select, .ns-inspector-checks input[type=text] { padding: .48rem; border: 1px solid var(--border); border-radius: 5px; background: #fff; }
+.ns-inspector-checks { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-top: .65rem; font-size: .75rem; }.ns-inspector-checks label { display: flex; align-items: center; gap: .25rem; }
+.ns-source { margin-top: 1rem; }.ns-source summary { cursor: pointer; font-weight: 700; }.ns-source textarea { width: 100%; min-height: 180px; margin-top: .5rem; font-family: 'Space Mono', monospace; font-size: .72rem; }
+.ns-preview { padding: 1.5rem; overflow: auto; max-height: calc(100vh - 70px); }
+.ns-paper { background: #fff; min-height: 10in; max-width: 8.5in; margin: 0 auto; padding: .35in; box-shadow: 0 4px 22px #0002; }
+.ats-controls { display: flex; align-items: center; gap: .5rem; margin-top: .5rem; padding: .5rem; background: #f6f6f6; border-radius: 6px; font-size: .75rem; color: var(--text-muted); }
+.ats-controls button { border: 1px solid var(--border); background: #fff; border-radius: 5px; padding: .4rem .65rem; }
+
+/* Notation Studio workbench: qualifiers on the left, direct manipulation on paper. */
+.ns-workbench { min-height: calc(100vh - 70px); display: grid; grid-template: auto 1fr / 292px 1fr; background: #dfe2e5; }
+.ns-topbar { grid-column: 1 / -1; min-height: 72px; padding: .65rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #191919; color: #fff; border-bottom: 3px solid #b66a18; }
+.ns-topbar h1 { margin: 0; font: 600 1.3rem Fraunces, serif; }.ns-topbar .ns-kicker { color: #c8c8c8; }.ns-topbar .cc-btn-ghost { color: #fff; border-color: #555; }
+.ns-view-toggle { display: flex; padding: 3px; background: #050505; border-radius: 7px; }.ns-view-toggle button { border: 0; border-radius: 5px; padding: .45rem .75rem; background: transparent; color: #aaa; }.ns-view-toggle button.active { color: #171717; background: #fff; font-weight: 700; }
+.ns-transport { display: flex; padding: 3px; background: #3a210d; border: 1px solid #754514; border-radius: 7px; }.ns-transport button { border: 0; border-radius: 5px; padding: .45rem .7rem; background: transparent; color: #f7d7ac; }.ns-transport button:first-child::before { content: '▶ '; }.ns-transport button:last-child::before { content: '■ '; }.ns-transport button.active { background: #b66a18; color: #fff; font-weight: 800; }.ns-transport button:disabled { opacity: .5; }
+.ns-palette { position: sticky; top: 70px; height: calc(100vh - 70px); overflow-y: auto; background: #f8f6f1; border-right: 1px solid #bbb; box-shadow: 3px 0 14px #0001; z-index: 4; }
+.ns-palette-file { display: grid; grid-template-columns: 1fr auto; gap: .4rem; align-items: center; padding: .7rem; border-bottom: 1px solid #d7d2c8; }.ns-palette-file select { min-width: 0; padding: .5rem; }.ns-palette-file button { padding: .5rem; }.ns-palette-file .cc-unsaved { grid-column: 1 / -1; }
+.ns-mode-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; padding: .7rem; background: #eee9df; }.ns-mode-row button, .ns-symbol-grid button, .ns-part-list button { border: 1px solid #c9c3b8; border-radius: 5px; padding: .5rem .35rem; background: #fff; color: #333; font-size: .75rem; }.ns-mode-row button.active, .ns-symbol-grid button.active, .ns-part-list button.active { background: #9a5614; border-color: #79400b; color: #fff; box-shadow: inset 0 0 0 1px #ffffff55; }
+.ns-palette-group { border-bottom: 1px solid #d7d2c8; }.ns-palette-group summary { padding: .72rem; cursor: pointer; font-weight: 750; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; list-style-position: inside; }.ns-palette-group[open] summary { background: #eee9df; }.ns-palette-body { display: grid; gap: .55rem; padding: .65rem .7rem .8rem; }.ns-palette-body label { display: grid; gap: .2rem; color: #666; font-size: .68rem; font-weight: 700; }.ns-palette-body input, .ns-palette-body select { width: 100%; min-width: 0; padding: .5rem; border: 1px solid #c9c3b8; border-radius: 5px; background: #fff; }
+.ns-symbol-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; }.ns-symbol-grid.ns-dynamics { grid-template-columns: repeat(4, 1fr); }.ns-dynamics button { font: italic 700 .85rem serif; }.ns-part-list { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; }
+.ns-rhythm-subhead { margin-top: .15rem; color: #777; font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }.ns-tuplet-number { fill: currentColor; font: italic 700 11px serif; }.ns-meter-builder { display: grid; grid-template-columns: 1fr auto 1fr; gap: .4rem; align-items: end; }.ns-meter-builder > span { padding-bottom: .45rem; color: #777; font-weight: 800; }
+.ns-transposition-note { display: grid; gap: .15rem; padding: .55rem; border-left: 3px solid #b66a18; background: #fff8ec; color: #555; font-size: .68rem; }.ns-transposition-note strong { color: #79400b; font-size: .78rem; }
+.ns-selection-card { margin: .7rem; padding: .65rem; display: grid; grid-template-columns: 1fr auto; gap: .15rem .5rem; align-items: center; border: 1px solid #d7a466; border-radius: 7px; background: #fff9ed; }.ns-selection-card span { font-size: .65rem; text-transform: uppercase; color: #777; }.ns-selection-card strong { grid-row: 1 / 3; grid-column: 2; font-size: 1.05rem; }.ns-selection-card button { grid-column: 1 / -1; margin-top: .35rem; }.ns-shortcuts { padding: 0 .7rem 1rem; color: #777; font-size: .67rem; line-height: 1.55; }.ns-shortcuts kbd { padding: 1px 4px; border: 1px solid #bbb; border-bottom-width: 2px; border-radius: 3px; background: #fff; }
+.ns-score-area { min-width: 0; overflow: auto; padding: 2rem; }.ns-score-page { position: relative; box-sizing: border-box; width: 8.5in; min-height: 11in; margin: 0 auto; padding: .55in .6in .65in; background: #fff; box-shadow: 0 5px 25px #0003; }.ns-score-heading { min-height: 100px; text-align: center; }.ns-score-heading h2 { margin: 0; font: 600 1.8rem Fraunces, serif; }.ns-score-heading p { margin: .2rem 0; }.ns-score-heading > div { margin-top: 1.2rem; display: flex; justify-content: space-between; font-size: .72rem; color: #555; }
+.ns-score-systems { display: grid; gap: .2in; }.ns-score-system { display: flex; width: 100%; align-items: start; }.ns-score-measure { position: relative; flex: 1 1 0; min-width: 0; }.ns-score-measure:first-child { border-left: 2px solid #222; }.ns-score-measure:hover .ns-measure-tools { opacity: 1; }.ns-measure-tools { position: absolute; z-index: 3; top: 2px; right: 3px; display: flex; gap: 3px; opacity: 0; transition: opacity .15s; }.ns-measure-tools button { border: 1px solid #c7c7c7; border-radius: 4px; padding: 2px 5px; background: #fff; color: #666; font-size: 9px; }.ns-measure-tools button.active { background: #9a5614; border-color: #79400b; color: #fff; }.ns-measure-number { font-size: 10px; fill: #777; }.ns-staff.no-clef > text:nth-of-type(2) { display: none; }.ns-staff-note { touch-action: none; cursor: grab; }.ns-staff-note.dragging { cursor: grabbing; color: #b66a18; opacity: .75; }.ns-add-system { margin-top: 1rem; padding: .55rem .8rem; border: 1px dashed #999; border-radius: 6px; background: #fff; color: #555; }.ns-score-area.is-preview .ns-paper { width: 8.5in; min-height: 11in; box-sizing: border-box; }.ns-workbench .ns-click-hint { display: none; }
+
+.ns-rhythm-slot { stroke: #c9d6df; stroke-width: .7; stroke-dasharray: 2 4; pointer-events: none; }.ns-beat-guide { stroke: #8d9ba5; stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }.ns-beat-number { fill: #77848c; font-size: 9px; font-weight: 700; pointer-events: none; }.ns-key-signature-mark { fill: #222; font: 700 25px serif; pointer-events: none; }.ns-ledger-line { stroke: currentColor; stroke-width: 1.4; pointer-events: none; }.ns-ledger-preview { stroke: #d77818; opacity: .65; }.ns-palette-help { margin: 0; color: #777; font-size: .65rem; line-height: 1.4; }
+
+/* Keep Notation Studio visually in the same family as Groove Builder and Tab Studio. */
+.ns-workbench { background: #f3f1ec; font-family: 'OpenDyslexic Mono', 'Space Mono', monospace; }
+.ns-topbar { min-height: 68px; background: #fff; color: var(--ink); border-bottom: 1px solid #d2cfc9; box-shadow: 0 2px 14px rgba(0,0,0,.07); }
+.ns-topbar h1 { margin: 0; font: 700 1rem 'OpenDyslexic Mono', 'Space Mono', monospace; }
+.ns-app-heading { display: grid; gap: .18rem; }
+.ns-current-score { color: var(--text-muted); font-size: .66rem; }
+.ns-topbar .cc-btn-ghost { color: var(--ink); border-color: #cdcac4; background: #fff; }
+.ns-topbar .cc-btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+.ns-view-toggle { background: #efede8; border: 1px solid #d2cfc9; }
+.ns-view-toggle button { color: var(--text-muted); font-family: inherit; }
+.ns-view-toggle button.active { background: var(--ink); color: #fff; }
+.ns-transport { background: #fff; border-color: var(--primary); }
+.ns-transport button { color: var(--primary); font-family: inherit; }
+.ns-transport button.active, .ns-transport button:first-child:not(:disabled):hover { background: var(--primary); color: #fff; }
+.ns-palette { background: var(--bg-subtle); border-right-color: #d2cfc9; box-shadow: none; }
+.ns-palette-file { background: #fff; border-bottom-color: #d2cfc9; }
+.ns-palette-file select, .ns-palette-file button { border: 1px solid #cdcac4; border-radius: 6px; background: #fdfcfa; color: var(--ink); font-family: inherit; }
+.ns-palette-file select:focus, .ns-palette-body input:focus, .ns-palette-body select:focus { border-color: var(--primary); outline: 2px solid color-mix(in srgb, var(--primary) 22%, transparent); outline-offset: 1px; }
+.ns-mode-row { background: #efede8; border-bottom: 1px solid #d2cfc9; }
+.ns-mode-row button, .ns-symbol-grid button, .ns-part-list button { border-color: #cdcac4; border-radius: 6px; background: #fff; color: var(--ink); font-family: inherit; }
+.ns-mode-row button:hover, .ns-symbol-grid button:hover, .ns-part-list button:hover { border-color: var(--primary); color: var(--primary); }
+.ns-mode-row button.active, .ns-symbol-grid button.active, .ns-part-list button.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: none; }
+.ns-palette-group { margin: .6rem; border: 1px solid #d2cfc9; border-radius: 10px; background: #fff; overflow: hidden; box-shadow: 0 2px 14px rgba(0,0,0,.045); }
+.ns-palette-group summary { color: var(--ink); font-size: .68rem; letter-spacing: .08em; }
+.ns-palette-group[open] summary { background: #f3f1ec; border-bottom: 1px solid #dedbd5; }
+.ns-palette-body label, .ns-rhythm-subhead { color: var(--text-muted); }
+.ns-palette-body input, .ns-palette-body select { border-color: #cdcac4; border-radius: 6px; background: #fdfcfa; color: var(--ink); font-family: inherit; }
+.ns-transposition-note { border-left-color: var(--primary); background: #f3f0ff; }
+.ns-transposition-note strong { color: var(--primary); }
+.ns-selection-card { border-color: color-mix(in srgb, var(--primary) 42%, #d2cfc9); background: #f6f4ff; }
+.ns-staff-note:hover, .ns-staff-note.selected, .ns-staff-note.dragging { color: var(--primary); }
+.ns-caret { stroke: var(--primary); }
+.ns-shadow-note { fill: color-mix(in srgb, var(--primary) 28%, transparent); stroke: var(--primary); }
+.ns-ledger-preview { stroke: var(--primary); }
+.ns-measure-tools button.active { background: var(--primary); border-color: var(--primary); }
+.ns-add-system { border-color: #aaa59c; border-radius: 6px; font-family: inherit; }
+.ns-add-system:hover { border-color: var(--primary); color: var(--primary); }
+.ns-score-area { background: #f3f1ec; }
+.ns-score-page, .ns-score-area.is-preview .ns-paper { border: 1px solid #d2cfc9; box-shadow: 0 4px 24px rgba(0,0,0,.11); }
+
+@media print {
+  @page { size: Letter portrait; margin: 0; }
+  body:has(.ns-page) .navbar, body:has(.ns-page) footer, body:has(.ns-page) .scroll-to-top { display: none !important; }
+  .ns-page { display: block; background: #fff; }.ns-preview { padding: 0; overflow: visible; max-height: none; }.ns-paper { box-shadow: none; padding: 0; max-width: none; min-height: 0; }
+  body:has(.ns-workbench) .navbar, body:has(.ns-workbench) footer, body:has(.ns-workbench) .scroll-to-top { display: none !important; }
+  .ns-rhythm-slot, .ns-beat-guide, .ns-beat-number { display: none; }
+  .ns-workbench { display: block; background: #fff; }.ns-score-area { padding: 0; overflow: visible; }.ns-score-page, .ns-paper { width: 8.5in; min-height: 11in; box-shadow: none; margin: 0; max-width: none; }
+}
+
 @media (max-width: 900px) {
+  .ns-workbench { grid-template: auto auto 1fr / 1fr; }.ns-topbar { grid-column: 1; align-items: flex-start; }.ns-palette { position: static; height: auto; max-height: 46vh; }.ns-score-area { padding: .6rem; }.ns-score-page { width: 8.5in; padding: .3in .2in; }
+  .ns-page { grid-template-columns: 1fr; }.ns-editor, .ns-preview { max-height: none; }.ns-meta-grid { grid-template-columns: 1fr 1fr; }.ns-note-toolbar { flex-wrap: wrap; top: 0; }.ns-toolbar-help { width: 100%; margin-left: 0; }.ns-inspector-grid { grid-template-columns: 1fr 1fr; }.ns-preview { padding: .5rem; }
   .pd-layout { grid-template-columns: 0.6fr 3fr 0.6fr; }
   .pd-side .pd-line, .pd-side .pd-section-label,
   .pd-side .pd-transition-title, .pd-side .pd-transition-meta,

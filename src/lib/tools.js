@@ -42,6 +42,14 @@ export const STUDIO_TOOLS = [
     free: false,
   },
   {
+    slug: 'notation-studio',
+    emoji: '🎼',
+    title: 'Notation Studio',
+    description: 'Write expressive melody and harmony parts with chord symbols, lyrics, articulations, dynamics, playback, and print-ready staff notation.',
+    href: '/studio/notation-studio',
+    free: false,
+  },
+  {
     slug: 'tab-sheet',
     emoji: '📋',
     title: 'Tab Sheet',

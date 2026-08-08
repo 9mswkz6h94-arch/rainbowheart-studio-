@@ -23,6 +23,7 @@ import ChordScaleExplorer from './pages/ChordScaleExplorer'
 import Tuner from './pages/Tuner'
 import Metronome from './pages/Metronome'
 import Tools from './pages/Tools'
+import NotationStudio from './pages/NotationStudio'
 
 export default function App() {
   // Live Stage Cue control/display run full-screen on a phone or stage monitor —
@@ -57,6 +58,9 @@ export default function App() {
           } />
           <Route path="/studio/tab-sheet" element={
             <ProtectedRoute><TabSheet /></ProtectedRoute>
+          } />
+          <Route path="/studio/notation-studio" element={
+            <ProtectedRoute><NotationStudio /></ProtectedRoute>
           } />
           <Route path="/tools" element={<Tools />} />
           <Route path="/tools/chord-scale-explorer" element={<ChordScaleExplorer />} />
