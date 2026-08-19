@@ -6,10 +6,12 @@ import { fetchGrooves } from '../lib/grooves'
 import { fetchTabs } from '../lib/tabs'
 import { useAuth } from '../context/AuthContext'
 import TapMetronome from '../components/TapMetronome'
+import AlphaTabScore from '../components/AlphaTabScore'
+import { buildNotationTex, loadNotationLibrary } from './NotationStudio'
 
 const VARIANTS = [
   ['full',    'Full Chart'], ['grooves', 'Grooves'],
-  ['tabs',    'Tabs'],       ['lyrics',  'Lyrics'],
+  ['tabs',    'Tabs'],       ['melodies', 'Melodies'], ['lyrics',  'Lyrics'],
 ]
 
 const BLANK_META = {
@@ -31,6 +33,7 @@ const BLANK_META = {
   lyricsScale: 100,
   grooveSheets: [],   // [{ name: 'Kit', map: { 'Verse': grooveId, … } }]
   tabSheets:    [],   // [{ name: 'Bass', map: { 'Verse': tabId, … } }]
+  melodySheets: [],   // [{ name: 'Lead', map: { 'Verse': melodyId, … } }]
   sheetRepeats: false,
   draft:       false,
   duration:    '',
@@ -42,6 +45,29 @@ function migrateSheets(sheets, legacyMap) {
   if (Array.isArray(sheets) && sheets.length) return sheets
   if (legacyMap && Object.keys(legacyMap).length) return [{ name: 'Sheet 1', map: legacyMap }]
   return []
+}
+
+function MelodyChartPreview({ title, sections, sheets, library, showRepeats }) {
+  const melodyById = new Map(library.map(item => [item.id, item]))
+  return <div className="cc-melody-preview">
+    {sheets.map((sheet, sheetIndex) => {
+      const rows = []
+      for (const section of sections) {
+        const id = sheet.map?.[section.label] || (section.repeatOf ? sheet.map?.[section.repeatOf] : '')
+        if (!id) continue
+        if (!showRepeats && section.repeatOf && !sheet.map?.[section.label]) continue
+        const melody = melodyById.get(id)
+        if (melody) rows.push({ section, melody })
+      }
+      return <article className="cc-melody-paper" key={`${sheetIndex}-${sheet.name}`}>
+        <header><h1>{title || 'Untitled Song'}</h1><span>{sheet.name || 'Melodies'}</span></header>
+        {!rows.length ? <p className="cc-melody-empty">Assign a saved melody to a song section using the panel on the left.</p> : rows.map(({ section, melody }, index) => <section className="cc-melody-section" key={`${section.label}-${index}`}>
+          <h2>{section.label}</h2>
+          <AlphaTabScore tex={buildNotationTex(melody)} />
+        </section>)}
+      </article>
+    })}
+  </div>
 }
 
 
@@ -61,6 +87,7 @@ export default function ChordCharts() {
   const [songs,        setSongs]        = useState([])
   const [grooveLib,    setGrooveLib]    = useState([])
   const [tabLib,       setTabLib]       = useState([])
+  const [melodyLib,    setMelodyLib]    = useState([])
   const [currentId,    setCurrentId]    = useState(null)
   const [dirty,        setDirty]        = useState(false)
   const [saving,       setSaving]       = useState(false)
@@ -122,6 +149,11 @@ export default function ChordCharts() {
   useEffect(() => {
     fetchGrooves().then(g => setGrooveLib(g || [])).catch(e => console.error('Failed to load grooves', e))
     fetchTabs().then(t => setTabLib(t || [])).catch(e => console.error('Failed to load tabs', e))
+    const refreshMelodies = () => setMelodyLib(loadNotationLibrary())
+    refreshMelodies()
+    window.addEventListener('focus', refreshMelodies)
+    window.addEventListener('storage', refreshMelodies)
+    return () => { window.removeEventListener('focus', refreshMelodies); window.removeEventListener('storage', refreshMelodies) }
   }, [])
 
   /* ── Structure sections for the sheet panel — EVERY labelled section gets its
@@ -148,14 +180,15 @@ export default function ChordCharts() {
      Uke + Bass + Mandolin…); each prints as its own sheet ── */
   const [activeGrooveSheet, setActiveGrooveSheet] = useState(0)
   const [activeTabSheet,    setActiveTabSheet]    = useState(0)
+  const [activeMelodySheet, setActiveMelodySheet] = useState(0)
 
   function getSheets(kind) {
-    const arr = kind === 'groove' ? meta.grooveSheets : meta.tabSheets
+    const arr = kind === 'groove' ? meta.grooveSheets : kind === 'tab' ? meta.tabSheets : meta.melodySheets
     return Array.isArray(arr) && arr.length ? arr : [{ name: 'Sheet 1', map: {} }]
   }
 
   function updateSheets(kind, updater) {
-    const key = kind === 'groove' ? 'grooveSheets' : 'tabSheets'
+    const key = kind === 'groove' ? 'grooveSheets' : kind === 'tab' ? 'tabSheets' : 'melodySheets'
     setMeta(m => {
       const cur = Array.isArray(m[key]) && m[key].length ? m[key] : [{ name: 'Sheet 1', map: {} }]
       return { ...m, [key]: updater(cur) }
@@ -211,7 +244,7 @@ export default function ChordCharts() {
   useEffect(() => {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
-      if (!measureRef.current || !stageRef.current) return
+      if (!measureRef.current || !stageRef.current || variant === 'melodies') return
       await document.fonts.ready
 
       const fullMeta = { ...meta }
@@ -324,7 +357,7 @@ export default function ChordCharts() {
     const baseOpts = { compact, collapse, writeBars: meta.writeBars, sheetRepeats: !!meta.sheetRepeats }
 
     let html = ''
-    for (const [k] of VARIANTS) {
+    for (const [k] of VARIANTS.filter(([key]) => key !== 'melodies')) {
       const scale = k === 'lyrics' ? (meta.lyricsScale || 100) : (meta.scale || 100)
       html += (k === 'grooves' || k === 'tabs')
         ? layoutSheetVariant(song, k, { ...baseOpts, scale }, measureRef.current).html
@@ -459,6 +492,7 @@ export default function ChordCharts() {
       lyricsScale: m.lyricsScale || m.scale || 100,
       grooveSheets: migrateSheets(m.grooveSheets, m.grooveMap),
       tabSheets:    migrateSheets(m.tabSheets, m.tabMap),
+      melodySheets: migrateSheets(m.melodySheets, m.melodyMap),
       sheetRepeats: !!m.sheetRepeats,
       draft:       !!m.draft,
       duration:    m.duration || '',
@@ -543,7 +577,7 @@ export default function ChordCharts() {
             <h2>🎸 Chart Studio</h2>
             <div className="cc-print-btns">
               <button className="cc-btn-ghost" onClick={handlePrint}>Print</button>
-              <button className="cc-btn-ghost" onClick={handlePrintAll}>Print All 4</button>
+              <button className="cc-btn-ghost" onClick={handlePrintAll} title="Print Full Chart, Grooves, Tabs, and Lyrics; print Melodies from its own tab.">Print Core 4</button>
             </div>
           </div>
 
@@ -772,18 +806,19 @@ export default function ChordCharts() {
         </div>
 
         {/* Groove / tab sheets — several per song, each with per-section attachments */}
-        {(variant === 'grooves' || variant === 'tabs') && (() => {
+        {(variant === 'grooves' || variant === 'tabs' || variant === 'melodies') && (() => {
           const isGroove = variant === 'grooves'
-          const kind   = isGroove ? 'groove' : 'tab'
-          const lib    = isGroove ? grooveLib : tabLib
+          const isMelody = variant === 'melodies'
+          const kind   = isGroove ? 'groove' : isMelody ? 'melody' : 'tab'
+          const lib    = isGroove ? grooveLib : isMelody ? melodyLib : tabLib
           const sheets = getSheets(kind)
-          const active = Math.min(isGroove ? activeGrooveSheet : activeTabSheet, sheets.length - 1)
-          const setActive = isGroove ? setActiveGrooveSheet : setActiveTabSheet
+          const active = Math.min(isGroove ? activeGrooveSheet : isMelody ? activeMelodySheet : activeTabSheet, sheets.length - 1)
+          const setActive = isGroove ? setActiveGrooveSheet : isMelody ? setActiveMelodySheet : setActiveTabSheet
           const map = sheets[active]?.map || {}
           return (
             <div className="cc-sheet-assign">
               <div className="cc-sheet-assign-head">
-                <span>{isGroove ? 'Groove' : 'Tab'} sheets</span>
+                <span>{isGroove ? 'Groove' : isMelody ? 'Melody' : 'Tab'} sheets</span>
                 <label className="cc-sheet-repeats" title="On: repeated sections print again in structure order (longer sheet). Off: repeats collapse to a 'Repeat …' line (fits one page).">
                   <input
                     type="checkbox"
@@ -817,7 +852,7 @@ export default function ChordCharts() {
                 <input
                   className="cc-sheet-name-input"
                   value={sheets[active]?.name || ''}
-                  placeholder={isGroove ? 'Sheet name — Kit, Percussion…' : 'Sheet name — Uke, Bass, Mandolin…'}
+                  placeholder={isGroove ? 'Sheet name — Kit, Percussion…' : isMelody ? 'Sheet name — Lead, Horns, Vocals…' : 'Sheet name — Uke, Bass, Mandolin…'}
                   onChange={e => updateSheets(kind, list => list.map((s, i) => i === active ? { ...s, name: e.target.value } : s))}
                 />
                 {sheets.length > 1 && (
@@ -854,7 +889,9 @@ export default function ChordCharts() {
               <p className="cc-sheet-empty">
                 {isGroove
                   ? <>Build new grooves in the <Link to="/studio/groove-builder">Groove Builder</Link> — saved grooves appear here.</>
-                  : <>Build new tabs in <Link to="/studio/tab-studio">Tab Studio</Link> — saved tabs appear here.</>}
+                  : isMelody
+                    ? <>Write melodies in <Link to="/studio/notation-studio">Notation Studio</Link> — saved melodies appear here.</>
+                    : <>Build new tabs in <Link to="/studio/tab-studio">Tab Studio</Link> — saved tabs appear here.</>}
               </p>
             </div>
           )
@@ -882,7 +919,7 @@ export default function ChordCharts() {
         </div>
 
         {/* Text size — Lyrics variant keeps its own size, independent of the chart */}
-        <div className="cc-field">
+        {variant !== 'melodies' && <div className="cc-field">
           <span>{variant === 'lyrics' ? 'Lyrics text size' : 'Text size'} · {activeScale}%</span>
           <div className="cc-size-row">
             <input
@@ -892,7 +929,7 @@ export default function ChordCharts() {
             />
             <button className="cc-btn-ghost" onClick={handleAutoFit}>Auto-fit</button>
           </div>
-        </div>
+        </div>}
 
         {/* File actions */}
         <div className="cc-file-row">
@@ -925,7 +962,8 @@ export default function ChordCharts() {
 
       {/* ── Preview ── */}
       <div className="cc-preview">
-        <div ref={stageRef} className="stagewrap" />
+        <div ref={stageRef} className={`stagewrap${variant === 'melodies' ? ' cc-hidden-stage' : ''}`} />
+        {variant === 'melodies' && <MelodyChartPreview title={meta.title} sections={sheetSections} sheets={getSheets('melody')} library={melodyLib} showRepeats={!!meta.sheetRepeats} />}
       </div>
 
     </div>
