@@ -13,6 +13,7 @@ import SetLists from './pages/SetLists'
 import SetListView from './pages/SetListView'
 import PresentControl from './pages/PresentControl'
 import PresentDisplay from './pages/PresentDisplay'
+import PresentAudience from './pages/PresentAudience'
 import OpenMicPrivacy from './pages/OpenMicPrivacy'
 import OpenMicTerms from './pages/OpenMicTerms'
 import Admin from './pages/Admin'
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="/setlist/:token" element={<SetListView />} />
           <Route path="/present/:token/control" element={<PresentControl />} />
           <Route path="/present/:token/display" element={<PresentDisplay />} />
+          <Route path="/present/:token/audience" element={<PresentAudience />} />
           <Route path="/admin" element={
             <AdminRoute><Admin /></AdminRoute>
           } />

@@ -1,9 +1,11 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { fetchSetListByToken } from '../lib/setlists'
 import { buildPresentSequence } from '../lib/presentSequence'
 import { openDisplayChannel, closePresentChannel } from '../lib/presentChannel'
 import { abbr } from '../lib/chartEngine'
+import { sectionKineticTheme, KineticWords } from '../lib/kineticType'
+import FitBox from '../components/FitBox'
 
 /** Renders one cue item's content. `big` = full center panel, otherwise a condensed preview. */
 function CueBody({ item, showChords, big }) {
@@ -38,11 +40,15 @@ function CueBody({ item, showChords, big }) {
   // fall back to the chord/rhythm content even in lyrics-only mode, otherwise the section
   // renders as a bare title with nothing underneath it.
   const useChords = showChords || item.lyricLines.length === 0
+  const theme = sectionKineticTheme(item.label)
+  // Word-level stagger only makes sense in pure-lyrics mode, and only on the big center
+  // panel - the side previews are condensed enough that per-word motion would just be noise.
+  const kinetic = big && !useChords
 
   return (
     <div className="pd-section">
       {big && <div className="pd-section-song">{item.songTitle}</div>}
-      <div className="pd-section-label">{item.label}</div>
+      <div className={`pd-section-label kt-label-${theme}`}>{item.label}</div>
       <div className="pd-section-body">
         {useChords
           ? item.chordLines.map((ln, i) => (
@@ -53,7 +59,10 @@ function CueBody({ item, showChords, big }) {
                   // renderLine): a flex row of chord-over-lyric-fragment columns that wraps and
                   // reads as one continuous line, chord sitting directly above its word — not a
                   // stack of separate chord/lyric blocks.
-                  <div key={i} className={`pd-chartline${ln.bold ? ' pd-bold' : ''}`}>
+                  <div
+                    key={i}
+                    className={`pd-chartline${ln.bold ? ' pd-bold' : ''}${big ? ` kt-block kt-${theme}` : ''}`}
+                  >
                     {ln.segs.map((s, j) => (
                       <span key={j} className="pd-seg">
                         <span className="pd-ch">{s.chord || ' '}</span>
@@ -64,7 +73,9 @@ function CueBody({ item, showChords, big }) {
                 )
             ))
           : item.lyricLines.map((ln, i) => (
-              <div key={i} className={`pd-line${ln.bold ? ' pd-bold' : ''}`}>{ln.text}</div>
+              <div key={i} className={`pd-line${ln.bold ? ' pd-bold' : ''}`}>
+                {kinetic ? <KineticWords text={ln.text} theme={theme} /> : ln.text}
+              </div>
             ))}
       </div>
     </div>
@@ -271,7 +282,10 @@ export default function PresentDisplay() {
         </div>
 
         <FitBox className="pd-center" deps={[cueIndex, showChords, current]}>
-          <CueBody item={current} showChords={showChords} big />
+          {/* Keyed on cueIndex so the kinetic-type spans are fresh DOM nodes each cue —
+              otherwise React would just patch text into the existing word spans and the
+              CSS entrance animations (which only fire on mount) would never replay. */}
+          <CueBody key={cueIndex} item={current} showChords={showChords} big />
         </FitBox>
 
         <div className="pd-side pd-next">
@@ -285,48 +299,6 @@ export default function PresentDisplay() {
       {current?.type === 'transition' && (
         <MetronomeBar tempo={current.tempo} tempoNote={current.tempoNote} />
       )}
-    </div>
-  )
-}
-
-/**
- * Shrinks its content to fit the available height/width instead of letting a long section
- * (6–8 lines) overflow or clip off a stage monitor. Uses `zoom` (not `transform: scale`) so
- * the box itself shrinks and the browser reflows around it — same technique SetListView
- * already uses (`fitPerformerStage`) to fit chart pages to the screen. Scaling down the whole
- * already-wrapped block (rather than shrinking font-size directly) keeps the chart's line
- * breaks and proportions intact instead of causing it to rewrap into a different shape.
- * Used for the center panel and both side previews, so "just finished" and "coming up" are
- * always fully visible too, not just the current section.
- */
-function FitBox({ children, deps, className }) {
-  const outerRef = useRef(null)
-  const innerRef = useRef(null)
-
-  useLayoutEffect(() => {
-    const outer = outerRef.current
-    const inner = innerRef.current
-    if (!outer || !inner) return
-
-    function fit() {
-      inner.style.zoom = 1
-      const availH = outer.clientHeight
-      const availW = outer.clientWidth
-      const needH  = inner.scrollHeight
-      const needW  = inner.scrollWidth
-      const scale  = Math.min(1, availH / (needH || 1), availW / (needW || 1))
-      inner.style.zoom = Math.max(0.3, scale)
-    }
-
-    fit()
-    window.addEventListener('resize', fit)
-    return () => window.removeEventListener('resize', fit)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
-
-  return (
-    <div className={className} ref={outerRef}>
-      <div ref={innerRef} style={{ width: '100%' }}>{children}</div>
     </div>
   )
 }
