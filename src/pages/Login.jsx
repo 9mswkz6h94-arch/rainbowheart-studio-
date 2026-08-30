@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
+import { useNavigate, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const { user, signIn, signUp } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [mode, setMode] = useState('signin') // 'signin' | 'signup'
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -14,7 +15,15 @@ export default function Login() {
   const [success, setSuccess] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  if (user) return <Navigate to="/studio" replace />
+  const requestedLocation = location.state?.from
+  const requestedPath = requestedLocation
+    ? `${requestedLocation.pathname || ''}${requestedLocation.search || ''}${requestedLocation.hash || ''}`
+    : '/studio'
+  const destination = requestedPath.startsWith('/') && !requestedPath.startsWith('//')
+    ? requestedPath
+    : '/studio'
+
+  if (user) return <Navigate to={destination} replace />
 
   function switchMode(m) {
     setMode(m)
@@ -35,7 +44,7 @@ export default function Login() {
       setError(error.message)
       setLoading(false)
     } else {
-      navigate('/studio')
+      navigate(destination, { replace: true })
     }
   }
 
@@ -56,9 +65,9 @@ export default function Login() {
     if (error) {
       setError(error.message)
     } else {
-      // Email confirmation is disabled — signUp returns a live session,
-      // so the new student is already logged in. Go straight to the studio.
-      navigate('/studio')
+      // Email confirmation is disabled — signUp returns a live session, so the
+      // new member can continue directly to an invitation or the Studio.
+      navigate(destination, { replace: true })
     }
   }
 
@@ -81,7 +90,7 @@ export default function Login() {
             onClick={() => switchMode('signup')}
             type="button"
           >
-            Student Sign Up
+            Create Account
           </button>
         </div>
 
@@ -117,7 +126,7 @@ export default function Login() {
           </form>
         ) : (
           <form onSubmit={handleSignUp} className="login-form">
-            <p className="login-tagline">Create your student account below.</p>
+            <p className="login-tagline">For students, musicians, and collaborators.</p>
             <label>
               Your Name
               <input
@@ -161,7 +170,7 @@ export default function Login() {
             </label>
             {error && <p className="login-error">{error}</p>}
             <button type="submit" className="btn btn-primary login-submit" disabled={loading}>
-              {loading ? 'Creating account…' : 'Create Student Account'}
+              {loading ? 'Creating account…' : 'Create Account'}
             </button>
           </form>
         )}

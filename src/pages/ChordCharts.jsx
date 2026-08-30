@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { parseSong, layout, fitTitles, rescale, shiftKey } from '../lib/chartEngine'
 import { fetchSongs, fetchSong, saveSong, deleteSong, timeAgo } from '../lib/songs'
 import { fetchGrooves } from '../lib/grooves'
@@ -7,6 +7,14 @@ import { fetchTabs } from '../lib/tabs'
 import { useAuth } from '../context/AuthContext'
 import TapMetronome from '../components/TapMetronome'
 import AlphaTabScore from '../components/AlphaTabScore'
+import SongHandoffDialog from '../components/SongHandoffDialog'
+import {
+  createSongHandoff,
+  previewSongHandoff,
+  acceptSongHandoff,
+  fetchOutgoingSongHandoffs,
+  cancelSongHandoff,
+} from '../lib/songHandoffs'
 import { buildNotationTex, loadNotationLibrary } from './NotationStudio'
 
 const VARIANTS = [
@@ -47,6 +55,13 @@ function migrateSheets(sheets, legacyMap) {
   return []
 }
 
+function hasLinkedAttachments(meta = {}) {
+  const sheetKeys = ['grooveSheets', 'tabSheets', 'melodySheets']
+  const legacyKeys = ['grooveMap', 'tabMap', 'melodyMap']
+  return sheetKeys.some(key => Array.isArray(meta[key]) && meta[key].some(sheet => Object.values(sheet?.map || {}).some(Boolean)))
+    || legacyKeys.some(key => meta[key] && Object.values(meta[key]).some(Boolean))
+}
+
 function MelodyChartPreview({ title, sections, sheets, library, showRepeats }) {
   const melodyById = new Map(library.map(item => [item.id, item]))
   return <div className="cc-melody-preview">
@@ -75,6 +90,8 @@ export default function ChordCharts() {
   /* ── Auth ── */
   const { user } = useAuth()
   const userName = user?.user_metadata?.full_name || user?.email || ''
+  const [searchParams, setSearchParams] = useSearchParams()
+  const handoffToken = searchParams.get('handoff')
 
   /* ── State ── */
   const [meta,     setMeta]     = useState(BLANK_META)
@@ -94,6 +111,18 @@ export default function ChordCharts() {
   const [saveMsg,      setSaveMsg]      = useState(null)
   const [loadingList,  setLoadingList]  = useState(true)
   const [libDropOpen,  setLibDropOpen]  = useState(false)
+  const [selectedSongIds, setSelectedSongIds] = useState([])
+  const [outgoingHandoffs, setOutgoingHandoffs] = useState([])
+  const [sendDialogOpen, setSendDialogOpen] = useState(false)
+  const [recipientLabel, setRecipientLabel] = useState('')
+  const [creatingHandoff, setCreatingHandoff] = useState(false)
+  const [handoffLink, setHandoffLink] = useState('')
+  const [handoffCopied, setHandoffCopied] = useState(false)
+  const [handoffError, setHandoffError] = useState('')
+  const [incomingPreview, setIncomingPreview] = useState(null)
+  const [incomingLoading, setIncomingLoading] = useState(false)
+  const [incomingError, setIncomingError] = useState('')
+  const [acceptingHandoff, setAcceptingHandoff] = useState(false)
   const [scanning,     setScanning]     = useState(false)
   const [scanFiles,    setScanFiles]    = useState([])
   const [pageSources,  setPageSources]  = useState([])
@@ -144,6 +173,185 @@ export default function ChordCharts() {
     finally   { setLoadingList(false) }
   }, [])
   useEffect(() => { refreshList() }, [refreshList])
+
+  const refreshOutgoingHandoffs = useCallback(async () => {
+    try { setOutgoingHandoffs(await fetchOutgoingSongHandoffs()) }
+    catch (error) { console.error('Failed to load outgoing song handoffs', error) }
+  }, [])
+  useEffect(() => { refreshOutgoingHandoffs() }, [refreshOutgoingHandoffs])
+
+  const selectedSongs = useMemo(
+    () => songs.filter(song => selectedSongIds.includes(song.id)),
+    [songs, selectedSongIds],
+  )
+  const selectedAttachmentsOmitted = selectedSongs.some(song => hasLinkedAttachments(song.meta))
+
+  useEffect(() => {
+    if (!handoffToken) {
+      setIncomingPreview(null)
+      setIncomingError('')
+      return
+    }
+
+    let active = true
+    setIncomingLoading(true)
+    setIncomingError('')
+    previewSongHandoff(handoffToken)
+      .then(preview => { if (active) setIncomingPreview(preview) })
+      .catch(error => {
+        console.error('Failed to preview song handoff', error)
+        if (active) setIncomingError(error.message || 'This handoff link could not be opened.')
+      })
+      .finally(() => { if (active) setIncomingLoading(false) })
+
+    return () => { active = false }
+  }, [handoffToken])
+
+  function toggleSongSelection(id) {
+    setSelectedSongIds(ids => ids.includes(id) ? ids.filter(item => item !== id) : [...ids, id])
+  }
+
+  async function openSendDialog() {
+    if (!selectedSongs.length) return
+    if (dirty && currentId && selectedSongIds.includes(currentId)) {
+      const shouldSave = window.confirm(
+        `"${meta.title || 'This song'}" has unsaved changes. Save the latest version before sending it?`,
+      )
+      if (!shouldSave || !(await handleSave())) return
+    }
+    setRecipientLabel('')
+    setHandoffLink('')
+    setHandoffCopied(false)
+    setHandoffError('')
+    setSendDialogOpen(true)
+    setLibDropOpen(false)
+  }
+
+  function closeSendDialog() {
+    if (creatingHandoff) return
+    if (handoffLink) setSelectedSongIds([])
+    setSendDialogOpen(false)
+    setHandoffCopied(false)
+    setHandoffError('')
+  }
+
+  async function handleCreateHandoff() {
+    if (!selectedSongs.length) return
+    setCreatingHandoff(true)
+    setHandoffCopied(false)
+    setHandoffError('')
+    try {
+      const handoff = await createSongHandoff(selectedSongs.map(song => song.id), userName || 'A Rainbow Heart Studio friend', recipientLabel.trim())
+      const url = new URL('/studio/chord-charts', window.location.origin)
+      url.searchParams.set('handoff', handoff.token)
+      setHandoffLink(url.toString())
+      await refreshOutgoingHandoffs()
+    } catch (error) {
+      console.error('Failed to create song handoff', error)
+      setHandoffError(error.message || 'Could not create the private handoff link.')
+    } finally {
+      setCreatingHandoff(false)
+    }
+  }
+
+  async function handleCopyHandoffLink() {
+    try {
+      await navigator.clipboard.writeText(handoffLink)
+      setHandoffCopied(true)
+      setHandoffError('')
+      setSaveMsg('Private handoff link copied!')
+      setTimeout(() => setSaveMsg(null), 2500)
+    } catch (error) {
+      console.error('Failed to copy handoff link', error)
+      setHandoffCopied(false)
+      setHandoffError('Could not copy automatically. Select the link and copy it manually.')
+    }
+  }
+
+  async function handleShareHandoffLink() {
+    if (!navigator.share) {
+      await handleCopyHandoffLink()
+      return
+    }
+    try {
+      await navigator.share({
+        title: `${selectedSongs.length} song${selectedSongs.length === 1 ? '' : 's'} from Rainbow Heart Studio`,
+        text: `${userName || 'A friend'} sent you editable chord chart copies.`,
+        url: handoffLink,
+      })
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        console.error('Failed to share handoff link', error)
+        setHandoffError('The share menu could not open. You can copy the link instead.')
+      }
+    }
+  }
+
+  function buildHandoffLink(token) {
+    const url = new URL('/studio/chord-charts', window.location.origin)
+    url.searchParams.set('handoff', token)
+    return url.toString()
+  }
+
+  async function handleCopyOutgoingHandoff(handoff) {
+    try {
+      await navigator.clipboard.writeText(buildHandoffLink(handoff.token))
+      setSaveMsg('Private handoff link copied!')
+      setTimeout(() => setSaveMsg(null), 2500)
+    } catch (error) {
+      console.error('Failed to copy outgoing handoff link', error)
+      setSaveMsg('Could not copy the link')
+      setTimeout(() => setSaveMsg(null), 2500)
+    }
+  }
+
+  async function handleCancelHandoff(handoff) {
+    const label = handoff.recipient_label ? ` for ${handoff.recipient_label}` : ''
+    if (!window.confirm(`Revoke this private handoff link${label}? It will stop working immediately.`)) return
+    try {
+      await cancelSongHandoff(handoff.id)
+      await refreshOutgoingHandoffs()
+      setSaveMsg('Handoff link revoked')
+      setTimeout(() => setSaveMsg(null), 2500)
+    } catch (error) {
+      console.error('Failed to revoke song handoff', error)
+      setSaveMsg('Could not revoke the link')
+      setTimeout(() => setSaveMsg(null), 2500)
+    }
+  }
+
+  function closeIncomingDialog() {
+    if (acceptingHandoff) return
+    const next = new URLSearchParams(searchParams)
+    next.delete('handoff')
+    setSearchParams(next, { replace: true })
+    setIncomingPreview(null)
+    setIncomingError('')
+  }
+
+  async function handleAcceptHandoff() {
+    if (!handoffToken) return
+    setAcceptingHandoff(true)
+    setIncomingError('')
+    try {
+      const result = await acceptSongHandoff(handoffToken)
+      await refreshList()
+      const count = result.song_count || result.songCount || incomingPreview?.song_count || incomingPreview?.songCount || 0
+      setIncomingPreview(preview => ({
+        ...preview,
+        status: 'accepted',
+        can_accept: false,
+        acceptance_message: `${count} song${count === 1 ? '' : 's'} added to your library.`,
+      }))
+      setSaveMsg(`${count} song${count === 1 ? '' : 's'} added to your library!`)
+      setTimeout(() => setSaveMsg(null), 3500)
+    } catch (error) {
+      console.error('Failed to accept song handoff', error)
+      setIncomingError(error.message || 'Could not add these songs to your library.')
+    } finally {
+      setAcceptingHandoff(false)
+    }
+  }
 
   /* ── Groove + tab libraries (for the Grooves / Tabs sheet variants) ── */
   useEffect(() => {
@@ -240,7 +448,7 @@ export default function ChordCharts() {
     return { html, N, cols }
   }, [resolveSheets])
 
-  /* ── Render engine (runs every render, debounced 160 ms) ── */
+  /* ── Render engine (content/layout changes only, debounced 160 ms) ── */
   useEffect(() => {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
@@ -266,7 +474,7 @@ export default function ChordCharts() {
       rescale(stageRef.current)
     }, 160)
     return () => clearTimeout(debounceRef.current)
-  })
+  }, [meta, songText, compact, collapse, variant, activeScale, layoutSheetVariant, panelW])
 
   /* ── Window resize ── */
   useEffect(() => {
@@ -526,8 +734,10 @@ export default function ChordCharts() {
       setCurrentId(saved.id); setDirty(false); setSaveMsg('Saved!')
       await refreshList()
       setTimeout(() => setSaveMsg(null), 2000)
+      return true
     } catch (e) {
       setSaveMsg('Error saving'); console.error(e)
+      return false
     } finally {
       setSaving(false)
     }
@@ -549,6 +759,7 @@ export default function ChordCharts() {
     if (!window.confirm(`Delete "${title}"?`)) return
     try {
       await deleteSong(id)
+      setSelectedSongIds(ids => ids.filter(songId => songId !== id))
       if (currentId === id) {
         setMeta(BLANK_META); setSongText('')
         setCurrentId(null); setDirty(false); setScanFiles([]); setPageSources([]); setPageMeta(null); setScanWarnings([]); setScanSplitWarnings([])
@@ -560,6 +771,36 @@ export default function ChordCharts() {
   /* ── Render ── */
   return (
     <div className="cc-page" style={{ gridTemplateColumns: `${panelW}px 6px 1fr` }}>
+
+      {sendDialogOpen && (
+        <SongHandoffDialog
+          mode="send"
+          songs={selectedSongs}
+          recipientLabel={recipientLabel}
+          onRecipientLabelChange={setRecipientLabel}
+          creating={creatingHandoff}
+          handoffLink={handoffLink}
+          copyStatus={handoffCopied ? 'Private link copied!' : ''}
+          attachmentsOmitted={selectedAttachmentsOmitted}
+          error={handoffError}
+          onCreate={handleCreateHandoff}
+          onCopy={handleCopyHandoffLink}
+          onShare={handleShareHandoffLink}
+          onClose={closeSendDialog}
+        />
+      )}
+
+      {handoffToken && (
+        <SongHandoffDialog
+          mode="incoming"
+          preview={incomingPreview}
+          loading={incomingLoading}
+          error={incomingError}
+          accepting={acceptingHandoff}
+          onAccept={handleAcceptHandoff}
+          onClose={closeIncomingDialog}
+        />
+      )}
 
       {/* Hidden off-screen measure div — used by layout engine for height measurements */}
       <div
@@ -676,35 +917,89 @@ export default function ChordCharts() {
                   ) : songs.length === 0 ? (
                     <div className="cc-lib-item disabled">No saved songs</div>
                   ) : (
-                    [...songs]
-                      .sort((a, b) => {
-                        const ad = a.meta?.draft ? 1 : 0
-                        const bd = b.meta?.draft ? 1 : 0
-                        if (ad !== bd) return ad - bd
-                        return (a.title || '').localeCompare(b.title || '')
-                      })
-                      .map(s => (
-                      <div
-                        key={s.id}
-                        className={`cc-lib-item${currentId === s.id ? ' active' : ''}${s.meta?.draft ? ' draft' : ''}`}
-                        onClick={() => {
-                          handleLoad(s.id)
-                          setLibDropOpen(false)
-                        }}
-                      >
-                        <span className="cc-lib-title">{s.meta?.draft ? '✏ ' : ''}{s.title || 'Untitled'}</span>
+                    <>
+                      <div className="cch-library-header">
+                        <span>Select songs to send</span>
                         <button
-                          className="cc-lib-delete"
-                          onClick={e => {
-                            e.stopPropagation()
-                            handleDelete(s.id, s.title || 'Untitled', { stopPropagation: () => {} })
-                          }}
-                          title="Delete song"
+                          type="button"
+                          onClick={() => setSelectedSongIds(
+                            selectedSongIds.length === songs.length ? [] : songs.map(song => song.id),
+                          )}
                         >
-                          ✕
+                          {selectedSongIds.length === songs.length ? 'Clear' : 'Select all'}
                         </button>
                       </div>
-                    ))
+                      {[...songs]
+                        .sort((a, b) => {
+                          const ad = a.meta?.draft ? 1 : 0
+                          const bd = b.meta?.draft ? 1 : 0
+                          if (ad !== bd) return ad - bd
+                          return (a.title || '').localeCompare(b.title || '')
+                        })
+                        .map(s => (
+                        <div
+                          key={s.id}
+                          className={`cc-lib-item${currentId === s.id ? ' active' : ''}${s.meta?.draft ? ' draft' : ''}`}
+                          onClick={() => {
+                            handleLoad(s.id)
+                            setLibDropOpen(false)
+                          }}
+                        >
+                          <input
+                            className="cch-song-check"
+                            type="checkbox"
+                            checked={selectedSongIds.includes(s.id)}
+                            onClick={event => event.stopPropagation()}
+                            onChange={() => toggleSongSelection(s.id)}
+                            aria-label={`Select ${s.title || 'Untitled'} to send`}
+                          />
+                          <span className="cc-lib-title">{s.meta?.draft ? '✏ ' : ''}{s.title || 'Untitled'}</span>
+                          <button
+                            className="cc-lib-delete"
+                            onClick={e => {
+                              e.stopPropagation()
+                              handleDelete(s.id, s.title || 'Untitled', { stopPropagation: () => {} })
+                            }}
+                            title="Delete song"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      <div className="cch-library-footer">
+                        <span>{selectedSongIds.length} selected</span>
+                        <button
+                          className="cc-btn-solid"
+                          type="button"
+                          disabled={!selectedSongIds.length || saving}
+                          onClick={openSendDialog}
+                        >
+                          {selectedSongIds.length
+                            ? `Send ${selectedSongIds.length} ${selectedSongIds.length === 1 ? 'copy' : 'copies'}`
+                            : 'Send copies'}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  {outgoingHandoffs.length > 0 && (
+                    <details className="cch-outgoing">
+                      <summary>Active sent links ({outgoingHandoffs.length})</summary>
+                      <div className="cch-outgoing-list">
+                        {outgoingHandoffs.map(handoff => (
+                          <div className="cch-outgoing-item" key={handoff.id}>
+                            <div>
+                              <strong>{handoff.recipient_label || 'Private handoff'}</strong>
+                              <span>{(handoff.song_titles || []).join(', ')}</span>
+                              <small>Expires {new Date(handoff.expires_at).toLocaleDateString()}</small>
+                            </div>
+                            <div className="cch-outgoing-actions">
+                              <button type="button" onClick={() => handleCopyOutgoingHandoff(handoff)}>Copy</button>
+                              <button type="button" className="danger" onClick={() => handleCancelHandoff(handoff)}>Revoke</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                   )}
                 </div>
               )}

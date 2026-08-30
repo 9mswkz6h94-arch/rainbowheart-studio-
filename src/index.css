@@ -4921,6 +4921,59 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .ns-score-area { background: #f3f1ec; }
 .ns-score-page, .ns-score-area.is-preview .ns-paper { border: 1px solid #d2cfc9; box-shadow: 0 4px 24px rgba(0,0,0,.11); }
 
+/* ── Chord Chart song handoffs ─────────────────────────────────────────── */
+.cch-library-header, .cch-library-footer { position: sticky; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: .65rem; padding: .55rem .65rem; background: #f6f4ef; font: 700 .65rem 'Space Mono', monospace; color: var(--text-muted); }
+.cch-library-header { top: 0; border-bottom: 1px solid #dedbd5; }
+.cch-library-footer { bottom: 0; border-top: 1px solid #dedbd5; }
+.cch-library-header button { padding: 0; border: 0; background: transparent; color: var(--primary); font: inherit; cursor: pointer; }
+.cch-library-footer .cc-btn-solid { padding: .42rem .65rem; font-size: .68rem; }
+.cch-song-check { width: 17px; height: 17px; margin: 0; flex: 0 0 auto; accent-color: var(--primary); cursor: pointer; }
+.cch-outgoing { border-top: 1px solid #dedbd5; background: #fff; }
+.cch-outgoing > summary { padding: .6rem .65rem; color: var(--primary); font: 700 .65rem 'Space Mono', monospace; cursor: pointer; }
+.cch-outgoing-list { display: grid; border-top: 1px solid #eeeae2; }
+.cch-outgoing-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; padding: .65rem; border-bottom: 1px solid #eeeae2; }
+.cch-outgoing-item > div:first-child { min-width: 0; display: grid; gap: .15rem; }
+.cch-outgoing-item strong, .cch-outgoing-item span, .cch-outgoing-item small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cch-outgoing-item strong { font-size: .68rem; }
+.cch-outgoing-item span, .cch-outgoing-item small { color: var(--text-muted); font: .58rem 'Space Mono', monospace; }
+.cch-outgoing-actions { display: flex; align-items: center; gap: .25rem; }
+.cch-outgoing-actions button { padding: .28rem .4rem; border: 1px solid #cdcac4; border-radius: 5px; background: #fff; color: var(--ink); font: 700 .58rem 'Space Mono', monospace; cursor: pointer; }
+.cch-outgoing-actions button:hover { border-color: var(--primary); color: var(--primary); }
+.cch-outgoing-actions button.danger:hover { border-color: #c74b4b; color: #a32626; background: #fff5f5; }
+
+.cch-overlay { position: fixed; inset: 0; z-index: 4000; display: grid; place-items: center; padding: 1rem; background: rgba(23,20,17,.62); backdrop-filter: blur(4px); }
+.cch-dialog { width: min(620px, 100%); max-height: calc(100vh - 2rem); overflow: auto; border: 1px solid #d2cfc9; border-radius: 14px; background: #fff; color: var(--ink); box-shadow: 0 24px 70px rgba(0,0,0,.3); font-family: 'OpenDyslexic Mono', 'Space Mono', monospace; }
+.cch-header { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.96); backdrop-filter: blur(8px); }
+.cch-header h2 { margin: .12rem 0 0; font: 700 1.22rem 'OpenDyslexic Mono', 'Space Mono', monospace; }
+.cch-eyebrow { margin: 0; color: var(--primary); font-size: .62rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.cch-close { width: 34px; height: 34px; padding: 0; border: 1px solid #d2cfc9; border-radius: 7px; background: #fff; color: var(--text-muted); font-size: 1.35rem; line-height: 1; cursor: pointer; }
+.cch-close:hover { border-color: var(--primary); color: var(--primary); }
+.cch-close:disabled { opacity: .5; cursor: wait; }
+.cch-body { display: grid; gap: 1rem; padding: 1.25rem; }
+.cch-lede, .cch-note, .cch-meta, .cch-loading, .cch-error, .cch-warning, .cch-status, .cch-copy-status { margin: 0; line-height: 1.55; }
+.cch-lede { font-size: .83rem; }
+.cch-note, .cch-meta { color: var(--text-muted); font-size: .72rem; }
+.cch-meta { font-family: 'Space Mono', monospace; }
+.cch-loading { padding: 1rem; color: var(--text-muted); text-align: center; }
+.cch-error, .cch-warning, .cch-status { padding: .72rem .8rem; border-radius: 8px; font-size: .72rem; }
+.cch-error { border: 1px solid #efb2b2; background: #fff3f3; color: #8b2020; }
+.cch-warning { border: 1px solid #e7ca82; background: #fff9e8; color: #6f5312; }
+.cch-status { border: 1px solid #c9c1ef; background: #f5f2ff; color: #4c3eb5; }
+.cch-copy-status { padding: .65rem .75rem; border: 1px solid #9bc9af; border-radius: 8px; background: #effaf3; color: #25603d; font-size: .72rem; }
+.cch-song-summary { overflow: hidden; border: 1px solid #dedbd5; border-radius: 9px; background: #faf9f6; }
+.cch-song-count { margin: 0; padding: .58rem .75rem; border-bottom: 1px solid #e6e2da; color: var(--text-muted); font-size: .65rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.cch-song-list { max-height: 190px; overflow: auto; margin: 0; padding: .45rem .75rem .55rem 2rem; }
+.cch-song-list li { padding: .22rem 0; font-size: .76rem; }
+.cch-empty { margin: 0; padding: .8rem; color: var(--text-muted); font-size: .75rem; }
+.cch-field { display: grid; gap: .35rem; color: var(--text-muted); font-size: .7rem; font-weight: 750; }
+.cch-field small { font-weight: 500; }
+.cch-field input { width: 100%; min-width: 0; padding: .7rem .78rem; border: 1px solid #c9c6bf; border-radius: 7px; background: #fff; color: var(--ink); font: inherit; }
+.cch-field input:focus { border-color: var(--primary); outline: 3px solid rgba(108,92,231,.16); }
+.cch-link-input { font-family: 'Space Mono', monospace !important; font-size: .68rem !important; }
+.cch-actions { display: flex; align-items: center; justify-content: flex-end; gap: .55rem; flex-wrap: wrap; padding-top: .2rem; }
+.cch-actions button:disabled { opacity: .55; cursor: not-allowed; }
+.cch-link-actions .cc-btn-solid { order: -1; }
+
 @media print {
   @page { size: Letter portrait; margin: 0; }
   body:has(.ns-page) .navbar, body:has(.ns-page) footer, body:has(.ns-page) .scroll-to-top { display: none !important; }
@@ -4932,6 +4985,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   .ms-page { display: block; background: #fff; }.ms-main { padding: 0; overflow: visible; }.ms-paper { width: 8.5in; min-height: 11in; border: 0; box-shadow: none; }
   body:has(.cc-melody-preview) .cc-input, body:has(.cc-melody-preview) .cc-splitter, body:has(.cc-melody-preview) .navbar, body:has(.cc-melody-preview) footer { display: none !important; }
   body:has(.cc-melody-preview) .cc-preview { padding: 0; overflow: visible; }.cc-melody-preview { padding: 0; gap: 0; }.cc-melody-paper { width: 8.5in; min-height: 11in; box-shadow: none; break-after: page; }
+  .cch-overlay { display: none !important; }
 }
 
 @media (max-width: 900px) {
@@ -4942,4 +4996,10 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   .pd-side .pd-line, .pd-side .pd-section-label,
   .pd-side .pd-transition-title, .pd-side .pd-transition-meta,
   .pd-side .pd-section-song { display: none; }
+  .cch-overlay { padding: .55rem; }
+  .cch-dialog { max-height: calc(100vh - 1.1rem); border-radius: 10px; }
+  .cch-header, .cch-body { padding: 1rem; }
+  .cch-actions { display: grid; grid-template-columns: 1fr; }
+  .cch-actions button { width: 100%; }
+  .cch-link-actions .cc-btn-solid { order: 0; }
 }
