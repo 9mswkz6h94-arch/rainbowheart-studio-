@@ -11,6 +11,17 @@ export async function fetchSetLists() {
   return data
 }
 
+/** Fetch one owned show for editing or protected print output. */
+export async function fetchSetList(id) {
+  const { data, error } = await supabase
+    .from('setlists')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data
+}
+
 /** Fetch a single setlist by share token — no auth required */
 export async function fetchSetListByToken(token) {
   const { data, error } = await supabase

@@ -1,8 +1,31 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchSetLists, saveSetList, deleteSetList } from '../lib/setlists'
 import { fetchSongs, fetchSong } from '../lib/songs'
+import { uploadSetListPdf } from '../lib/setlistPdfs'
 
 const EMPTY_ACTIVE = { id: null, token: null }
+const CUSTOM_SONG_TYPE = 'custom-song'
+
+function isSongItem(item) {
+  return Boolean(item) && (!item._type || item._type === CUSTOM_SONG_TYPE)
+}
+
+function buildSetColumns(items) {
+  const columns = []
+  let current = { key: 'opening', named: false, rows: [] }
+
+  items.forEach((song, idx) => {
+    if (song._type === 'set') {
+      if (current.rows.length) columns.push(current)
+      current = { key: `set-${idx}`, named: true, rows: [{ song, idx }] }
+    } else {
+      current.rows.push({ song, idx })
+    }
+  })
+
+  if (current.rows.length) columns.push(current)
+  return columns
+}
 
 function fmtDate(d) {
   if (!d) return null
@@ -21,7 +44,7 @@ function SidebarSection({ title, items, activeId, onOpen, onDelete, onDuplicate 
     <div className="sl-section">
       <div className="sl-section-label">{title}</div>
       {items.map(sl => {
-        const songCount = (sl.songs || []).filter(s => !s._type).length
+        const songCount = (sl.songs || []).filter(isSongItem).length
         return (
           <div
             key={sl.id}
@@ -72,12 +95,12 @@ export default function SetLists() {
   const [addingId,    setAddingId]    = useState(null)
   const [saving,      setSaving]      = useState(false)
   const [saveMsg,     setSaveMsg]     = useState(null)
-  const [shareMsg,    setShareMsg]    = useState(null)
   const [showLib,     setShowLib]     = useState(false)
   const [showDrafts,  setShowDrafts]  = useState(false)
   const [libQuery,    setLibQuery]    = useState('')
   const [dragIdx,     setDragIdx]     = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
+  const [uploadingPdf, setUploadingPdf] = useState(null)
   const nameRef = useRef(null)
 
   function focusNameField() {
@@ -202,6 +225,47 @@ export default function SetLists() {
     setDirty(true)
   }
 
+  function handleAddCustomSong() {
+    setItems(prev => [...prev, {
+      _type: CUSTOM_SONG_TYPE,
+      _customId: crypto.randomUUID(),
+      title: 'Outside song',
+      duration: null,
+      pdf: null,
+    }])
+    setDirty(true)
+  }
+
+  function handleCustomTitleChange(idx, val) {
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, title: val } : it))
+    setDirty(true)
+  }
+
+  async function handleCustomPdfChange(idx, file) {
+    if (!file) return
+    const customId = items[idx]?._customId
+    setUploadingPdf(customId)
+    setSaveMsg(null)
+    try {
+      const pdf = await uploadSetListPdf(file)
+      setItems(prev => prev.map((it, i) =>
+        (customId ? it._customId === customId : i === idx) ? { ...it, pdf } : it
+      ))
+      setDirty(true)
+      setSaveMsg('PDF attached - save show to keep it')
+      setTimeout(() => setSaveMsg(null), 3000)
+    } catch (e) {
+      setSaveMsg('Error: ' + (e?.message || 'PDF upload failed'))
+    } finally {
+      setUploadingPdf(null)
+    }
+  }
+
+  function handleRemovePdf(idx) {
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, pdf: null } : it))
+    setDirty(true)
+  }
+
   function handleBreakLabelChange(idx, val) {
     setItems(prev => prev.map((it, i) => i === idx ? { ...it, label: val } : it))
     setDirty(true)
@@ -320,19 +384,13 @@ export default function SetLists() {
     } catch (e) { console.error(e) }
   }
 
-  /* ── Share / open ── */
-  function handleShare() {
-    if (!active?.token) return
-    const url = `${window.location.origin}/setlist/${active.token}`
-    navigator.clipboard.writeText(url).then(() => {
-      setShareMsg('Link copied!')
-      setTimeout(() => setShareMsg(null), 2500)
-    })
-  }
-
-  function handleOpenView() {
-    if (!active?.token) return
-    window.open(`${window.location.origin}/setlist/${active.token}`, '_blank')
+  function handlePrintOriginalCharts() {
+    if (!active?.id || dirty) {
+      setSaveMsg('Save the show before printing original charts')
+      setTimeout(() => setSaveMsg(null), 3000)
+      return
+    }
+    window.open(`${window.location.origin}/studio/setlists/${active.id}/print`, '_blank')
   }
 
   function handlePrintSetList() {
@@ -448,15 +506,17 @@ export default function SetLists() {
   let _sn = 0, _songTotal = 0
   const songNums = items.map(it => {
     if (it._type === 'set') { _sn = 0; return null }
-    if (it._type) return null
+    if (!isSongItem(it)) return null
     _songTotal++
     return ++_sn
   })
   const songCount  = _songTotal
+  const chartSongCount = items.filter(it => !it._type).length
   const breakCount = items.filter(it => it._type === 'break').length
   const setCount   = items.filter(it => it._type === 'set').length
   const noteCount  = items.filter(it => it._type === 'note').length
   const totalMins = items.reduce((s, it) => s + (parseFloat(it.duration) || 0), 0)
+  const setColumns = buildSetColumns(items)
 
   /* Per-set song count + running time, keyed by the set header's index */
   const setStats = {}
@@ -466,7 +526,7 @@ export default function SetLists() {
       if (it._type === 'set') { cur = i; setStats[i] = { songs: 0, mins: 0 }; return }
       if (cur === null) return
       setStats[cur].mins += parseFloat(it.duration) || 0
-      if (!it._type) setStats[cur].songs++
+      if (isSongItem(it)) setStats[cur].songs++
     })
   }
 
@@ -594,12 +654,16 @@ export default function SetLists() {
                   🖨 Print Set
                 </button>
               )}
-              {active?.token && <>
-                <button className="cc-btn-ghost" onClick={handleShare}>Copy Share Link</button>
-                <button className="cc-btn-ghost" onClick={handleOpenView}>Open Performer View ↗</button>
-              </>}
+              {chartSongCount > 0 && (
+                <button
+                  className="cc-btn-ghost"
+                  onClick={handlePrintOriginalCharts}
+                  title="Reload and print every current saved song directly from your Chord Chart library."
+                >
+                  🖨 Print Original Charts
+                </button>
+              )}
               {saveMsg  && <span className={saveMsg.startsWith('Error') ? 'cc-unsaved' : 'cc-save-msg'}>{saveMsg}</span>}
-              {shareMsg && <span className="cc-save-msg">{shareMsg}</span>}
               {dirty && !saveMsg && <span className="cc-unsaved">● unsaved</span>}
             </div>
           </div>
@@ -662,55 +726,42 @@ export default function SetLists() {
               </div>
 
               {/* Set order */}
-              <div className="sl-panel-header" style={{ marginTop: '1.25rem' }}>
+              <div className="sl-panel-header sl-order-header">
                 <span className="sl-panel-title">
                   Set Order · {songCount} song{songCount !== 1 ? 's' : ''}
                   {setCount > 0 ? ` · ${setCount} set${setCount !== 1 ? 's' : ''}` : ''}
                   {breakCount > 0 ? ` · ${breakCount} break${breakCount !== 1 ? 's' : ''}` : ''}
                   {noteCount > 0 ? ` · ${noteCount} note${noteCount !== 1 ? 's' : ''}` : ''}
                 </span>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="sl-order-toolbar">
                   {songCount > 0 && (
                     <button
-                      className="cc-btn-ghost"
-                      style={{ fontSize: '0.75rem' }}
+                      className="sl-order-sync"
                       onClick={handleSyncAll}
                       disabled={saving}
                       title="Pull latest edits from your chord chart library"
                     >
-                      ↻ Sync Charts
+                      <span aria-hidden="true">↻</span> Sync Charts
                     </button>
                   )}
-                  <button
-                    className="cc-btn-ghost"
-                    style={{ fontSize: '0.75rem' }}
-                    onClick={handleAddSet}
-                    title="Add a named set divider (Set 1, Set 2, Encore…) — song numbering restarts each set"
-                  >
-                    🎼 Add Set
-                  </button>
-                  <button
-                    className="cc-btn-ghost"
-                    style={{ fontSize: '0.75rem' }}
-                    onClick={handleAddBreak}
-                  >
-                    ☕ Add Break
-                  </button>
-                  <button
-                    className="cc-btn-ghost"
-                    style={{ fontSize: '0.75rem' }}
-                    onClick={handleAddNote}
-                    title="Add a note or announcement reminder — shows on the Live Stage Cue controller and display"
-                  >
-                    📝 Add Note
-                  </button>
-                  <button
-                    className="cc-btn-ghost"
-                    style={{ fontSize: '0.75rem' }}
-                    onClick={() => setShowLib(p => !p)}
-                  >
-                    {showLib ? 'Hide Library' : '+ Add Songs'}
-                  </button>
+                  <div className="sl-order-add-group">
+                    <span className="sl-order-group-label">Add to show</span>
+                    <button className="sl-order-add" onClick={handleAddSet} title="Add a named set divider; song numbering restarts in each set">
+                      <span aria-hidden="true">🎼</span> Set
+                    </button>
+                    <button className="sl-order-add" onClick={handleAddBreak}>
+                      <span aria-hidden="true">☕</span> Break
+                    </button>
+                    <button className="sl-order-add" onClick={handleAddNote} title="Add a note or announcement reminder">
+                      <span aria-hidden="true">📝</span> Note
+                    </button>
+                    <button className="sl-order-add outside" onClick={handleAddCustomSong} title="Add a timed song that is not in your chart library">
+                      Outside Song
+                    </button>
+                    <button className={`sl-order-add primary${showLib ? ' active' : ''}`} onClick={() => setShowLib(p => !p)}>
+                      {showLib ? 'Hide Library' : '+ Add Songs'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -730,8 +781,10 @@ export default function SetLists() {
                   No songs yet — click <strong>+ Add Songs</strong> to pick from your library
                 </div>
               ) : (
-                <div className="sl-song-list">
-                  {items.map((song, idx) => {
+                <div className={`sl-song-list${setCount > 0 ? ' sl-set-columns' : ''}`}>
+                  {setColumns.map(column => (
+                    <div key={column.key} className={`sl-set-column${column.named ? ' named' : ''}`}>
+                    {column.rows.map(({ song, idx }) => {
                     const dragClass = `${dragIdx === idx ? ' sl-dragging' : ''}${dragOverIdx === idx && dragIdx !== idx ? ' sl-drag-over' : ''}`
                     const dragProps = {
                       draggable: true,
@@ -812,6 +865,61 @@ export default function SetLists() {
                         </div>
                       )
                     }
+                    if (song._type === CUSTOM_SONG_TYPE) {
+                      const isUploading = uploadingPdf === song._customId
+                      return (
+                        <div key={song._customId || idx} className={`sl-song-row sl-custom-song-row${dragClass}`} {...dragProps}>
+                          <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
+                          <span className="sl-song-num">{songNums[idx]}.</span>
+                          <div className="sl-song-info sl-custom-song-info">
+                            <input
+                              className="sl-custom-title-input"
+                              value={song.title || ''}
+                              placeholder="Song title"
+                              onChange={e => handleCustomTitleChange(idx, e.target.value)}
+                              onClick={e => e.stopPropagation()}
+                            />
+                            <div className="sl-custom-song-meta">
+                              <span className="sl-outside-badge">Outside library</span>
+                              {song.pdf && <span className="sl-pdf-name">{song.pdf.name || 'Attached PDF'}</span>}
+                              <label className={`sl-pdf-action${isUploading ? ' disabled' : ''}`} onClick={e => e.stopPropagation()}>
+                                {isUploading ? 'Uploading...' : song.pdf ? 'Replace PDF' : 'Attach PDF'}
+                                <input
+                                  className="sl-pdf-file-input"
+                                  type="file"
+                                  accept="application/pdf,.pdf"
+                                  disabled={isUploading}
+                                  onChange={e => {
+                                    const file = e.target.files?.[0]
+                                    e.target.value = ''
+                                    handleCustomPdfChange(idx, file)
+                                  }}
+                                />
+                              </label>
+                              {song.pdf && (
+                                <button className="sl-pdf-remove" onClick={() => handleRemovePdf(idx)} type="button">
+                                  Remove PDF
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <input
+                            type="number"
+                            className="sl-duration-input"
+                            value={song.duration ?? ''}
+                            min="0.25" max="20" step="0.25"
+                            placeholder="min"
+                            onChange={e => handleItemDurationChange(idx, e.target.value)}
+                            onClick={e => e.stopPropagation()}
+                            title="Song length in minutes (0.25 = 15 sec)"
+                          />
+                          {song.duration ? <span className="sl-dur-badge">{fmtSongDur(song.duration)}</span> : null}
+                          <div className="sl-song-controls">
+                            <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
+                          </div>
+                        </div>
+                      )
+                    }
                     return (
                       <div key={idx} className={`sl-song-row${dragClass}`} {...dragProps}>
                         <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
@@ -841,24 +949,42 @@ export default function SetLists() {
                         </div>
                       </div>
                     )
-                  })}
+                    })}
+                    </div>
+                  ))}
                 </div>
               )}
+
+              <div className="sl-mobile-addbar" aria-label="Show editing tools">
+                <button className="sl-mobile-add-primary" onClick={() => setShowLib(p => !p)}>
+                  {showLib ? 'Close Library' : '+ Library Song'}
+                </button>
+                <button className="sl-mobile-add-primary secondary" onClick={handleAddCustomSong}>+ Outside Song</button>
+                <button onClick={handleAddSet} title="Add set divider">+ Set</button>
+                <button onClick={handleAddBreak} title="Add break">+ Break</button>
+                <button onClick={handleAddNote} title="Add note">+ Note</button>
+              </div>
             </div>
 
             {/* Library picker */}
             {showLib && (
+              <>
+              <button className="sl-lib-backdrop" onClick={() => setShowLib(false)} aria-label="Close song library" />
               <div className="sl-lib-panel">
+                <div className="sl-lib-sheet-handle" aria-hidden="true" />
                 <div className="sl-panel-header">
                   <span className="sl-panel-title">Your Song Library</span>
-                  <button
-                    className="cc-btn-ghost"
-                    style={{ fontSize: '0.7rem' }}
-                    onClick={() => setShowDrafts(p => !p)}
-                    title="Show or hide draft songs"
-                  >
-                    {showDrafts ? 'Hide Drafts' : 'Show Drafts'}
-                  </button>
+                  <div className="sl-lib-header-actions">
+                    <button
+                      className="cc-btn-ghost"
+                      style={{ fontSize: '0.7rem' }}
+                      onClick={() => setShowDrafts(p => !p)}
+                      title="Show or hide draft songs"
+                    >
+                      {showDrafts ? 'Hide Drafts' : 'Show Drafts'}
+                    </button>
+                    <button className="sl-lib-close" onClick={() => setShowLib(false)}>Close</button>
+                  </div>
                 </div>
                 <input
                   className="sl-lib-search"
@@ -896,6 +1022,7 @@ export default function SetLists() {
                   })
                 )}
               </div>
+              </>
             )}
           </div>
         </div>

@@ -46,7 +46,7 @@ export const STUDIO_TOOLS = [
     slug: 'setlists',
     emoji: '🎤',
     title: 'Show Planner',
-    description: 'Plan shows and set lists from your song library, record event details, and share full performer charts for the gig.',
+    description: 'Plan shows and set lists from your song library, track timing, and print the original saved charts for the whole gig.',
     href: '/studio/setlists',
     free: false,
   },

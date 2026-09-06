@@ -414,7 +414,13 @@ export function fitTitles(root) {
     t.removeAttribute('textLength')
     let fs = 100; t.style.fontSize = fs + 'px'
     const w = t.getComputedTextLength() || 1
-    fs = fs * (T / w); t.style.fontSize = fs + 'px'
+    // Short titles used to grow without limit while being stretched to the
+    // full page width. That could turn a masthead into 500px lettering and
+    // push the saved chart layout several pages out of position. Keep the
+    // fill-width treatment, but cap it at a practical print-safe size.
+    const compact = root.classList.contains('compact') || root.closest?.('.compact')
+    const maxFs = compact ? 112 : 128
+    fs = Math.min(maxFs, fs * (T / w)); t.style.fontSize = fs + 'px'
     t.setAttribute('x', T / 2)
     t.setAttribute('y', fs * 0.72)
     t.setAttribute('textLength', T)

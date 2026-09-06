@@ -24,7 +24,7 @@ const liveTools = [
   {
     emoji: '🎤',
     title: 'Shows',
-    description: 'Build set lists for your shows. Share a link for full chord charts on any device at the gig.',
+    description: 'Build timed set lists for your shows and print the original saved chord charts for the whole gig.',
     href: '/studio/setlists',
   },
   {

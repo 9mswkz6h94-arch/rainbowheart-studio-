@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard'
 import ChordCharts from './pages/ChordCharts'
 import TabStudio from './pages/TabStudio'
 import SetLists from './pages/SetLists'
+import SetListPrint from './pages/SetListPrintV2'
 import SetListView from './pages/SetListView'
 import PresentControl from './pages/PresentControl'
 import PresentDisplay from './pages/PresentDisplay'
@@ -48,6 +49,9 @@ export default function App() {
           <Route path="/studio/setlists" element={
             <ProtectedRoute><SetLists /></ProtectedRoute>
           } />
+          <Route path="/studio/setlists/:id/print" element={
+            <ProtectedRoute><SetListPrint /></ProtectedRoute>
+          } />
           <Route path="/studio/tab-studio" element={
             <ProtectedRoute><TabStudio /></ProtectedRoute>
           } />
@@ -70,9 +74,6 @@ export default function App() {
           <Route path="/tools/chord-scale-explorer" element={<ChordScaleExplorer />} />
           <Route path="/studio/tuner" element={<Tuner />} />
           <Route path="/studio/metronome" element={<Metronome />} />
-          <Route path="/setlist/:token" element={<SetListView />} />
-          <Route path="/present/:token/control" element={<PresentControl />} />
-          <Route path="/present/:token/display" element={<PresentDisplay />} />
           <Route path="/admin" element={
             <AdminRoute><Admin /></AdminRoute>
           } />
