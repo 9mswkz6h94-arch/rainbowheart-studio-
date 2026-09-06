@@ -52,6 +52,7 @@ export default function App() {
           <Route path="/studio/setlists/:id/print" element={
             <ProtectedRoute><SetListPrint /></ProtectedRoute>
           } />
+          <Route path="/band/:token" element={<SetListPrint publicPacket />} />
           <Route path="/studio/tab-studio" element={
             <ProtectedRoute><TabStudio /></ProtectedRoute>
           } />

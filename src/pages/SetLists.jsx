@@ -393,6 +393,21 @@ export default function SetLists() {
     window.open(`${window.location.origin}/studio/setlists/${active.id}/print`, '_blank')
   }
 
+  async function handleCopyBandLink() {
+    if (!active?.token || dirty) {
+      setSaveMsg('Save the show before sharing its band packet')
+      setTimeout(() => setSaveMsg(null), 3000)
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/band/${active.token}`)
+      setSaveMsg('Band packet link copied')
+    } catch {
+      setSaveMsg('Could not copy the band link')
+    }
+    setTimeout(() => setSaveMsg(null), 3000)
+  }
+
   function handlePrintSetList() {
     const w = window.open('', '_blank')
     if (!w) return
@@ -661,6 +676,15 @@ export default function SetLists() {
                   title="Reload and print every current saved song directly from your Chord Chart library."
                 >
                   🖨 Print Original Charts
+                </button>
+              )}
+              {items.length > 0 && (
+                <button
+                  className="cc-btn-ghost"
+                  onClick={handleCopyBandLink}
+                  title="Copy a read-only packet with setlists, charts, notes, breaks, and outside songs"
+                >
+                  🔗 Copy Band Link
                 </button>
               )}
               {saveMsg  && <span className={saveMsg.startsWith('Error') ? 'cc-unsaved' : 'cc-save-msg'}>{saveMsg}</span>}

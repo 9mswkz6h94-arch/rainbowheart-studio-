@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { fetchSetList } from '../lib/setlists'
+import { fetchSetList, fetchSetListByToken } from '../lib/setlists'
 import { fetchSong } from '../lib/songs'
+import { fetchSetListPdfUrl } from '../lib/setlistPdfs'
 import { fitTitles, layout, parseSong } from '../lib/chartEngine'
 
 const CUSTOM_SONG = 'custom-song'
@@ -12,6 +13,13 @@ function duration(value) {
   if (!minutes) return ''
   const seconds = Math.round(minutes * 60)
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+}
+
+function eventDate(value) {
+  if (!value) return ''
+  return new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  })
 }
 
 function settings(song) {
@@ -45,11 +53,25 @@ function add(parent, tag, className, text) {
   return node
 }
 
+function addEventDetails(parent, show) {
+  if (!show?.event_date && !show?.event_details && !show?.event_url) return
+  const details = add(parent, 'div', 'slp-event-details', '')
+  if (show.event_date) add(details, 'div', 'slp-event-date', eventDate(show.event_date))
+  if (show.event_details) add(details, 'p', 'slp-event-notes', show.event_details)
+  if (show.event_url) {
+    const link = add(details, 'a', 'slp-event-url', show.event_url)
+    link.href = show.event_url
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+  }
+}
+
 function floorPage(show, set, index) {
   const page = document.createElement('section')
   page.className = 'slp-floor-page'
   const header = add(page, 'header', 'slp-floor-header', '')
   add(header, 'div', 'slp-floor-show', show?.name || 'Show')
+  addEventDetails(header, show)
   add(header, 'h2', '', set.label || `Set ${index + 1}`)
   const songs = set.items.filter(isSong)
   const total = set.items.reduce((sum, item) => sum + (parseFloat(item.duration) || 0), 0)
@@ -90,7 +112,17 @@ function markerPage(show, item, setLabel) {
     add(page, 'div', 'slp-marker-label', 'Outside Song')
     add(page, 'h2', '', item.title || 'Untitled')
     if (item.duration) add(page, 'div', 'slp-marker-duration', duration(item.duration))
-    add(page, 'p', 'slp-marker-detail', item.pdf ? `Attached chart: ${item.pdf.name || 'PDF attached'}` : 'No chart attached')
+    if (item.pdf) {
+      const detail = add(page, 'div', 'slp-marker-detail', `Attached chart: ${item.pdf.name || 'PDF attached'}`)
+      if (item._pdfUrl) {
+        const link = add(detail, 'a', 'slp-pdf-link', 'Open attached PDF')
+        link.href = item._pdfUrl
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
+      }
+    } else {
+      add(page, 'p', 'slp-marker-detail', 'No chart attached')
+    }
   } else if (item._type === 'break') {
     add(page, 'div', 'slp-marker-label', 'Break')
     add(page, 'h2', '', item.label || 'Break')
@@ -108,14 +140,15 @@ function setDivider(show, set, index) {
   const page = document.createElement('section')
   page.className = 'slp-marker-page is-set'
   add(page, 'div', 'slp-marker-show', show?.name || 'Show')
+  addEventDetails(page, show)
   add(page, 'div', 'slp-marker-label', `Set ${index + 1}`)
   add(page, 'h2', '', set.label || `Set ${index + 1}`)
   add(page, 'p', 'slp-marker-detail', `${set.items.filter(isSong).length} songs`)
   return page
 }
 
-export default function SetListPrintV2() {
-  const { id } = useParams()
+export default function SetListPrintV2({ publicPacket = false }) {
+  const { id, token } = useParams()
   const [show, setShow] = useState(null)
   const [items, setItems] = useState([])
   const [mode, setMode] = useState('packet')
@@ -131,9 +164,16 @@ export default function SetListPrintV2() {
     let cancelled = false
     async function load() {
       try {
-        const savedShow = await fetchSetList(id)
+        const savedShow = publicPacket ? await fetchSetListByToken(token) : await fetchSetList(id)
         const loaded = await Promise.all((savedShow.songs || []).map(async entry => {
-          if (entry._type || !entry._songId) return entry
+          if (entry._type === CUSTOM_SONG && entry.pdf?.path && publicPacket) {
+            try {
+              return { ...entry, _pdfUrl: await fetchSetListPdfUrl(token, entry.pdf.path) }
+            } catch {
+              return entry
+            }
+          }
+          if (entry._type || !entry._songId || publicPacket) return entry
           try {
             return { ...entry, ...await fetchSong(entry._songId), _songId: entry._songId }
           } catch {
@@ -149,7 +189,7 @@ export default function SetListPrintV2() {
     }
     load()
     return () => { cancelled = true }
-  }, [id])
+  }, [id, publicPacket, token])
 
   useEffect(() => {
     if (!items.length || !measureRef.current || !documentRef.current) return
@@ -189,16 +229,19 @@ export default function SetListPrintV2() {
   useEffect(() => {
     if (!show) return
     const previous = document.title
-    document.title = `${show.name} - Print Show`
+    document.title = `${show.name} - ${publicPacket ? 'Band Packet' : 'Print Show'}`
     return () => { document.title = previous }
-  }, [show])
+  }, [publicPacket, show])
 
   return <div className="slp-root">
     <div ref={measureRef} style={{ position: 'fixed', left: '-99999px', top: 0, overflow: 'visible', pointerEvents: 'none' }} aria-hidden="true" />
     <div className="slp-toolbar">
       <div>
-        <div className="slp-kicker">Show print center</div>
+        <div className="slp-kicker">{publicPacket ? 'Read-only band packet' : 'Show print center'}</div>
         <h1>{show?.name || 'Print Show'}</h1>
+        {show?.event_date && <p className="slp-toolbar-date">{eventDate(show.event_date)}</p>}
+        {show?.event_details && <p className="slp-toolbar-notes">{show.event_details}</p>}
+        {show?.event_url && <a className="slp-toolbar-link" href={show.event_url} target="_blank" rel="noopener noreferrer">Open event page</a>}
         <p>{sets.length} set{sets.length === 1 ? '' : 's'} / {songCount} songs / {chartCount} original charts</p>
       </div>
       <div className="slp-print-controls">
@@ -208,7 +251,9 @@ export default function SetListPrintV2() {
           <button className={mode === 'charts' ? 'active' : ''} onClick={() => setMode('charts')}>Charts Only</button>
         </div>
         <div className="slp-actions">
-          <Link className="cc-btn-ghost" to="/studio/setlists">Back to Show Builder</Link>
+          <Link className="cc-btn-ghost" to={publicPacket ? '/' : '/studio/setlists'}>
+            {publicPacket ? 'Rainbow Heart Studio' : 'Back to Show Builder'}
+          </Link>
           <button className="cc-btn-solid" onClick={() => window.print()} disabled={loading || !items.length}>Print Selected Format</button>
         </div>
       </div>

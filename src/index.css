@@ -3438,6 +3438,15 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .slp-marker-page h2 { max-width: 7in; margin: 0.12in auto; font: 700 42pt 'Rye', serif; line-height: 1.08; }
 .slp-marker-duration { font: 700 25pt 'Space Mono', monospace; }
 .slp-marker-detail { font: 700 11pt 'Space Mono', monospace; color: #77716a; }
+.slp-pdf-link { display: block; width: fit-content; margin: 0.18in auto 0; color: #5545c5; text-decoration: underline; text-underline-offset: 3px; }
+.slp-event-details { display: grid; gap: 0.04in; margin: 0.08in 0 0.14in; color: #625c66; }
+.slp-event-date { font: 700 10pt 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+.slp-event-notes { margin: 0; font: 600 11pt 'DM Sans', sans-serif; white-space: pre-wrap; }
+.slp-event-url { color: inherit; font: 700 8pt 'Space Mono', monospace; overflow-wrap: anywhere; }
+.slp-marker-page.is-set .slp-event-details { color: #c8c1b7; }
+.slp-toolbar-date { font-weight: 700; }
+.slp-toolbar-notes { max-width: 48ch; white-space: pre-wrap; }
+.slp-toolbar-link { display: inline-block; margin-bottom: 0.2rem; color: #5545c5; font: 700 0.72rem 'Space Mono', monospace; }
 .slp-marker-note { max-width: 6.5in; margin: 0.25in auto; font: 600 20pt 'DM Sans', sans-serif; line-height: 1.35; white-space: pre-wrap; }
 .slp-marker-page.is-break { background: #f5f1e9; }
 .slp-marker-page.is-note { background: #fff8d6; }
