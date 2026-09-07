@@ -46,3 +46,5 @@ The Vite production build passes with 154 transformed modules. Rainbow Heart OS 
 ## One next action
 
 Complete the remaining keyboard, 200% zoom, reduced-motion, cross-browser, assistive-technology, and physical-device review gates.
+
+- Separated show selection from show management: the full title area opens the show, while Duplicate and Delete live behind a distinct More menu and Delete retains confirmation.

@@ -5614,3 +5614,76 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
   .slv-custom-song-header { align-items: flex-start; }
   .slv-pdf-frame { min-height: 62vh; }
 }
+
+
+/* Keep show selection separate from destructive show management. */
+.sl-list-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.sl-list-open {
+  min-width: 0;
+  min-height: 72px;
+  padding: 0.2rem 0.35rem;
+  border: 0;
+  background: transparent;
+  color: var(--sl-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sl-list-more {
+  min-width: 48px;
+  min-height: 48px;
+  align-self: center;
+  padding: 0.35rem;
+  border: 1px solid var(--sl-rule);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--sl-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sl-list-more:hover,
+.sl-list-more[aria-expanded="true"] {
+  border-color: var(--sl-action);
+  color: var(--sl-action-dark);
+}
+
+.sl-list-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--sl-rule);
+}
+
+.sl-list-actions button {
+  min-height: 48px;
+  padding: 0.5rem;
+  border: 1px solid var(--sl-rule);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--sl-ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sl-list-actions button:hover {
+  border-color: var(--sl-action);
+  color: var(--sl-action-dark);
+}
+
+.sl-list-actions button.danger {
+  border-color: #d8a9ad;
+  color: #9b1c24;
+}
+
+.sl-list-actions button.danger:hover {
+  border-color: #9b1c24;
+  background: #fff5f5;
+}

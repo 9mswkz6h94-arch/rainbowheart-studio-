@@ -39,6 +39,7 @@ function isPast(d) {
 }
 
 function SidebarSection({ title, items, activeId, onOpen, onDelete, onDuplicate }) {
+  const [openMenuId, setOpenMenuId] = useState(null)
   if (items.length === 0) return null
   return (
     <div className="sl-section">
@@ -49,9 +50,12 @@ function SidebarSection({ title, items, activeId, onOpen, onDelete, onDuplicate 
           <div
             key={sl.id}
             className={`sl-list-item${activeId === sl.id ? ' active' : ''}`}
-            onClick={() => onOpen(sl)}
           >
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <button
+              type="button"
+              className="sl-list-open"
+              onClick={() => onOpen(sl)}
+            >
               {sl.event_date && (
                 <div className="sl-date-badge">{fmtDate(sl.event_date)}</div>
               )}
@@ -59,19 +63,27 @@ function SidebarSection({ title, items, activeId, onOpen, onDelete, onDuplicate 
               <div className="sl-list-meta">
                 {songCount} song{songCount !== 1 ? 's' : ''}
               </div>
-            </div>
+            </button>
             <button
-              className="sl-dup-btn"
-              onClick={e => { e.stopPropagation(); onDuplicate(sl) }}
-              title="Duplicate show"
-              aria-label={`Duplicate ${sl.name}`}
-            >Duplicate</button>
-            <button
-              className="cc-lib-delete"
-              onClick={e => { e.stopPropagation(); onDelete(sl.id, sl.name, e) }}
-              title="Delete"
-              aria-label={`Delete ${sl.name}`}
-            >Remove</button>
+              type="button"
+              className="sl-list-more"
+              onClick={() => setOpenMenuId(current => current === sl.id ? null : sl.id)}
+              aria-expanded={openMenuId === sl.id}
+              aria-controls={`show-actions-${sl.id}`}
+            >More</button>
+            {openMenuId === sl.id && (
+              <div className="sl-list-actions" id={`show-actions-${sl.id}`}>
+                <button
+                  type="button"
+                  onClick={() => { setOpenMenuId(null); onDuplicate(sl) }}
+                >Duplicate Show</button>
+                <button
+                  type="button"
+                  className="danger"
+                  onClick={e => { setOpenMenuId(null); onDelete(sl.id, sl.name, e) }}
+                >Delete Show</button>
+              </div>
+            )}
           </div>
         )
       })}
