@@ -21,7 +21,7 @@ function formatDuration(value) {
 }
 
 function chartSettings(song) {
-  const meta = { ...(song.meta || {}), title: song.title || song.meta?.title || 'Untitled' }
+  const meta = { ...(song.meta || {}), title: song.meta?.title || song.title || 'Untitled' }
   return {
     meta,
     compact: meta.compact !== false,
@@ -59,7 +59,8 @@ function entryTitle(entry) {
   const { item, kind } = entry
   if (kind === 'break') return item.label || 'Break'
   if (kind === 'note') return item.label || 'Note'
-  return item.title || item.meta?.title || 'Untitled'
+  if (kind === 'chart') return item.meta?.title || item.title || 'Untitled'
+  return item.title || 'Untitled'
 }
 
 function entryLabel(entry) {

@@ -7,6 +7,9 @@ import { fitTitles, layout, parseSong } from '../lib/chartEngine'
 
 const CUSTOM_SONG = 'custom-song'
 const isSong = item => Boolean(item) && (!item._type || item._type === CUSTOM_SONG)
+const songTitle = item => item?._type === CUSTOM_SONG
+  ? item.title || 'Untitled'
+  : item?.meta?.title || item?.title || 'Untitled'
 
 function duration(value) {
   const minutes = parseFloat(value)
@@ -23,7 +26,7 @@ function eventDate(value) {
 }
 
 function settings(song) {
-  const meta = { ...(song.meta || {}), title: song.title || song.meta?.title || 'Untitled' }
+  const meta = { ...(song.meta || {}), title: song.meta?.title || song.title || 'Untitled' }
   return { meta, compact: meta.compact !== false, scale: meta.scale || 100, collapse: meta.collapse !== false }
 }
 
@@ -84,7 +87,7 @@ function floorPage(show, set, index) {
     if (isSong(item)) {
       row.classList.add('is-song')
       add(row, 'span', 'slp-floor-number', `${++number}.`)
-      const title = add(row, 'span', 'slp-floor-title', item.title || item.meta?.title || 'Untitled')
+      const title = add(row, 'span', 'slp-floor-title', songTitle(item))
       if (item._type === CUSTOM_SONG) title.dataset.outside = 'true'
       add(row, 'span', 'slp-floor-duration', duration(item.duration))
     } else if (item._type === 'break') {
