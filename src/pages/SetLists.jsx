@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchSetLists, saveSetList, deleteSetList } from '../lib/setlists'
 import { fetchSongs, fetchSong } from '../lib/songs'
 import { uploadSetListPdf } from '../lib/setlistPdfs'
+import { bandShareMessage, bandShareUrl } from '../lib/bandShare'
 
 const EMPTY_ACTIVE = { id: null, token: null }
 const CUSTOM_SONG_TYPE = 'custom-song'
@@ -414,11 +415,31 @@ export default function SetLists() {
       setTimeout(() => setSaveMsg(null), 3000)
       return
     }
+    const show = {
+      name,
+      event_date: eventDate,
+      event_details: eventDetails,
+      event_url: eventUrl,
+    }
+    const url = bandShareUrl(window.location.origin, active.token, name)
+    const text = bandShareMessage(show)
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/band/${active.token}`)
-      setSaveMsg('Interactive band link copied')
-    } catch {
-      setSaveMsg('Could not copy the band link')
+      if (navigator.share) {
+        await navigator.share({ title: name || 'Band show', text, url })
+        setSaveMsg('Band view shared')
+      } else {
+        await navigator.clipboard.writeText(`${text}\n\nBand charts and show order:\n${url}`)
+        setSaveMsg('Band details and link copied')
+      }
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        try {
+          await navigator.clipboard.writeText(`${text}\n\nBand charts and show order:\n${url}`)
+          setSaveMsg('Band details and link copied')
+        } catch {
+          setSaveMsg('Could not share the band link')
+        }
+      }
     }
     setTimeout(() => setSaveMsg(null), 3000)
   }
@@ -634,9 +655,9 @@ export default function SetLists() {
                 <button
                   className="cc-btn-ghost"
                   onClick={handleCopyBandLink}
-                  title="Copy a read-only packet with setlists, charts, notes, breaks, and outside songs"
+                  title="Share the event name, details, and read-only band view"
                 >
-                  Copy Band Link
+                  Share Band View
                 </button>
               )}
               {saveMsg  && <span className={saveMsg.startsWith('Error') ? 'cc-unsaved' : 'cc-save-msg'}>{saveMsg}</span>}

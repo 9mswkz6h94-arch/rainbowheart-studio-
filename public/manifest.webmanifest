@@ -1,0 +1,21 @@
+{
+  "name": "Rainbow Heart Studio",
+  "short_name": "Rainbow Heart",
+  "description": "Rainbow Heart Studio tools and band show packets.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6c4de6",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

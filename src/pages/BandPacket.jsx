@@ -3,14 +3,24 @@ import { Link, useParams } from 'react-router-dom'
 import { fetchSetListByToken } from '../lib/setlists'
 import { fetchSetListPdfUrl } from '../lib/setlistPdfs'
 import { fitTitles, layout, parseSong } from '../lib/chartEngine'
+import { bandEventDate, bandShareMessage, bandShareUrl } from '../lib/bandShare'
 
 const CUSTOM_SONG = 'custom-song'
 
 function formatDate(value) {
-  if (!value) return ''
-  return new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  })
+  return bandEventDate(value)
+}
+
+function updatedLabel(value) {
+  if (!value) return 'Update time unavailable'
+  const seconds = Math.max(0, Math.round((Date.now() - new Date(value).getTime()) / 1000))
+  if (seconds < 60) return 'Updated just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `Updated ${minutes} minute${minutes === 1 ? '' : 's'} ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = Math.floor(hours / 24)
+  return `Updated ${days} day${days === 1 ? '' : 's'} ago`
 }
 
 function formatDuration(value) {
@@ -119,6 +129,7 @@ export default function BandPacket() {
   const [chartHeight, setChartHeight] = useState(0)
   const [pdfs, setPdfs] = useState({})
   const [awake, setAwake] = useState(false)
+  const [shareStatus, setShareStatus] = useState('')
   const measureRef = useRef(null)
   const chartRef = useRef(null)
   const chartViewportRef = useRef(null)
@@ -136,6 +147,10 @@ export default function BandPacket() {
       .then(saved => {
         if (cancelled) return
         setShow(saved)
+        const canonicalUrl = bandShareUrl(window.location.origin, token, saved.name)
+        if (window.location.pathname !== new URL(canonicalUrl).pathname) {
+          window.history.replaceState({}, '', canonicalUrl)
+        }
         const first = buildPacket(saved.songs).entries[0]
         setSelectedKey(first?.key || '')
       })
@@ -237,6 +252,30 @@ export default function BandPacket() {
     }
   }
 
+  async function shareShow() {
+    const url = bandShareUrl(window.location.origin, token, show.name)
+    const text = bandShareMessage(show)
+    setShareStatus('')
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: show.name || 'Band show', text, url })
+        setShareStatus('Show shared')
+      } else {
+        await navigator.clipboard.writeText(`${text}\n\nBand charts and show order:\n${url}`)
+        setShareStatus('Event details and link copied')
+      }
+    } catch (error) {
+      if (error?.name === 'AbortError') return
+      try {
+        await navigator.clipboard.writeText(`${text}\n\nBand charts and show order:\n${url}`)
+        setShareStatus('Event details and link copied')
+      } catch {
+        setShareStatus('Sharing is unavailable on this device')
+      }
+    }
+    window.setTimeout(() => setShareStatus(''), 3500)
+  }
+
   function handleTouchStart(event) {
     touchStartRef.current = event.changedTouches[0]?.clientX ?? null
   }
@@ -269,11 +308,15 @@ export default function BandPacket() {
         <span className="bp-eyebrow">Rainbow Heart Band View</span>
         <h1>{show.name || 'Show'}</h1>
         {show.event_date && <p>{formatDate(show.event_date)}</p>}
+        <span className="bp-updated">{updatedLabel(show.updated_at)}</span>
       </div>
       <div className="bp-header-actions">
         <button type="button" onClick={() => setListOpen(true)}>Show order</button>
+        <button type="button" className="bp-share-button" onClick={shareShow}>Share show</button>
+        <button type="button" onClick={() => window.location.reload()}>Refresh</button>
         {canWake && <button type="button" className={awake ? 'active' : ''} aria-pressed={awake} onClick={toggleWakeLock}>{awake ? 'Screen awake' : 'Keep awake'}</button>}
         {canFullscreen && <button type="button" onClick={() => document.documentElement.requestFullscreen()}>Full screen</button>}
+        {shareStatus && <span className="bp-share-status" role="status">{shareStatus}</span>}
       </div>
       {(show.event_details || show.event_url) && <details className="bp-show-details">
         <summary>Show notes and event details</summary>
