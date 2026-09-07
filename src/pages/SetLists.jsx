@@ -64,12 +64,14 @@ function SidebarSection({ title, items, activeId, onOpen, onDelete, onDuplicate 
               className="sl-dup-btn"
               onClick={e => { e.stopPropagation(); onDuplicate(sl) }}
               title="Duplicate show"
-            >⧉</button>
+              aria-label={`Duplicate ${sl.name}`}
+            >Duplicate</button>
             <button
               className="cc-lib-delete"
               onClick={e => { e.stopPropagation(); onDelete(sl.id, sl.name, e) }}
               title="Delete"
-            >✕</button>
+              aria-label={`Delete ${sl.name}`}
+            >Remove</button>
           </div>
         )
       })}
@@ -101,6 +103,7 @@ export default function SetLists() {
   const [dragIdx,     setDragIdx]     = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
   const [uploadingPdf, setUploadingPdf] = useState(null)
+  const [editingTimeKey, setEditingTimeKey] = useState(null)
   const nameRef = useRef(null)
 
   function focusNameField() {
@@ -562,6 +565,41 @@ export default function SetLists() {
     return secs > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${mins}:00`
   }
 
+  function renderSongTime(song, idx) {
+    const timeKey = song._customId || song._songId || `song-${idx}`
+    if (editingTimeKey === timeKey) {
+      return (
+        <div className="sl-duration-editor">
+          <input
+            type="number"
+            className="sl-duration-input"
+            value={song.duration ?? ''}
+            min="0.25" max="20" step="0.25"
+            placeholder="min"
+            autoFocus
+            onChange={e => handleItemDurationChange(idx, e.target.value)}
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => { if (e.key === 'Enter') setEditingTimeKey(null) }}
+            title="Song length in minutes (0.25 = 15 sec)"
+            aria-label={`Runtime for ${song.title || 'song'} in minutes`}
+          />
+          <button type="button" onClick={() => setEditingTimeKey(null)}>Done</button>
+        </div>
+      )
+    }
+    return (
+      <button
+        type="button"
+        className="sl-duration-fixed"
+        onClick={() => setEditingTimeKey(timeKey)}
+        aria-label={`Change runtime for ${song.title || 'song'}`}
+        title="Change runtime"
+      >
+        <span>{song.duration ? fmtSongDur(song.duration) : 'No time'}</span>
+      </button>
+    )
+  }
+
   const libQ = libQuery.trim().toLowerCase()
   const displayLibrary = [...library]
     .sort((a, b) => {
@@ -579,13 +617,11 @@ export default function SetLists() {
 
       {/* ── Left: performance history sidebar ── */}
       <div className="sl-sidebar">
-        <div className="cc-input-header" style={{ margin: '-1.25rem -1.25rem 0', padding: '1rem 1.25rem 0.75rem' }}>
-          <div className="cc-header-row">
-            <h2 style={{ fontSize: '1rem', margin: 0 }}>🎤 Shows</h2>
-          </div>
-          <div className="cc-savebar">
-            <button className="cc-btn-solid" onClick={startNew}>+ New Show</button>
-          </div>
+        <div className="sl-sidebar-header">
+          <span className="sl-sidebar-eyebrow">Show Builder</span>
+          <h2>Shows</h2>
+          <p>Plan the night. Share the same page.</p>
+          <button className="cc-btn-solid" onClick={startNew}>New Show</button>
         </div>
 
         <div style={{ paddingTop: '0.75rem' }}>
@@ -596,7 +632,7 @@ export default function SetLists() {
           ) : (
             <>
               <SidebarSection
-                title="📅 Upcoming"
+                title="Upcoming"
                 items={upcoming}
                 activeId={active?.id}
                 onOpen={openForEdit}
@@ -604,7 +640,7 @@ export default function SetLists() {
                 onDuplicate={handleDuplicate}
               />
               <SidebarSection
-                title="✓ Past Performances"
+                title="Past Performances"
                 items={past}
                 activeId={active?.id}
                 onOpen={openForEdit}
@@ -621,15 +657,17 @@ export default function SetLists() {
         <div className="sl-editor">
 
           {/* Sticky header */}
-          <div className="cc-input-header" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', margin: 0, padding: '1rem 1.5rem 0.75rem', borderBottom: '1px solid var(--border)' }}>
-            <div className="cc-header-row" style={{ gap: '0.75rem' }}>
-              <span
+          <div className="sl-editor-header">
+            <div className="sl-editor-heading">
+              <span className="sl-editor-kicker">Current show</span>
+              <button
+                type="button"
                 className="sl-editor-name sl-editor-name-btn"
                 onClick={focusNameField}
                 title="Click to rename this show"
               >
-                {name || 'Untitled Show'} <span className="sl-rename-pencil">✏</span>
-              </span>
+                {name || 'Untitled Show'} <span className="sl-rename-pencil">Rename</span>
+              </button>
               {/* Quick-jump dropdown */}
               {setlists.length > 0 && (
                 <select
@@ -640,7 +678,7 @@ export default function SetLists() {
                 >
                   <option value="">Jump to…</option>
                   {upcoming.length > 0 && (
-                    <optgroup label="📅 Upcoming">
+                    <optgroup label="Upcoming">
                       {upcoming.map(sl => (
                         <option key={sl.id} value={sl.id}>
                           {sl.event_date ? fmtDate(sl.event_date) + ' · ' : ''}{sl.name}
@@ -649,7 +687,7 @@ export default function SetLists() {
                     </optgroup>
                   )}
                   {past.length > 0 && (
-                    <optgroup label="✓ Past Performances">
+                    <optgroup label="Past Performances">
                       {past.map(sl => (
                         <option key={sl.id} value={sl.id}>
                           {sl.event_date ? fmtDate(sl.event_date) + ' · ' : ''}{sl.name}
@@ -666,7 +704,7 @@ export default function SetLists() {
               </button>
               {items.length > 0 && (
                 <button className="cc-btn-ghost" onClick={handlePrintSetList} title="Print a song-order reference sheet">
-                  🖨 Print Set
+                  Print Setlist
                 </button>
               )}
               {chartSongCount > 0 && (
@@ -675,7 +713,7 @@ export default function SetLists() {
                   onClick={handlePrintOriginalCharts}
                   title="Reload and print every current saved song directly from your Chord Chart library."
                 >
-                  🖨 Print Original Charts
+                  Print Charts
                 </button>
               )}
               {items.length > 0 && (
@@ -684,7 +722,7 @@ export default function SetLists() {
                   onClick={handleCopyBandLink}
                   title="Copy a read-only packet with setlists, charts, notes, breaks, and outside songs"
                 >
-                  🔗 Copy Band Link
+                  Copy Band Link
                 </button>
               )}
               {saveMsg  && <span className={saveMsg.startsWith('Error') ? 'cc-unsaved' : 'cc-save-msg'}>{saveMsg}</span>}
@@ -698,7 +736,7 @@ export default function SetLists() {
 
               {/* Show name */}
               <label className="sl-name-label">
-                <span>✏ Show name</span>
+                <span>Show name</span>
                 <input
                   ref={nameRef}
                   className="sl-name-field"
@@ -710,7 +748,7 @@ export default function SetLists() {
 
               {/* Event details card */}
               <div className="sl-event-card">
-                <div className="sl-panel-title" style={{ marginBottom: '0.75rem' }}>Event Details</div>
+                <div className="sl-panel-title sl-numbered-title"><span>01</span> Event Details</div>
                 <div className="sl-event-fields">
                   <label className="sl-event-label">
                     <span>Date</span>
@@ -751,8 +789,8 @@ export default function SetLists() {
 
               {/* Set order */}
               <div className="sl-panel-header sl-order-header">
-                <span className="sl-panel-title">
-                  Set Order · {songCount} song{songCount !== 1 ? 's' : ''}
+                <span className="sl-panel-title sl-numbered-title">
+                  <span>02</span> Run of Show · {songCount} song{songCount !== 1 ? 's' : ''}
                   {setCount > 0 ? ` · ${setCount} set${setCount !== 1 ? 's' : ''}` : ''}
                   {breakCount > 0 ? ` · ${breakCount} break${breakCount !== 1 ? 's' : ''}` : ''}
                   {noteCount > 0 ? ` · ${noteCount} note${noteCount !== 1 ? 's' : ''}` : ''}
@@ -765,19 +803,19 @@ export default function SetLists() {
                       disabled={saving}
                       title="Pull latest edits from your chord chart library"
                     >
-                      <span aria-hidden="true">↻</span> Sync Charts
+                      Sync Charts
                     </button>
                   )}
                   <div className="sl-order-add-group">
                     <span className="sl-order-group-label">Add to show</span>
                     <button className="sl-order-add" onClick={handleAddSet} title="Add a named set divider; song numbering restarts in each set">
-                      <span aria-hidden="true">🎼</span> Set
+                      Set
                     </button>
                     <button className="sl-order-add" onClick={handleAddBreak}>
-                      <span aria-hidden="true">☕</span> Break
+                      Break
                     </button>
                     <button className="sl-order-add" onClick={handleAddNote} title="Add a note or announcement reminder">
-                      <span aria-hidden="true">📝</span> Note
+                      Note
                     </button>
                     <button className="sl-order-add outside" onClick={handleAddCustomSong} title="Add a timed song that is not in your chart library">
                       Outside Song
@@ -791,7 +829,7 @@ export default function SetLists() {
 
               {totalMins > 0 && (
                 <div className="sl-time-summary">
-                  <span className="sl-time-icon">⏱</span>
+                  <span className="sl-time-label">Estimated run time</span>
                   <span className="sl-time-total">~{fmtDuration(totalMins)}</span>
                   <span className="sl-time-detail">
                     {songCount} song{songCount !== 1 ? 's' : ''}
@@ -822,7 +860,7 @@ export default function SetLists() {
                       return (
                         <div key={idx} className={`sl-set-row${dragClass}`} {...dragProps}>
                           <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
-                          <span className="sl-set-icon">🎼</span>
+                          <span className="sl-row-kind">Set</span>
                           <input
                             className="sl-set-label-input"
                             value={song.label || ''}
@@ -842,7 +880,7 @@ export default function SetLists() {
                       return (
                         <div key={idx} className={`sl-break-row${dragClass}`} {...dragProps}>
                           <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
-                          <span className="sl-break-icon">☕</span>
+                          <span className="sl-row-kind">Break</span>
                           <input
                             className="sl-break-label-input"
                             value={song.label || 'Break'}
@@ -867,7 +905,7 @@ export default function SetLists() {
                       return (
                         <div key={idx} className={`sl-note-row${dragClass}`} {...dragProps}>
                           <span className="sl-drag-handle" title="Drag to reorder">⠿</span>
-                          <span className="sl-note-icon">📝</span>
+                          <span className="sl-row-kind">Note</span>
                           <div className="sl-note-body">
                             <input
                               className="sl-note-label-input"
@@ -927,17 +965,7 @@ export default function SetLists() {
                               )}
                             </div>
                           </div>
-                          <input
-                            type="number"
-                            className="sl-duration-input"
-                            value={song.duration ?? ''}
-                            min="0.25" max="20" step="0.25"
-                            placeholder="min"
-                            onChange={e => handleItemDurationChange(idx, e.target.value)}
-                            onClick={e => e.stopPropagation()}
-                            title="Song length in minutes (0.25 = 15 sec)"
-                          />
-                          {song.duration ? <span className="sl-dur-badge">{fmtSongDur(song.duration)}</span> : null}
+                          {renderSongTime(song, idx)}
                           <div className="sl-song-controls">
                             <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
                           </div>
@@ -957,17 +985,7 @@ export default function SetLists() {
                             </div>
                           )}
                         </div>
-                        <input
-                          type="number"
-                          className="sl-duration-input"
-                          value={song.duration ?? ''}
-                          min="0.25" max="20" step="0.25"
-                          placeholder="min"
-                          onChange={e => handleItemDurationChange(idx, e.target.value)}
-                          onClick={e => e.stopPropagation()}
-                          title="Song length in minutes (0.25 = 15 sec)"
-                        />
-                        {song.duration ? <span className="sl-dur-badge">{fmtSongDur(song.duration)}</span> : null}
+                        {renderSongTime(song, idx)}
                         <div className="sl-song-controls">
                           <button className="cc-lib-delete" onClick={() => handleRemove(idx)} title="Remove from set">✕</button>
                         </div>
@@ -1015,7 +1033,7 @@ export default function SetLists() {
                   type="search"
                   value={libQuery}
                   onChange={e => setLibQuery(e.target.value)}
-                  placeholder="🔍 Search songs…"
+                  placeholder="Search songs…"
                 />
                 {loadingLib ? (
                   <p className="cc-hint" style={{ padding: '0.75rem' }}>Loading…</p>
@@ -1052,8 +1070,10 @@ export default function SetLists() {
         </div>
       ) : (
         <div className="sl-empty-state">
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎵</div>
-          <div>Select a show or create a new one</div>
+          <span className="sl-empty-kicker">Show Builder</span>
+          <h2>Build the night from one place.</h2>
+          <p>Select a show from the archive or create a new one.</p>
+          <button className="cc-btn-solid" onClick={startNew}>New Show</button>
         </div>
       )}
     </div>

@@ -1,0 +1,46 @@
+{
+  "$schema": "../rainbowheart-os/schemas/app-profile.schema.json",
+  "schemaVersion": 1,
+  "designSystemVersion": "0.6.0",
+  "app": "Rainbow Heart Studio",
+  "projectId": "proj-003",
+  "foundation": "scaffold",
+  "targetIdentity": "rainbow-heart",
+  "closestCompetingIdentity": "scaffold",
+  "primaryAudience": "Studio guests and authenticated working musicians, with the Show Builder optimized for bandleaders",
+  "operatingEnvironment": "public website plus authenticated Studio tools; Show Builder is desktop-primary with mobile editing as a strong secondary workflow",
+  "identityRationale": "The Show Builder is a supportive Studio planning tool used before and around performances; Rainbow Heart fits its collaborative relationship better than Spotlight, while Scaffold remains the structural baseline.",
+  "currentPhase": "identity-review",
+  "surfaces": {
+    "publicHome": "rainbow-heart",
+    "publicNavigationAndFooter": "rainbow-heart",
+    "showBuilder": "rainbow-heart",
+    "bandPacketAndPrint": "scaffold",
+    "otherAuthenticatedStudioTools": "scaffold"
+  },
+  "reviewSafety": {
+    "dataMode": "production-connected-static-only",
+    "interactiveMutationAllowed": false,
+    "productionBannerRequired": true,
+    "resetStrategy": "Do not save, upload, delete, duplicate, sync, or share production-connected records during review.",
+    "notes": "Jonathan explicitly requested a Rainbow Heart OS makeover for the Show Builder on 2026-09-06. Auth, data behavior, print rendering, other Studio tools, and deployment remain outside this pass."
+  },
+  "requiredChecks": [
+    "phone",
+    "tabletPortrait",
+    "tabletLandscape",
+    "desktop",
+    "keyboard",
+    "textZoom200",
+    "reducedMotion"
+  ],
+  "prohibited": [
+    "horizontalPageScroll",
+    "emojiOnlyControls",
+    "productionSecrets",
+    "themeChangesToAuthorization",
+    "reviewMutations"
+  ],
+  "handoff": "DESIGN_HANDOFF.md",
+  "nextAction": "Run a local non-mutating rendered review of the Show Builder at the four reference viewports before any deployment decision."
+}
