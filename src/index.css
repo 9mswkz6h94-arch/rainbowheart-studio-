@@ -5980,7 +5980,7 @@ details[open] .cc-tabs-summary::before { content: '▼ '; }
 .bp-state h1 { max-width: 20ch; margin: 0.5rem 0; font-family: 'Fraunces', serif; font-size: clamp(2rem, 7vw, 4rem); }
 .bp-state.error { color: #8b2028; }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .bp-header { grid-template-columns: minmax(0, 1fr); padding: 0.85rem; }
   .bp-header-actions { display: grid; grid-template-columns: repeat(3, 1fr); }
   .bp-header-actions button { min-width: 0; padding-inline: 0.35rem; }
