@@ -3,7 +3,7 @@
 **Project:** `proj-003`  
 **Design-system version:** `0.6.0`  
 **Current phase:** Rainbow Heart identity implementation - Show Builder only  
-**Last updated:** 2026-09-06
+**Last updated:** 2026-09-07
 
 ## What changed
 
@@ -22,17 +22,15 @@
 - Auth, Supabase, setlist persistence, uploads, chart syncing, sharing, routes, print rendering, and chart layout.
 - Band Packet and print identities.
 - Public pages or other authenticated Studio tools.
-- Production deployment.
 
 ## Verification
 
-The Vite production build passes with 154 transformed modules. Rainbow Heart OS 0.6.0 and connected-app metadata validation pass. Local non-mutating rendered review passed at 390x844, 768x1024, 1024x768, and 1440x900 with zero horizontal overflow, zero song-title/time collisions, no undersized visible Show Builder controls, and successful Inter, Fraunces, and Space Mono loading. True 200% zoom, a complete keyboard sweep, reduced-motion emulation, cross-browser, assistive-technology, and physical-device checks remain open.
+The Vite production build passes with 154 transformed modules. Rainbow Heart OS 0.6.0 and connected-app metadata validation pass. Local non-mutating rendered review passed at 390x844, 768x1024, 1024x768, and 1440x900 with zero horizontal overflow, zero song-title/time collisions, no undersized visible Show Builder controls, and successful Inter, Fraunces, and Space Mono loading. Commit `2547f92` was pushed to `main`; the production bundle, font delivery, live `/studio/setlists` route, and absence of browser errors were verified. True 200% zoom, a complete keyboard sweep, reduced-motion emulation, cross-browser, assistive-technology, and physical-device checks remain open.
 
 ## Known open items
 
-- Keyboard order, focus visibility, 200% zoom, reduced motion, long-content, and physical-device evidence.
+- Keyboard order, focus visibility, 200% zoom, reduced motion, cross-browser, assistive-technology, and physical-device evidence.
 - Owner visual approval.
-- Separate deployment authorization.
 
 ## Exact implementation files
 
@@ -46,4 +44,4 @@ The Vite production build passes with 154 transformed modules. Rainbow Heart OS 
 
 ## One next action
 
-Run a local non-mutating rendered review of the redesigned Show Builder at the four reference viewports, then present it for owner approval before deployment.
+Complete the remaining keyboard, 200% zoom, reduced-motion, cross-browser, assistive-technology, and physical-device review gates.
