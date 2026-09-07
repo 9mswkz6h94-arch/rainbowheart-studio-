@@ -416,7 +416,7 @@ export default function SetLists() {
     }
     try {
       await navigator.clipboard.writeText(`${window.location.origin}/band/${active.token}`)
-      setSaveMsg('Band packet link copied')
+      setSaveMsg('Interactive band link copied')
     } catch {
       setSaveMsg('Could not copy the band link')
     }

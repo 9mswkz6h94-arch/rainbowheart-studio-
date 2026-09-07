@@ -11,6 +11,7 @@ import ChordCharts from './pages/ChordCharts'
 import TabStudio from './pages/TabStudio'
 import SetLists from './pages/SetLists'
 import SetListPrint from './pages/SetListPrintV2'
+import BandPacket from './pages/BandPacket'
 import SetListView from './pages/SetListView'
 import PresentControl from './pages/PresentControl'
 import PresentDisplay from './pages/PresentDisplay'
@@ -32,10 +33,11 @@ export default function App() {
   // the site nav and footer would eat screen space and show to the audience.
   const { pathname } = useLocation()
   const isPresenting = pathname.startsWith('/present/')
+  const isBandPacket = pathname.startsWith('/band/')
 
   return (
     <>
-      {!isPresenting && <Navbar />}
+      {!isPresenting && !isBandPacket && <Navbar />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -52,7 +54,8 @@ export default function App() {
           <Route path="/studio/setlists/:id/print" element={
             <ProtectedRoute><SetListPrint /></ProtectedRoute>
           } />
-          <Route path="/band/:token" element={<SetListPrint publicPacket />} />
+          <Route path="/band/:token" element={<BandPacket />} />
+          <Route path="/band/:token/print" element={<SetListPrint publicPacket />} />
           <Route path="/studio/tab-studio" element={
             <ProtectedRoute><TabStudio /></ProtectedRoute>
           } />
@@ -82,8 +85,8 @@ export default function App() {
           <Route path="/terms/open-mic" element={<OpenMicTerms />} />
         </Routes>
       </main>
-      {!isPresenting && <Footer />}
-      {!isPresenting && <ScrollToTopButton />}
+      {!isPresenting && !isBandPacket && <Footer />}
+      {!isPresenting && !isBandPacket && <ScrollToTopButton />}
     </>
   )
 }

@@ -48,3 +48,5 @@ The Vite production build passes with 154 transformed modules. Rainbow Heart OS 
 Complete the remaining keyboard, 200% zoom, reduced-motion, cross-browser, assistive-technology, and physical-device review gates.
 
 - Separated show selection from show management: the full title area opens the show, while Duplicate and Delete live behind a distinct More menu and Delete retains confirmation.
+- Added a dedicated mobile/tablet-first Band View at `/band/:token`: saved Studio charts render through the existing chart engine, attached outside-song PDFs load only when selected, and the existing public print composer remains available at `/band/:token/print`.
+- Band View includes set navigation, breaks, notes, outside songs, event details, previous/next controls, keyboard and swipe progression, fit/zoom controls, fullscreen, and optional screen wake lock. No schema, auth, stored chart, or PDF mutation was introduced.
