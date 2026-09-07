@@ -15,6 +15,7 @@
 - Strengthened the mobile editor with a compact show header, full-width save priority, two-column output actions, stacked event fields, and 48px bottom editing actions.
 - Moved show-card actions and song runtime controls onto secondary rows so long show and song titles retain the full primary reading lane.
 - Replaced the persistent song-time input and duplicate formatted badge with a compact timestamp control and an overlay editor that does not increase card height.
+- Replaced popup-based setlist and chart printing with same-tab Print Center navigation; setlists open in Floor Setlists mode and charts open in Charts Only mode.
 - Bundled the accepted Inter, Fraunces, and Space Mono assets locally with their licenses.
 
 ## What was not changed

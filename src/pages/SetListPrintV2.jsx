@@ -151,7 +151,10 @@ export default function SetListPrintV2({ publicPacket = false }) {
   const { id, token } = useParams()
   const [show, setShow] = useState(null)
   const [items, setItems] = useState([])
-  const [mode, setMode] = useState('packet')
+  const [mode, setMode] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get('mode')
+    return ['floor', 'packet', 'charts'].includes(requested) ? requested : 'packet'
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const measureRef = useRef(null)
