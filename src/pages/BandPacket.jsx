@@ -257,7 +257,12 @@ export default function BandPacket() {
   const canWake = Boolean(navigator.wakeLock)
 
   return <div className="bp-root" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-    <div ref={measureRef} className="bp-measure" aria-hidden="true" />
+    <div
+      ref={measureRef}
+      className="bp-measure"
+      style={{ position: 'fixed', left: '-99999px', top: 0, overflow: 'visible', pointerEvents: 'none' }}
+      aria-hidden="true"
+    />
     <header className="bp-header">
       <div className="bp-show-copy">
         <span className="bp-eyebrow">Rainbow Heart Band View</span>
