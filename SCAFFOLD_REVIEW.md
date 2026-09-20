@@ -7,6 +7,8 @@
 
 ## Band View songbook review — 2026-09-20
 
+Two-page follow-up (mock-isolated): generated charts and PDFs passed paired-sheet geometry, odd final page, reverse-entry, keyboard progression, one/two-page switching, and gesture non-navigation checks. Four deterministic spread tests pass. 390x844, 768x1024, 1366x1024 landscape-tablet, and 1920x1080 display checks found no document overflow or sub-48px visible controls. Physical iPad/TV mirroring remains not tested. Evidence and exact files: `DESIGN_HANDOFF.md` → Two-page follow-up.
+
 This scoped review uses **mock-isolated** synthetic songs/PDF via `tests/songbook-vite.config.mjs`; the older Show Builder review below retains its original scope and history. Existing typography/palette is preserved; this is behavior/structure work, not identity acceptance.
 
 | Check | Result | Evidence |

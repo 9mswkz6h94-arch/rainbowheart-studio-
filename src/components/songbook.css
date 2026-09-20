@@ -58,6 +58,8 @@
 .bp-songbook .bp-book { flex: 1 1 auto; min-height: 120px; display: flex; flex-direction: column; }
 .bp-songbook .bp-zoom { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; flex: 0 0 auto; }
 .bp-songbook .bp-zoom-value { font-size: 14px; min-width: 48px; text-align: center; }
+.bp-songbook .bp-page-layout { display: flex; gap: 4px; }
+.bp-songbook .bp-page-layout button[aria-pressed="true"] { border-bottom: 3px solid currentColor; font-weight: 700; }
 .bp-songbook .bp-book-viewport {
   position: relative;
   flex: 1 1 auto;
@@ -72,8 +74,9 @@
 }
 .bp-songbook .bp-book-viewport:active { cursor: grabbing; }
 .bp-songbook .bp-book-paper { position: absolute; left: 50%; top: 50%; transform-origin: center; background: white; }
-.bp-songbook .bp-book-chart.stagewrap { display: block; width: 816px; padding: 0; margin: 0; }
-.bp-songbook .bp-book-chart .page { margin: 0; box-shadow: none; }
+.bp-songbook .bp-book-chart.stagewrap { display: flex; flex-direction: row; align-items: flex-start; gap: 16px; width: 100%; padding: 0; margin: 0; }
+.bp-songbook .bp-book-chart .page { flex: 0 0 816px; margin: 0; box-shadow: none; }
+.bp-songbook .bp-pdf-spread { display: flex; gap: 16px; align-items: flex-start; }
 .bp-songbook .bp-book-paper canvas { display: block; }
 .bp-songbook .bp-book-hint { flex: 0 0 auto; margin: 4px 0 0; font-size: 12px; text-align: center; color: var(--bp-muted); }
 .bp-songbook .bp-pdf-panel { display: flex; flex-direction: column; flex: 1 1 auto; width: 100%; min-height: 0; }

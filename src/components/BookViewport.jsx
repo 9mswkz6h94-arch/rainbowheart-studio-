@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 
 // Reading gestures never navigate. Pointer capture keeps a pinch/pan in this page.
-export default function BookViewport({ width, height, pageKey, children }) {
+export default function BookViewport({ width, height, pageKey, pagesPerView = 1, onLayoutChange, children }) {
   const viewport = useRef(null)
   const pointers = useRef(new Map())
   const gesture = useRef(null)
@@ -36,7 +36,7 @@ export default function BookViewport({ width, height, pageKey, children }) {
     gesture.current = null
     current.current = { zoom: 1, x: 0, y: 0 }
     setView(current.current)
-  }, [pageKey])
+  }, [pageKey, pagesPerView, width, height])
 
   function snapshot() {
     const points = [...pointers.current.values()]
@@ -82,10 +82,14 @@ export default function BookViewport({ width, height, pageKey, children }) {
     snapshot()
   }
 
-  return <section className="bp-book" aria-label="Songbook page">
+  return <section className="bp-book" aria-label={pagesPerView === 2 ? 'Songbook spread' : 'Songbook page'}>
     <div className="bp-zoom" aria-label="Page size">
+      <div className="bp-page-layout" role="group" aria-label="Reading layout">
+        <button type="button" aria-pressed={pagesPerView === 1} onClick={() => onLayoutChange(1)}>One page</button>
+        <button type="button" aria-pressed={pagesPerView === 2} onClick={() => onLayoutChange(2)}>Two pages</button>
+      </div>
       <button type="button" disabled={view.zoom <= 1} onClick={() => update({ ...view, zoom: Math.max(1, view.zoom - 0.5) })}>Smaller</button>
-      <button type="button" onClick={() => update({ zoom: 1, x: 0, y: 0 })}>Fit page</button>
+      <button type="button" onClick={() => update({ zoom: 1, x: 0, y: 0 })}>{pagesPerView === 2 ? 'Fit spread' : 'Fit page'}</button>
       <button type="button" disabled={view.zoom >= 5} onClick={() => update({ ...view, zoom: Math.min(5, view.zoom + 0.5) })}>Larger</button>
       <span className="bp-zoom-value" aria-live="polite">{Math.round(view.zoom * 100)}%</span>
     </div>

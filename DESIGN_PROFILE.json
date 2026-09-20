@@ -43,5 +43,5 @@
     "reviewMutations"
   ],
   "handoff": "DESIGN_HANDOFF.md",
-  "nextAction": "Verify the songbook on the rehearsal tablet: page turns, pinch/pan, and the collapsible setlist. Isolated review entry: tests/songbook-review.html with tests/songbook-vite.config.mjs."
+  "nextAction": "Verify One page / Two pages on the rehearsal iPad and mirrored TV: spread turns, pinch/pan, and the collapsible setlist. Isolated review entry: tests/songbook-review.html with tests/songbook-vite.config.mjs."
 }

@@ -4,6 +4,7 @@ import { fetchSetListByToken } from '../lib/setlists'
 import { fetchSetListPdfUrl } from '../lib/setlistPdfs'
 import BandChartPage from '../components/BandChartPage'
 import { bandEventDate, bandShareMessage, bandShareUrl } from '../lib/bandShare'
+import { bookSpread, pageLabel } from '../lib/songbook.mjs'
 import '../components/songbook.css'
 
 const CUSTOM_SONG = 'custom-song'
@@ -119,6 +120,9 @@ export default function BandPacket() {
   const [listOpen, setListOpen] = useState(() => window.matchMedia('(min-width: 1000px)').matches)
   const [page, setPage] = useState(0)
   const [pageCount, setPageCount] = useState(0)
+  const [pagesPerView, setPagesPerView] = useState(() => {
+    try { return localStorage.getItem('band-pages-per-view') === '2' ? 2 : 1 } catch { return 1 }
+  })
   const [toolsOpen, setToolsOpen] = useState(false)
   const [pdfs, setPdfs] = useState({})
   const [awake, setAwake] = useState(false)
@@ -133,7 +137,13 @@ export default function BandPacket() {
   const selected = packet.entries[selectedIndex] || null
   const hasPages = selected?.kind === 'chart' || (selected?.kind === CUSTOM_SONG && Boolean(selected.item.pdf?.path))
   const count = hasPages ? pageCount : 1
-  const currentPage = Math.min(page, Math.max(0, count - 1))
+  const { start: currentPage, end: pageEnd } = bookSpread(page, count, pagesPerView)
+
+  function changePageLayout(value) {
+    setPage(currentPage)
+    setPagesPerView(value)
+    try { localStorage.setItem('band-pages-per-view', String(value)) } catch { /* Reading still works without storage. */ }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -208,7 +218,7 @@ export default function BandPacket() {
 
   function turnPage(offset) {
     if (!count) return
-    const nextPage = currentPage + offset
+    const nextPage = currentPage + offset * pagesPerView
     if (nextPage >= 0 && nextPage < count) { setPage(nextPage); return }
     const next = packet.entries[selectedIndex + offset]
     if (next) selectEntry(next.key, offset < 0)
@@ -312,14 +322,14 @@ export default function BandPacket() {
           </div>
         </div>
 
-        {selected.kind === 'chart' && <BandChartPage key={selected.key} item={selected.item} page={page} onCount={onPageCount} />}
+        {selected.kind === 'chart' && <BandChartPage key={selected.key} item={selected.item} page={page} onCount={onPageCount} pagesPerView={pagesPerView} onLayoutChange={changePageLayout} />}
 
         {selected.kind === CUSTOM_SONG && <section className="bp-pdf-panel">
           {!selected.item.pdf?.path && <div className="bp-empty-document"><span className="bp-eyebrow">Outside song</span><h3>No PDF is attached.</h3><p>Use the title and timing above as the band reference.</p></div>}
           {pdfState?.status === 'loading' && <div className="bp-empty-document"><h3>Opening the original PDF...</h3><p>Only this chart is being loaded.</p></div>}
           {pdfState?.status === 'error' && <div className="bp-empty-document error"><h3>The PDF could not open.</h3><p>{pdfState.error}</p></div>}
           {pdfState?.url && <Suspense fallback={<p role="status">Loading PDF reader…</p>}>
-            <BandPdfPage key={`${selected.key}-${pdfState.url}`} url={pdfState.url} title={entryTitle(selected)} page={page} onCount={onPageCount} />
+            <BandPdfPage key={`${selected.key}-${pdfState.url}`} url={pdfState.url} title={entryTitle(selected)} page={page} onCount={onPageCount} pagesPerView={pagesPerView} onLayoutChange={changePageLayout} />
           </Suspense>}
         </section>}
 
@@ -330,16 +340,16 @@ export default function BandPacket() {
 
     <footer className="bp-controls">
       <button type="button" onClick={() => turnPage(-1)} disabled={!count || (selectedIndex === 0 && currentPage === 0)}>
-        <span>← {currentPage > 0 ? 'Previous page' : 'Previous song / item'}</span>
-        <strong>{currentPage > 0 ? `Page ${currentPage}` : entryTitle(packet.entries[selectedIndex - 1]) || 'Start of show'}</strong>
+        <span>← {currentPage > 0 ? (pagesPerView === 2 ? 'Previous spread' : 'Previous page') : 'Previous song / item'}</span>
+        <strong>{currentPage > 0 ? pageLabel(Math.max(0, currentPage - pagesPerView), currentPage) : entryTitle(packet.entries[selectedIndex - 1]) || 'Start of show'}</strong>
       </button>
       <div className="bp-controls-center">
-        <span className="bp-page-number" aria-live="polite">{count ? `Page ${currentPage + 1} of ${count}` : 'Loading pages…'}</span>
+        <span className="bp-page-number" aria-live="polite">{count ? `${pageLabel(currentPage, pageEnd)} of ${count}` : 'Loading pages…'}</span>
         <Link to={`/band/${token}/print?mode=packet`}>Print options</Link>
       </div>
-      <button type="button" onClick={() => turnPage(1)} disabled={!count || (selectedIndex === packet.entries.length - 1 && currentPage === count - 1)}>
-        <span>{currentPage < count - 1 ? 'Next page' : 'Next song / item'} →</span>
-        <strong>{currentPage < count - 1 ? `Page ${currentPage + 2}` : entryTitle(packet.entries[selectedIndex + 1]) || 'End of show'}</strong>
+      <button type="button" onClick={() => turnPage(1)} disabled={!count || (selectedIndex === packet.entries.length - 1 && pageEnd === count)}>
+        <span>{pageEnd < count ? (pagesPerView === 2 ? 'Next spread' : 'Next page') : 'Next song / item'} →</span>
+        <strong>{pageEnd < count ? pageLabel(pageEnd, Math.min(count, pageEnd + pagesPerView)) : entryTitle(packet.entries[selectedIndex + 1]) || 'End of show'}</strong>
       </button>
     </footer>
   </div>

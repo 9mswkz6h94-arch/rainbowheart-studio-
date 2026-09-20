@@ -1,12 +1,14 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { fitTitles, layout, parseSong } from '../lib/chartEngine'
 import BookViewport from './BookViewport'
+import { bookSpread } from '../lib/songbook.mjs'
 
-export default function BandChartPage({ item, page, onCount }) {
+export default function BandChartPage({ item, page, onCount, pagesPerView, onLayoutChange }) {
   const measure = useRef(null)
   const chart = useRef(null)
   const [count, setCount] = useState(0)
   const [error, setError] = useState(false)
+  const spread = bookSpread(page, count, pagesPerView)
   useLayoutEffect(() => {
     let cancelled = false
     async function render() {
@@ -35,17 +37,16 @@ export default function BandChartPage({ item, page, onCount }) {
   }, [item, onCount])
 
   useLayoutEffect(() => {
-    const active = Math.min(page, Math.max(0, count - 1))
     chart.current?.querySelectorAll('.page').forEach((element, index) => {
-      element.hidden = index !== active
+      element.hidden = index < spread.start || index >= spread.end
     })
-  }, [page, count])
+  }, [spread.start, spread.end, count])
 
   return <>
     <div ref={measure} aria-hidden="true" style={{ position: 'fixed', left: '-99999px', top: 0, pointerEvents: 'none' }} />
     {error && <p role="alert">This chart could not be rendered. Choose another song from the setlist or open Print options.</p>}
     {!count && !error && <p role="status">Preparing chart pages…</p>}
-    <BookViewport width={816} height={1032} pageKey={page}>
+    <BookViewport width={spread.length === 2 ? 1648 : 816} height={1032} pageKey={spread.start} pagesPerView={pagesPerView} onLayoutChange={onLayoutChange}>
       <div ref={chart} className="stagewrap bp-book-chart" />
     </BookViewport>
   </>

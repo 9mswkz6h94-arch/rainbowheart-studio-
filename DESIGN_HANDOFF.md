@@ -7,6 +7,18 @@
 
 ## Tablet songbook — 2026-09-20
 
+### Two-page follow-up
+
+- Added explicit One page / Two pages controls for generated charts and PDFs. The browser remembers only this reading preference in `band-pages-per-view`; no show data is stored there.
+- Spreads stay within a song and align 1–2, 3–4, etc. An unpaired final page or single-page song is centered. Next/Previous and keyboard arrows move by spread; going backward across songs enters the final spread. Changing modes preserves the current reading range and resets zoom to fit.
+- Both PDF sheets render through the existing local PDF.js worker, with at most two canvases at the existing capped resolution. Pinch/pan changes the complete spread transform and cannot navigate.
+- Mock-isolated evidence: side-by-side chart and PDF rendering, odd third-page centering, forward/reverse song boundaries, keyboard spread turns, one/two-page switching, stored preference after reload, and synthetic pinch/pan/cancel/swipe regression passed. At 390x844, 768x1024, 1366x1024, and 1920x1080 there was no document overflow and all visible production targets were at least 48px. Fixed inherited `stagewrap` column direction exposed by the first rendered test.
+- Four deterministic tests in `tests/songbook.test.mjs` cover alignment, odd/even backward entry, page coverage, and labels. The fixture now has three chart/PDF pages to exercise odd endings.
+- Physical iPad Safari, TV mirroring/casting, actual private PDFs, assistive technology, and true 200% browser zoom remain untested. This is a display mode for existing screen mirroring, not a new casting or remote-control service.
+- Files: `src/lib/songbook.mjs`, `src/pages/BandPacket.jsx`, `src/components/{BookViewport,BandChartPage,BandPdfPage}.jsx`, `src/components/songbook.css`, and `tests/songbook-*`.
+
+Next device check: refresh Band View, choose Two pages, hide the setlist, and use Show tools → Full screen where supported; mirror that window to the practice TV using the existing laptop/display setup.
+
 Jonathan requested page-by-page reading, a collapsible left setlist, and elimination of accidental song changes while zooming/panning, for rehearsal at 17:00 Central. This bounded Band View implementation uses an isolated release worktree from published `6083177`, separate from the import/Shared Memory branch and preserved older WIP.
 
 - Band View renders one chart or PDF page at a time, fits the complete page to the remaining viewport, and advances through pages before the next show item. Backward reading enters the previous item's final page.
