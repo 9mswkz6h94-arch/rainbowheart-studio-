@@ -1,9 +1,27 @@
 # Scaffold Review - Rainbow Heart Studio Show Builder
 
 **Project:** `proj-003`  
-**Design-system version:** `0.6.0`  
+**Design-system version:** `0.8.0`
 **Review data mode:** production-connected-static-only  
-**Last updated:** 2026-09-06
+**Last updated:** 2026-09-20
+
+## Band View songbook review — 2026-09-20
+
+This scoped review uses **mock-isolated** synthetic songs/PDF via `tests/songbook-vite.config.mjs`; the older Show Builder review below retains its original scope and history. Existing typography/palette is preserved; this is behavior/structure work, not identity acceptance.
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Phone / tablet portrait / landscape / desktop | Passed | 390x844, 768x1024, 1024x768, 1440x900; document overflow 0px in both directions |
+| Single-page reading | Passed | One visible chart sheet, correct page label, correct forward/backward boundaries |
+| Touch target size | Passed | All visible production buttons/links at least 48x48 CSS px at all four widths |
+| Collapsible setlist | Passed | Rail collapses at desktop/tablet; phone drawer closes and returns focus |
+| Reading gestures | Passed in synthetic regression + mouse UI | Pinch zoom to 250%, drag, cancel, and swipe never changed song/page; browser mouse pan also passed |
+| Keyboard | Scoped pass | ArrowRight turns a chart page; phone Tab wraps inside drawer; Escape closes and restores focus |
+| PDF paging | Synthetic pass | Bundled worker rendered both fixture PDF pages and advanced to the next break |
+| Chart title | Passed | Natural-size title fitting before transform; visible title has nonzero proper height |
+| Live/private PDF, physical touch, 200% browser zoom, AT | Not tested | Requires device/attachment review; do not infer from synthetic checks |
+
+Detailed release evidence and remaining work: `DESIGN_HANDOFF.md` → Tablet songbook.
 
 | Gate | Status | Evidence | Follow-up |
 |---|---|---|---|

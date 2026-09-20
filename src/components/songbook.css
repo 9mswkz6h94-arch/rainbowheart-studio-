@@ -1,0 +1,119 @@
+/* Bounded Band View reading layout. Chart and print styles remain authoritative. */
+.bp-songbook.bp-root {
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.bp-songbook [hidden] { display: none !important; }
+.bp-songbook .bp-header {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  gap: 8px 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  max-height: 40dvh;
+  overflow: auto;
+}
+.bp-songbook .bp-show-copy .bp-eyebrow,
+.bp-songbook .bp-show-copy p,
+.bp-songbook .bp-updated { display: none; }
+.bp-songbook .bp-show-copy h1 { font-size: 20px; line-height: 1.2; }
+.bp-songbook .bp-header-actions { display: flex; }
+.bp-songbook .bp-tools { grid-column: 1 / -1; }
+.bp-songbook .bp-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+}
+.bp-songbook .bp-layout.bp-list-open { grid-template-columns: minmax(240px, 280px) minmax(0, 1fr); }
+.bp-songbook .bp-sidebar {
+  position: relative;
+  inset: auto;
+  height: 100%;
+  width: auto;
+  min-height: 0;
+  transform: none;
+  transition: none;
+  overscroll-behavior: contain;
+}
+.bp-songbook .bp-nav { padding: 12px; }
+.bp-songbook .bp-nav-close { display: block; }
+.bp-songbook .bp-nav-heading { gap: 8px; }
+.bp-songbook .bp-nav-copy strong { white-space: normal; overflow-wrap: anywhere; }
+.bp-songbook .bp-nav-item.active { border-left-width: 4px; }
+.bp-songbook .bp-scrim { display: none; }
+.bp-songbook .bp-viewer {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px 12px;
+  overflow: auto;
+}
+.bp-songbook .bp-item-heading { width: 100%; margin: 0 0 8px; gap: 12px; flex: 0 0 auto; }
+.bp-songbook .bp-item-heading h2 { font-size: 20px; line-height: 1.2; }
+.bp-songbook .bp-item-meta { font-size: 12px; }
+.bp-songbook .bp-book { flex: 1 1 auto; min-height: 120px; display: flex; flex-direction: column; }
+.bp-songbook .bp-zoom { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; flex: 0 0 auto; }
+.bp-songbook .bp-zoom-value { font-size: 14px; min-width: 48px; text-align: center; }
+.bp-songbook .bp-book-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 64px;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bp-bg, #ecece6);
+  touch-action: none;
+  overscroll-behavior: contain;
+  user-select: none;
+  cursor: grab;
+}
+.bp-songbook .bp-book-viewport:active { cursor: grabbing; }
+.bp-songbook .bp-book-paper { position: absolute; left: 50%; top: 50%; transform-origin: center; background: white; }
+.bp-songbook .bp-book-chart.stagewrap { display: block; width: 816px; padding: 0; margin: 0; }
+.bp-songbook .bp-book-chart .page { margin: 0; box-shadow: none; }
+.bp-songbook .bp-book-paper canvas { display: block; }
+.bp-songbook .bp-book-hint { flex: 0 0 auto; margin: 4px 0 0; font-size: 12px; text-align: center; color: var(--bp-muted); }
+.bp-songbook .bp-pdf-panel { display: flex; flex-direction: column; flex: 1 1 auto; width: 100%; min-height: 0; }
+.bp-songbook .bp-original-link { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; min-height: 48px; text-decoration: underline; }
+.bp-songbook .bp-marker,
+.bp-songbook .bp-empty-document { min-height: 0; flex: 1 1 auto; overflow: auto; }
+.bp-songbook .bp-controls {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  padding: 8px 12px max(8px, env(safe-area-inset-bottom));
+  gap: 8px;
+}
+.bp-songbook .bp-controls > button { min-height: 64px; justify-content: center; }
+.bp-songbook .bp-controls > button span { font-size: 12px; }
+.bp-songbook .bp-controls > button strong { font-size: 14px; max-width: 100%; }
+.bp-songbook .bp-controls-center { position: static; transform: none; padding: 0; flex-direction: column; gap: 0; }
+.bp-songbook .bp-page-number { font-size: 14px; font-weight: 600; }
+.bp-songbook .bp-controls-center a { min-height: 48px; display: flex; align-items: center; padding: 4px 8px; }
+.bp-songbook button:focus-visible,
+.bp-songbook a:focus-visible,
+.bp-songbook [tabindex]:focus-visible { outline: 3px solid #175cd3; outline-offset: -3px; }
+.bp-songbook button:disabled { opacity: 0.45; cursor: not-allowed; }
+@media (max-width: 600px) {
+  .bp-songbook .bp-header { padding: 8px; }
+  .bp-songbook .bp-show-copy h1 { font-size: 16px; }
+  .bp-songbook .bp-header-actions { flex-wrap: nowrap; gap: 4px; }
+  .bp-songbook .bp-header-actions button { padding: 8px; }
+  .bp-songbook .bp-tools { flex-wrap: wrap; }
+  .bp-songbook .bp-layout.bp-list-open { grid-template-columns: minmax(0, 1fr); }
+  .bp-songbook .bp-sidebar { position: fixed; inset: 0 auto 0 0; width: min(88vw, 320px); height: 100dvh; z-index: 70; }
+  .bp-songbook .bp-scrim { display: block; }
+  .bp-songbook .bp-viewer { padding: 8px; }
+  .bp-songbook .bp-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .bp-songbook .bp-controls-center { grid-column: 1 / -1; grid-row: 1; flex-direction: row; justify-content: space-between; }
+  .bp-songbook .bp-controls > button span { font-size: 12px; letter-spacing: 0; }
+  .bp-songbook .bp-book-hint { font-size: 12px; }
+}
+@media print {
+  .bp-songbook.bp-root { height: auto; overflow: visible; }
+  .bp-songbook .bp-book-hint { display: none; }
+}

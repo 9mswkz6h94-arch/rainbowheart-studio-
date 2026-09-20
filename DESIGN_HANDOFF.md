@@ -1,9 +1,27 @@
 # Design Handoff - Rainbow Heart Studio Show Builder
 
 **Project:** `proj-003`  
-**Design-system version:** `0.6.0`  
+**Design-system version:** `0.8.0`
 **Current phase:** Rainbow Heart identity implementation - Show Builder only  
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-20
+
+## Tablet songbook — 2026-09-20
+
+Jonathan requested page-by-page reading, a collapsible left setlist, and elimination of accidental song changes while zooming/panning, for rehearsal at 17:00 Central. This bounded Band View implementation uses an isolated release worktree from published `6083177`, separate from the import/Shared Memory branch and preserved older WIP.
+
+- Band View renders one chart or PDF page at a time, fits the complete page to the remaining viewport, and advances through pages before the next show item. Backward reading enters the previous item's final page.
+- Pinch and drag change only the page transform. All root-level swipe-to-song handlers are removed. Pointer cancellation, pointer capture, zoom limits, and pan bounds prevent a reading gesture from navigating.
+- The left setlist can be opened/closed on every viewport. Tablet/desktop use an in-layout rail; phone uses a dismissible drawer with focus return, Escape, and contained Tab navigation.
+- Tools are collapsed initially to give the chart more room. Previous/Next page controls remain visible; print uses the existing whole-show Print Center.
+- Original PDF bytes and signed-link permissions are unchanged. PDF.js is bundled and lazy-loaded; an original-PDF link remains available. Title fitting for generated charts happens at natural paper size before zoom, preserving title geometry.
+- Review is mock-isolated via `npx vite --config tests/songbook-vite.config.mjs`, then `/band/sample`. The fixture replaces both data adapters, uses invented songs and an in-memory two-page PDF, and never initializes Supabase. The review entry is excluded from the production build.
+- Passed: production build; 390x844, 768x1024, 1024x768, and 1440x900 with zero horizontal/vertical document overflow, one visible chart page, and no sub-48px production controls; chart page boundaries and reverse navigation; keyboard right-arrow page turn; actual browser mouse-pan at 150% without navigation; synthetic two-touch pinch to 250%, subsequent drag/cancel/swipe with unchanged song/page; PDF pages 1/2 then break; phone focus containment and Escape return; title geometry after fit.
+- Remaining evidence: physical tablet/two-finger use, actual private attached PDFs on that device, true 200% browser/text zoom, and assistive-technology review. The PDF test used a synthetic PDF; no claim is made about an untested private attachment.
+- Shared Brain retrieval, indexing, database migrations, and private show records are outside this UI release.
+
+Implementation: `src/pages/BandPacket.jsx`, `src/components/{BookViewport,BandChartPage,BandPdfPage}.jsx`, `src/components/songbook.css`, pinned `pdfjs-dist` dependency, and `tests/songbook-*` isolated review harness.
+
+Next: verify the deployed release, then open the existing band link on the rehearsal tablet and use Fit page, Larger/pinch, Show setlist, and Previous/Next page.
 
 ## What changed
 

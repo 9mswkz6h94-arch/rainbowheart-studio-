@@ -1,7 +1,8 @@
 {
   "$schema": "../rainbowheart-os/schemas/app-profile.schema.json",
   "schemaVersion": 1,
-  "designSystemVersion": "0.6.0",
+  "designSystemVersion": "0.8.0",
+  "accessibilityProfiles": [],
   "app": "Rainbow Heart Studio",
   "projectId": "proj-003",
   "foundation": "scaffold",
@@ -42,5 +43,5 @@
     "reviewMutations"
   ],
   "handoff": "DESIGN_HANDOFF.md",
-  "nextAction": "Run a local non-mutating rendered review of the Show Builder at the four reference viewports before any deployment decision."
+  "nextAction": "Verify the songbook on the rehearsal tablet: page turns, pinch/pan, and the collapsible setlist. Isolated review entry: tests/songbook-review.html with tests/songbook-vite.config.mjs."
 }

@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { fetchSetListByToken } from '../lib/setlists'
 import { fetchSetListPdfUrl } from '../lib/setlistPdfs'
-import { fitTitles, layout, parseSong } from '../lib/chartEngine'
+import BandChartPage from '../components/BandChartPage'
 import { bandEventDate, bandShareMessage, bandShareUrl } from '../lib/bandShare'
+import '../components/songbook.css'
 
 const CUSTOM_SONG = 'custom-song'
+const BandPdfPage = lazy(() => import('../components/BandPdfPage'))
 
 function formatDate(value) {
   return bandEventDate(value)
@@ -28,16 +30,6 @@ function formatDuration(value) {
   if (!minutes) return ''
   const seconds = Math.round(minutes * 60)
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
-}
-
-function chartSettings(song) {
-  const meta = { ...(song.meta || {}), title: song.meta?.title || song.title || 'Untitled' }
-  return {
-    meta,
-    compact: meta.compact !== false,
-    scale: meta.scale || 100,
-    collapse: meta.collapse !== false,
-  }
 }
 
 function buildPacket(items) {
@@ -88,7 +80,7 @@ function SetNavigator({ packet, selectedKey, onSelect, onClose }) {
         <span className="bp-eyebrow">Show order</span>
         <strong>{packet.entries.length} items</strong>
       </div>
-      <button type="button" className="bp-nav-close" onClick={onClose}>Close</button>
+      <button type="button" className="bp-nav-close" onClick={onClose}>Hide setlist</button>
     </div>
     {packet.sets.map((set, setIndex) => {
       let songNumber = 0
@@ -103,7 +95,7 @@ function SetNavigator({ packet, selectedKey, onSelect, onClose }) {
               key={entry.key}
               className={`bp-nav-item bp-kind-${entry.kind}${selectedKey === entry.key ? ' active' : ''}`}
               aria-current={selectedKey === entry.key ? 'true' : undefined}
-              onClick={() => { onSelect(entry.key); onClose() }}
+              onClick={() => { onSelect(entry.key); if (window.matchMedia('(max-width: 600px)').matches) onClose() }}
             >
               <span className="bp-nav-number">{isSong ? songNumber : entry.kind === 'break' ? 'B' : 'N'}</span>
               <span className="bp-nav-copy">
@@ -124,21 +116,24 @@ export default function BandPacket() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedKey, setSelectedKey] = useState('')
-  const [listOpen, setListOpen] = useState(false)
-  const [zoom, setZoom] = useState(1)
-  const [chartHeight, setChartHeight] = useState(0)
+  const [listOpen, setListOpen] = useState(() => window.matchMedia('(min-width: 1000px)').matches)
+  const [page, setPage] = useState(0)
+  const [pageCount, setPageCount] = useState(0)
+  const [toolsOpen, setToolsOpen] = useState(false)
   const [pdfs, setPdfs] = useState({})
   const [awake, setAwake] = useState(false)
   const [shareStatus, setShareStatus] = useState('')
-  const measureRef = useRef(null)
-  const chartRef = useRef(null)
-  const chartViewportRef = useRef(null)
   const wakeLockRef = useRef(null)
-  const touchStartRef = useRef(null)
+  const listToggleRef = useRef(null)
+  const sidebarRef = useRef(null)
+  const onPageCount = useCallback(count => setPageCount(count), [])
 
   const packet = useMemo(() => buildPacket(show?.songs), [show])
   const selectedIndex = Math.max(0, packet.entries.findIndex(entry => entry.key === selectedKey))
   const selected = packet.entries[selectedIndex] || null
+  const hasPages = selected?.kind === 'chart' || (selected?.kind === CUSTOM_SONG && Boolean(selected.item.pdf?.path))
+  const count = hasPages ? pageCount : 1
+  const currentPage = Math.min(page, Math.max(0, count - 1))
 
   useEffect(() => {
     let cancelled = false
@@ -167,7 +162,6 @@ export default function BandPacket() {
   }, [show])
 
   useEffect(() => {
-    setZoom(1)
     if (!selected?.item.pdf?.path || selected.kind !== CUSTOM_SONG) return
     const path = selected.item.pdf.path
     if (pdfs[path]) return
@@ -178,49 +172,18 @@ export default function BandPacket() {
   }, [pdfs, selected, token])
 
   useEffect(() => {
-    if (selected?.kind !== 'chart' || !chartRef.current || !measureRef.current) return undefined
-    let cancelled = false
-    async function renderChart() {
-      await document.fonts.ready
-      if (cancelled || !chartRef.current) return
-      const { meta, compact, scale, collapse } = chartSettings(selected.item)
-      const result = layout(parseSong(selected.item.song_text || '', meta), 'full', {
-        compact,
-        collapse,
-        scale,
-        writeBars: meta.writeBars !== false,
-        sheetRepeats: Boolean(meta.sheetRepeats),
-      }, measureRef.current)
-      chartRef.current.className = `stagewrap bp-chart-stage${compact ? ' compact' : ''}`
-      chartRef.current.innerHTML = result.html
-      fitTitles(chartRef.current)
-    }
-    renderChart()
-    return () => { cancelled = true }
-  }, [selected])
-
-  useEffect(() => {
-    if (selected?.kind !== 'chart' || !chartViewportRef.current || !chartRef.current) return undefined
-    const viewport = chartViewportRef.current
-    const stage = chartRef.current
-    const resize = () => {
-      const pageWidth = 816
-      const fit = Math.min(1, Math.max(0.28, (viewport.clientWidth - 16) / pageWidth))
-      const scale = fit * zoom
-      stage.style.transform = `scale(${scale})`
-      setChartHeight(Math.ceil(stage.scrollHeight * scale))
-    }
-    const frame = requestAnimationFrame(resize)
-    const observer = new ResizeObserver(resize)
-    observer.observe(viewport)
-    return () => { cancelAnimationFrame(frame); observer.disconnect() }
-  }, [selected, zoom])
+    if (selected?.kind === CUSTOM_SONG && pdfs[selected.item.pdf?.path]?.status === 'error') setPageCount(1)
+  }, [selected, pdfs])
 
   useEffect(() => {
     const handleKey = event => {
-      if (event.key === 'ArrowLeft') selectOffset(-1)
-      if (event.key === 'ArrowRight') selectOffset(1)
-      if (event.key === 'Escape') setListOpen(false)
+      if (event.key === 'Escape' && listOpen) { closeList(); return }
+      if (event.defaultPrevented || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+      if (event.target.closest('input, textarea, select, button, a, [contenteditable="true"], .bp-sidebar')) return
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault()
+        turnPage(event.key === 'ArrowLeft' ? -1 : 1)
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
@@ -228,12 +191,27 @@ export default function BandPacket() {
 
   useEffect(() => () => { wakeLockRef.current?.release?.() }, [])
 
-  function selectOffset(offset) {
+  useEffect(() => {
+    if (listOpen && window.matchMedia('(max-width: 600px)').matches) sidebarRef.current?.querySelector('button')?.focus()
+  }, [listOpen])
+
+  function closeList() {
+    setListOpen(false)
+    listToggleRef.current?.focus()
+  }
+
+  function selectEntry(key, lastPage = false) {
+    setSelectedKey(key)
+    setPage(lastPage ? Number.MAX_SAFE_INTEGER : 0)
+    setPageCount(0)
+  }
+
+  function turnPage(offset) {
+    if (!count) return
+    const nextPage = currentPage + offset
+    if (nextPage >= 0 && nextPage < count) { setPage(nextPage); return }
     const next = packet.entries[selectedIndex + offset]
-    if (next) {
-      setSelectedKey(next.key)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+    if (next) selectEntry(next.key, offset < 0)
   }
 
   async function toggleWakeLock() {
@@ -276,18 +254,6 @@ export default function BandPacket() {
     window.setTimeout(() => setShareStatus(''), 3500)
   }
 
-  function handleTouchStart(event) {
-    touchStartRef.current = event.changedTouches[0]?.clientX ?? null
-  }
-
-  function handleTouchEnd(event) {
-    if (touchStartRef.current === null) return
-    const distance = (event.changedTouches[0]?.clientX ?? touchStartRef.current) - touchStartRef.current
-    touchStartRef.current = null
-    if (Math.abs(distance) < 70) return
-    selectOffset(distance < 0 ? 1 : -1)
-  }
-
   if (loading) return <main className="bp-state"><span className="bp-eyebrow">Band view</span><h1>Loading the show...</h1></main>
   if (error) return <main className="bp-state error"><span className="bp-eyebrow">Band view</span><h1>We could not open this show.</h1><p>{error}</p></main>
   if (!selected) return <main className="bp-state"><span className="bp-eyebrow">Band view</span><h1>{show?.name || 'This show'} has no items yet.</h1></main>
@@ -296,13 +262,7 @@ export default function BandPacket() {
   const canFullscreen = Boolean(document.documentElement.requestFullscreen)
   const canWake = Boolean(navigator.wakeLock)
 
-  return <div className="bp-root" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-    <div
-      ref={measureRef}
-      className="bp-measure"
-      style={{ position: 'fixed', left: '-99999px', top: 0, overflow: 'visible', pointerEvents: 'none' }}
-      aria-hidden="true"
-    />
+  return <div className="bp-root bp-songbook">
     <header className="bp-header">
       <div className="bp-show-copy">
         <span className="bp-eyebrow">Rainbow Heart Band View</span>
@@ -311,25 +271,34 @@ export default function BandPacket() {
         <span className="bp-updated">{updatedLabel(show.updated_at)}</span>
       </div>
       <div className="bp-header-actions">
-        <button type="button" onClick={() => setListOpen(true)}>Show order</button>
+        <button ref={listToggleRef} type="button" aria-expanded={listOpen} aria-controls="band-setlist" onClick={() => listOpen ? closeList() : setListOpen(true)}>{listOpen ? 'Hide setlist' : 'Show setlist'}</button>
+        <button type="button" aria-expanded={toolsOpen} aria-controls="band-tools" onClick={() => setToolsOpen(value => !value)}>{toolsOpen ? 'Hide tools' : 'Show tools'}</button>
+      </div>
+      <div id="band-tools" className="bp-header-actions bp-tools" hidden={!toolsOpen}>
         <button type="button" className="bp-share-button" onClick={shareShow}>Share show</button>
         <button type="button" onClick={() => window.location.reload()}>Refresh</button>
         {canWake && <button type="button" className={awake ? 'active' : ''} aria-pressed={awake} onClick={toggleWakeLock}>{awake ? 'Screen awake' : 'Keep awake'}</button>}
         {canFullscreen && <button type="button" onClick={() => document.documentElement.requestFullscreen()}>Full screen</button>}
         {shareStatus && <span className="bp-share-status" role="status">{shareStatus}</span>}
       </div>
-      {(show.event_details || show.event_url) && <details className="bp-show-details">
+      {toolsOpen && (show.event_details || show.event_url) && <details className="bp-show-details">
         <summary>Show notes and event details</summary>
         {show.event_details && <p>{show.event_details}</p>}
         {show.event_url && <a href={show.event_url} target="_blank" rel="noopener noreferrer">Open event page</a>}
       </details>}
     </header>
 
-    <div className="bp-layout">
-      <aside className={`bp-sidebar${listOpen ? ' open' : ''}`}>
-        <SetNavigator packet={packet} selectedKey={selected.key} onSelect={setSelectedKey} onClose={() => setListOpen(false)} />
-      </aside>
-      {listOpen && <button type="button" className="bp-scrim" aria-label="Close show order" onClick={() => setListOpen(false)} />}
+    <div className={`bp-layout${listOpen ? ' bp-list-open' : ''}`}>
+      {listOpen && <aside ref={sidebarRef} id="band-setlist" className="bp-sidebar open" onKeyDown={event => {
+        if (event.key !== 'Tab' || !window.matchMedia('(max-width: 600px)').matches) return
+        const buttons = [...event.currentTarget.querySelectorAll('button')]
+        const first = buttons[0], last = buttons[buttons.length - 1]
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }}>
+        <SetNavigator packet={packet} selectedKey={selected.key} onSelect={key => { if (key !== selected.key) selectEntry(key) }} onClose={closeList} />
+      </aside>}
+      {listOpen && <button type="button" className="bp-scrim" aria-label="Close setlist" onClick={closeList} />}
 
       <main className="bp-viewer">
         <div className="bp-item-heading">
@@ -343,28 +312,15 @@ export default function BandPacket() {
           </div>
         </div>
 
-        {selected.kind === 'chart' && <>
-          <div className="bp-zoom" aria-label="Chart size">
-            <button type="button" onClick={() => setZoom(value => Math.max(0.75, value - 0.25))} aria-label="Make chart smaller">Smaller</button>
-            <button type="button" onClick={() => setZoom(1)}>Fit width</button>
-            <button type="button" onClick={() => setZoom(value => Math.min(2, value + 0.25))} aria-label="Make chart larger">Larger</button>
-          </div>
-          <div className="bp-chart-viewport" ref={chartViewportRef} style={{ minHeight: chartHeight || undefined }}>
-            <div ref={chartRef} className="stagewrap bp-chart-stage" />
-          </div>
-        </>}
+        {selected.kind === 'chart' && <BandChartPage key={selected.key} item={selected.item} page={page} onCount={onPageCount} />}
 
         {selected.kind === CUSTOM_SONG && <section className="bp-pdf-panel">
           {!selected.item.pdf?.path && <div className="bp-empty-document"><span className="bp-eyebrow">Outside song</span><h3>No PDF is attached.</h3><p>Use the title and timing above as the band reference.</p></div>}
           {pdfState?.status === 'loading' && <div className="bp-empty-document"><h3>Opening the original PDF...</h3><p>Only this chart is being loaded.</p></div>}
           {pdfState?.status === 'error' && <div className="bp-empty-document error"><h3>The PDF could not open.</h3><p>{pdfState.error}</p></div>}
-          {pdfState?.url && <>
-            <div className="bp-pdf-actions">
-              <span>{selected.item.pdf.name || 'Original PDF'}</span>
-              <a href={pdfState.url} target="_blank" rel="noopener noreferrer">Open original PDF</a>
-            </div>
-            <iframe className="bp-pdf-frame" src={`${pdfState.url}#view=FitH&toolbar=1`} title={`${entryTitle(selected)} original PDF`} loading="lazy" />
-          </>}
+          {pdfState?.url && <Suspense fallback={<p role="status">Loading PDF reader…</p>}>
+            <BandPdfPage key={`${selected.key}-${pdfState.url}`} url={pdfState.url} title={entryTitle(selected)} page={page} onCount={onPageCount} />
+          </Suspense>}
         </section>}
 
         {selected.kind === 'break' && <section className="bp-marker bp-break"><span className="bp-eyebrow">Break</span><h3>{entryTitle(selected)}</h3>{selected.item.duration && <p>{formatDuration(selected.item.duration)}</p>}</section>}
@@ -373,12 +329,18 @@ export default function BandPacket() {
     </div>
 
     <footer className="bp-controls">
-      <button type="button" onClick={() => selectOffset(-1)} disabled={selectedIndex === 0}><span>Previous</span><strong>{entryTitle(packet.entries[selectedIndex - 1]) || 'Start of show'}</strong></button>
+      <button type="button" onClick={() => turnPage(-1)} disabled={!count || (selectedIndex === 0 && currentPage === 0)}>
+        <span>← {currentPage > 0 ? 'Previous page' : 'Previous song / item'}</span>
+        <strong>{currentPage > 0 ? `Page ${currentPage}` : entryTitle(packet.entries[selectedIndex - 1]) || 'Start of show'}</strong>
+      </button>
       <div className="bp-controls-center">
-        <button type="button" onClick={() => setListOpen(true)}>Show order</button>
+        <span className="bp-page-number" aria-live="polite">{count ? `Page ${currentPage + 1} of ${count}` : 'Loading pages…'}</span>
         <Link to={`/band/${token}/print?mode=packet`}>Print options</Link>
       </div>
-      <button type="button" onClick={() => selectOffset(1)} disabled={selectedIndex === packet.entries.length - 1}><span>Next</span><strong>{entryTitle(packet.entries[selectedIndex + 1]) || 'End of show'}</strong></button>
+      <button type="button" onClick={() => turnPage(1)} disabled={!count || (selectedIndex === packet.entries.length - 1 && currentPage === count - 1)}>
+        <span>{currentPage < count - 1 ? 'Next page' : 'Next song / item'} →</span>
+        <strong>{currentPage < count - 1 ? `Page ${currentPage + 2}` : entryTitle(packet.entries[selectedIndex + 1]) || 'End of show'}</strong>
+      </button>
     </footer>
   </div>
 }
