@@ -148,16 +148,6 @@ const services = [
     ctaExternal: false,
   },
   {
-    emoji: '📻',
-    title: "Brother Jon's Songwriter Session",
-    stinger: 'Monthly songwriter radio show on KTCP 98.7.',
-    description: 'A monthly songwriter radio show on KTCP 98.7 — The Voice of Bell County. Featured artists perform live and share the stories behind their songs. Streaming live every 4th Saturday.',
-    gradient: 'linear-gradient(135deg, #48DBFB, #6C5CE7)',
-    cta: 'Follow for Updates',
-    ctaHref: 'https://www.facebook.com/p/Brother-Jon-and-the-Rainbow-Hearts-61560281233918/',
-    ctaExternal: true,
-  },
-  {
     emoji: '🎙️',
     title: 'Brother Jon & The Rainbow Hearts',
     stinger: 'Central Texas roots rock, live around town.',
@@ -212,29 +202,35 @@ function ServiceCard({ s }) {
       <div className="card-icon">{s.emoji}</div>
       <h3>{s.title}</h3>
       <p className="card-stinger">{s.stinger}</p>
-      <button
-        type="button"
-        className="card-expand-btn"
-        onClick={() => setExpanded(e => !e)}
-        aria-expanded={expanded}
-      >
-        {expanded ? 'Show less −' : 'Learn more +'}
-      </button>
-      <div className="card-details-wrap">
-        <div className="card-details-inner">
-          <p>{s.description}</p>
-          {s.ctaExternal ? (
-            <a href={s.ctaHref} target="_blank" rel="noopener noreferrer" className="card-cta">{s.cta} →</a>
-          ) : (
-            <a href={s.ctaHref || '#contact'} className="card-cta">{s.cta} →</a>
-          )}
-        </div>
-      </div>
+      {!s.ctaHref ? (
+        <a href="mailto:info@rainbowheart.studio" className="card-expand-btn">
+          Learn more →
+        </a>
+      ) : (
+        <>
+          <button
+            type="button"
+            className="card-expand-btn"
+            onClick={() => setExpanded(e => !e)}
+            aria-expanded={expanded}
+          >
+            {expanded ? 'Show less −' : 'Learn more +'}
+          </button>
+          <div className="card-details-wrap">
+            <div className="card-details-inner">
+              <p>{s.description}</p>
+              {s.ctaExternal ? (
+                <a href={s.ctaHref} target="_blank" rel="noopener noreferrer" className="card-cta">{s.cta} →</a>
+              ) : (
+                <a href={s.ctaHref} className="card-cta">{s.cta} →</a>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
-
-const KTCP_URL = 'https://www.ktcp.org/'
 
 const staff = [
   {
@@ -376,6 +372,7 @@ export default function Home() {
               <div>
                 <span className="hours-label">Rainbow Heart Studio</span>
                 <span className="hours-value">By appointment only · (254) 371-5051</span>
+                <a href="mailto:info@rainbowheart.studio" className="hours-value">info@rainbowheart.studio</a>
               </div>
             </div>
           </div>
@@ -462,9 +459,7 @@ export default function Home() {
               <p className="open-mic-venue">📍 Nelson Brew Works · Copperas Cove, TX</p>
               <p className="open-mic-desc">
                 All original performers welcome. Sign up at the door, take the stage,
-                and share your music with a live audience — and a livestream. Featured
-                artists get the chance to be interviewed and aired on{' '}
-                <a href={KTCP_URL} target="_blank" rel="noopener noreferrer">KTCP 98.7</a>.
+                and share your music with a live audience.
               </p>
               <div className="open-mic-ctas">
                 <a
@@ -476,12 +471,6 @@ export default function Home() {
                   View Queue & Sign Up →
                 </a>
               </div>
-              <p className="open-mic-radio-note">
-                📻 Featured artists air on{' '}
-                <a href={KTCP_URL} target="_blank" rel="noopener noreferrer">
-                  <strong>KTCP 98.7 — The Voice of Bell County</strong>
-                </a>
-              </p>
             </div>
             <div className="open-mic-visual" aria-hidden="true">🎤</div>
           </div>
