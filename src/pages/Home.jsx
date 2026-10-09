@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { STUDIO_TOOLS } from '../lib/tools'
+import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 
 const services = [
   {
@@ -108,7 +107,7 @@ function ServiceCard({ s }) {
           >
             {expanded ? 'Show less −' : 'Learn more +'}
           </button>
-          <div className="card-details-wrap">
+          <div className="card-details-wrap" hidden={!expanded}>
             <div className="card-details-inner">
               <p>{s.description}</p>
               {s.ctaExternal ? (
@@ -146,67 +145,73 @@ const staff = [
 ]
 
 export default function Home() {
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'instant' })
+    else window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [hash])
   return (
-    <div className="home">
+    <div className="home public-site" id="public-main" tabIndex={-1}>
 
       {/* Hero */}
-      <section className="hero">
+      <section className="hero public-lessons-hero">
         <div className="hero-inner">
           <p className="hero-location">📍 Copperas Cove, Texas</p>
           <h1 className="hero-headline">
-            Where <span className="rainbow-text">creativity</span><br />comes alive.
+            Music lessons.<br />Your place to begin.
           </h1>
           <p className="hero-sub">
-            Lessons, murals, shows, and a kids performance band —
-            all under one colorful roof. Everyone welcome. Always. 🏳️‍🌈
+            Guitar, vocals, piano, songwriting, and more. One-on-one learning
+            for all ages and skill levels, right here in Copperas Cove.
           </p>
           <div className="hero-ctas">
-            <a href="#services" className="btn btn-primary">Explore Services</a>
-            <a href="#contact" className="btn btn-outline">Get in Touch</a>
+            <a href="mailto:info@rainbowheart.studio?subject=Lesson%20inquiry" className="btn btn-primary">Ask about lessons →</a>
+            <a href="#lessons" className="public-text-link">Explore lessons</a>
+          </div>
+          <p className="public-inquiry-note">Opens your email app. Tell us what you'd like to learn.</p>
+          <p className="public-welcome">Everyone welcome. Always.</p>
+        </div>
+      </section>
+
+      <section id="lessons" className="public-section">
+        <div className="container public-intro-grid">
+          <div>
+            <p className="public-eyebrow">Private lessons</p>
+            <h2>A first note.<br />A next step.</h2>
+            <p>Pick up an instrument, find your voice, or build on what you already know. Our instructors work with beginners and experienced musicians.</p>
+            <a href="#team" className="public-text-link">Meet the instructors →</a>
+          </div>
+          <div className="public-lesson-details">
+            <h3>Let's find a starting point</h3>
+            <p>Email us your instrument or interest, your experience level, and any questions. We'll talk through lesson options and scheduling with you.</p>
+            <p>Lessons are by appointment. Contact us for current availability and pricing.</p>
+            <a href="mailto:info@rainbowheart.studio?subject=Lesson%20inquiry" className="public-text-link">info@rainbowheart.studio →</a>
           </div>
         </div>
       </section>
 
-      {/* Studio Tools Showcase */}
-      <section className="studio-showcase">
-        <div className="container">
-          <div className="studio-showcase-header">
-            <div className="studio-showcase-label">🎸 Rainbow Heart Studio</div>
-            <h2>A full creative suite for musicians</h2>
-            <p>
-              Get Studio Access to unlock every tool — built for teachers, students, and performers.
-            </p>
-            <div className="studio-showcase-ctas">
-              <Link to="/login" className="btn btn-primary">Get Studio Access →</Link>
-              <Link to="/tools/chord-scale-explorer" className="btn btn-outline">Try Free Tool First</Link>
-            </div>
+      <section className="public-section public-tools-intro">
+        <div className="container public-intro-grid">
+          <div>
+            <p className="public-eyebrow">Between lessons</p>
+            <h2>Tools for making music</h2>
+            <p>Try the free tuner, metronome, and Chord &amp; Scale Explorer without signing in. Find the rest of the Studio catalog on the Tools page.</p>
           </div>
-          <div className="studio-showcase-grid">
-            {STUDIO_TOOLS.map(tool => (
-              tool.free ? (
-                <Link key={tool.slug} to={tool.href} className="studio-preview-card free">
-                  <div className="studio-preview-icon">{tool.emoji}</div>
-                  <div className="studio-preview-body">
-                    <h3>{tool.title}</h3>
-                    <p>{tool.description}</p>
-                  </div>
-                  <span className="studio-preview-free">✨ Free</span>
-                </Link>
-              ) : (
-                <div key={tool.slug} className="studio-preview-card">
-                  <div className="studio-preview-icon">{tool.emoji}</div>
-                  <div className="studio-preview-body">
-                    <h3>{tool.title}</h3>
-                    <p>{tool.description}</p>
-                  </div>
-                  <span className="studio-preview-lock">🔒 Studio</span>
-                </div>
-              )
-            ))}
+          <div className="public-section-action">
+            <Link to="/tools" className="btn btn-outline">Browse music tools →</Link>
           </div>
         </div>
       </section>
 
+      <section id="education" className="public-section">
+        <div className="container public-development">
+          <p className="public-status">In development</p>
+          <h2>Education at Rainbow Heart</h2>
+          <p>We're developing a separate Education offering. Program details and availability are still being worked out; enrollment is not announced.</p>
+          <p>Looking for lessons now? Use the lesson inquiry above. Questions about Education are welcome by email.</p>
+          <a href="mailto:info@rainbowheart.studio?subject=Education%20inquiry" className="public-text-link">Ask about Education →</a>
+        </div>
+      </section>
       {/* Services */}
       <section id="services" className="services">
         <div className="container">

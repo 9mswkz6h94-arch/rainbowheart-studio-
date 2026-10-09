@@ -1,0 +1,7 @@
+.review-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:12px 24px; border-bottom:2px solid #241e20; background:#f8f9fa; font:14px/1.5 Inter,Arial,sans-serif; }
+.review-banner button { min-height:48px; min-width:48px; padding:8px 12px; background:white; border:1px solid #544c50; font:inherit; cursor:pointer; }
+.review-banner button[aria-pressed=true] { background:#241e20; color:white; }
+.review-banner output { flex-basis:100%; overflow-wrap:anywhere; }
+.review-banner button:focus-visible,.review-destination a:focus-visible { outline:3px solid #185adb; outline-offset:3px; }
+.review-destination { padding:48px 24px; max-width:900px; margin:auto; }
+.review-destination a { display:inline-flex; align-items:center; min-height:48px; text-decoration:underline; }

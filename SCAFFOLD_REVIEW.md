@@ -50,3 +50,26 @@ The Show Builder has an implementation candidate, not a rendered approval. Ident
 ## One next action
 
 Run the local non-mutating four-viewport rendered review.
+
+## Public lessons-first preview — 2026-10-09
+
+This is separate from all Show Builder/songbook review evidence above. Dispatch `website-lessons-preview-20261009`; base `36bc2fe35857c85f0c5fc5f483c919eabd305bf6`. Existing identity/profile and phase remain unchanged. New public hierarchy is an unaccepted local candidate.
+
+| Gate | Result | Evidence / limits |
+|---|---|---|
+| Lesson-first hierarchy | Ready for owner review | One primary lesson email inquiry; tools secondary; Education separately labeled in development |
+| Truthful availability | Scoped pass | Three registry-marked free tools; linked-app access qualified; performance Binder distinct from Kodály and unavailable |
+| Four reference viewports | Passed | Home/Tools at 390x844, 768x1024, 1024x768, 1440x900 |
+| Overflow, targets, badge/title separation | Passed | Normal and doubled-text/long-title measurements: no horizontal overflow/collisions; public targets >=48px |
+| Enlarged text | Fixture pass | Computed text doubled to 200%; corrected mobile menu wrapping; native browser zoom remains open |
+| Keyboard/focus | Scoped pass | Skip link, 20 Tools/footer focus stops, service disclosure, Escape close/focus restoration |
+| Reduced motion | Fixture pass | Actual production reduced-motion rules forced; no moving descendants; native preference review remains open |
+| Public links | Scoped pass | 12 distinct registry destinations reached isolated route stops; email captured exactly; cross-page hash scroll passed |
+| Auth/data preservation | Passed boundary checks | Router/auth/data/registry/dependencies unchanged; Login logic unchanged; actual sessions not tested |
+| Safe review | Mock-isolated | No-user auth stub, forbidden data imports, local feed replacement, CSP, blocked writes/forms, external-link capture |
+| Error/recovery | Scoped pass | Fixed development fixture transform/HMR issues; final clean tab console errors=[]; local unavailable feed and link status explicit |
+| Build/regression | Passed | Build, 9 tests, OS validator, diff whitespace check |
+| Physical devices, AT, other browsers | Open | Not exercised |
+| Owner acceptance/publication | Pending | No push/deploy or phase advancement |
+
+See `tests/public-site-README.md`, screenshots and `review-results.json` in `tests/public-site-evidence/`, and the new public section of DESIGN_HANDOFF.md. Prior review decisions remain historical and are not renewed by this pass.

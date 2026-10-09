@@ -1,0 +1,555 @@
+{
+  "review": "website-lessons-preview-20261009",
+  "base": "36bc2fe35857c85f0c5fc5f483c919eabd305bf6",
+  "measurements": [
+    {
+      "page": "home",
+      "cardOverlap": 0,
+      "h1": "Music lessons.Your place to begin.",
+      "height": 844,
+      "iframe": [
+        "/tests/public-site-facebook.html"
+      ],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 25,
+      "width": 390
+    },
+    {
+      "page": "home",
+      "cardOverlap": 0,
+      "h1": "Music lessons.Your place to begin.",
+      "height": 1024,
+      "iframe": [
+        "/tests/public-site-facebook.html"
+      ],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 25,
+      "width": 768
+    },
+    {
+      "page": "home",
+      "cardOverlap": 0,
+      "h1": "Music lessons.Your place to begin.",
+      "height": 768,
+      "iframe": [
+        "/tests/public-site-facebook.html"
+      ],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 25,
+      "width": 1024
+    },
+    {
+      "page": "home",
+      "cardOverlap": 0,
+      "h1": "Music lessons.Your place to begin.",
+      "height": 900,
+      "iframe": [
+        "/tests/public-site-facebook.html"
+      ],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 32,
+      "width": 1440
+    },
+    {
+      "page": "home",
+      "stress": "200% text + long labels",
+      "cardOverlap": 0,
+      "h1": "Music lessons.Your place to begin.",
+      "height": 844,
+      "iframe": [
+        "/tests/public-site-facebook.html"
+      ],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 25,
+      "width": 390
+    },
+    {
+      "page": "home",
+      "stress": "200% text + long labels",
+      "cardOverlap": 0,
+      "h1": "Music lessons.Your place to begin.",
+      "height": 1024,
+      "iframe": [
+        "/tests/public-site-facebook.html"
+      ],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 25,
+      "width": 768
+    },
+    {
+      "page": "home",
+      "stress": "200% text + long labels",
+      "cardOverlap": 0,
+      "h1": "Music lessons.Your place to begin.",
+      "height": 768,
+      "iframe": [
+        "/tests/public-site-facebook.html"
+      ],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 25,
+      "width": 1024
+    },
+    {
+      "page": "home",
+      "stress": "200% text + long labels",
+      "cardOverlap": 0,
+      "h1": "Music lessons.Your place to begin.",
+      "height": 900,
+      "iframe": [
+        "/tests/public-site-facebook.html"
+      ],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 32,
+      "width": 1440
+    },
+    {
+      "page": "tools",
+      "cardOverlap": 0,
+      "h1": "Make room for music.",
+      "height": 844,
+      "iframe": [],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 23,
+      "width": 390
+    },
+    {
+      "page": "tools",
+      "cardOverlap": 0,
+      "h1": "Make room for music.",
+      "height": 1024,
+      "iframe": [],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 23,
+      "width": 768
+    },
+    {
+      "page": "tools",
+      "cardOverlap": 0,
+      "h1": "Make room for music.",
+      "height": 768,
+      "iframe": [],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 23,
+      "width": 1024
+    },
+    {
+      "page": "tools",
+      "cardOverlap": 0,
+      "h1": "Make room for music.",
+      "height": 900,
+      "iframe": [],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 30,
+      "width": 1440
+    },
+    {
+      "page": "tools",
+      "stress": "200% text + long labels",
+      "cardOverlap": 0,
+      "h1": "Make room for music.",
+      "height": 844,
+      "iframe": [],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 23,
+      "width": 390
+    },
+    {
+      "page": "tools",
+      "stress": "200% text + long labels",
+      "cardOverlap": 0,
+      "h1": "Make room for music.",
+      "height": 1024,
+      "iframe": [],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 23,
+      "width": 768
+    },
+    {
+      "page": "tools",
+      "stress": "200% text + long labels",
+      "cardOverlap": 0,
+      "h1": "Make room for music.",
+      "height": 768,
+      "iframe": [],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 23,
+      "width": 1024
+    },
+    {
+      "page": "tools",
+      "stress": "200% text + long labels",
+      "cardOverlap": 0,
+      "h1": "Make room for music.",
+      "height": 900,
+      "iframe": [],
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 30,
+      "width": 1440
+    },
+    {
+      "page": "home",
+      "stress": "final 200% text + long labels + open menu",
+      "cardOverlap": 0,
+      "height": 844,
+      "overflow": 0,
+      "smallTargets": [],
+      "targets": 33,
+      "width": 390
+    }
+  ],
+  "focus": [
+    {
+      "label": "Open Tuner →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Metronome →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Chord & Scale Explorer →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Sign in to Studio →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Find Heart Beats Practice App in Studio →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Chord Chart Builder →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Show Planner →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Notation Studio →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Notation Sheet →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Tab Builder →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Tab Sheet →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Groove Builder →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Groove Sheet →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Find Kodály Song Binder in Studio →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Find Master Copy Studio in Studio →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Open Show Planner →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Ask about lessons →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "About the developing Education offering →",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Email the Studio",
+      "outline": "3px",
+      "style": "solid"
+    },
+    {
+      "label": "Facebook",
+      "outline": "3px",
+      "style": "solid"
+    }
+  ],
+  "routes": [
+    {
+      "expected": "/studio/tuner",
+      "url": "http://127.0.0.1:5189/studio/tuner",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/metronome",
+      "url": "http://127.0.0.1:5189/studio/metronome",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/tools/chord-scale-explorer",
+      "url": "http://127.0.0.1:5189/tools/chord-scale-explorer",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio",
+      "url": "http://127.0.0.1:5189/studio",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/chord-charts",
+      "url": "http://127.0.0.1:5189/studio/chord-charts",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/setlists",
+      "url": "http://127.0.0.1:5189/studio/setlists",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/notation-studio",
+      "url": "http://127.0.0.1:5189/studio/notation-studio",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/melody-sheet",
+      "url": "http://127.0.0.1:5189/studio/melody-sheet",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/tab-studio",
+      "url": "http://127.0.0.1:5189/studio/tab-studio",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/tab-sheet",
+      "url": "http://127.0.0.1:5189/studio/tab-sheet",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/groove-builder",
+      "url": "http://127.0.0.1:5189/studio/groove-builder",
+      "heading": "Destination preserved"
+    },
+    {
+      "expected": "/studio/groove-sheet",
+      "url": "http://127.0.0.1:5189/studio/groove-sheet",
+      "heading": "Destination preserved"
+    }
+  ],
+  "motion": {
+    "applied": true,
+    "mode": "forced production reduced-motion rules in isolated fixture",
+    "moving": []
+  },
+  "links": {
+    "tools": [
+      {
+        "href": "/studio/tuner",
+        "label": "Open Tuner →"
+      },
+      {
+        "href": "/studio/metronome",
+        "label": "Open Metronome →"
+      },
+      {
+        "href": "/tools/chord-scale-explorer",
+        "label": "Open Chord & Scale Explorer →"
+      },
+      {
+        "href": "/studio",
+        "label": "Find Heart Beats Practice App in Studio →"
+      },
+      {
+        "href": "/studio/chord-charts",
+        "label": "Open Chord Chart Builder →"
+      },
+      {
+        "href": "/studio/setlists",
+        "label": "Open Show Planner →"
+      },
+      {
+        "href": "/studio/notation-studio",
+        "label": "Open Notation Studio →"
+      },
+      {
+        "href": "/studio/melody-sheet",
+        "label": "Open Notation Sheet →"
+      },
+      {
+        "href": "/studio/tab-studio",
+        "label": "Open Tab Builder →"
+      },
+      {
+        "href": "/studio/tab-sheet",
+        "label": "Open Tab Sheet →"
+      },
+      {
+        "href": "/studio/groove-builder",
+        "label": "Open Groove Builder →"
+      },
+      {
+        "href": "/studio/groove-sheet",
+        "label": "Open Groove Sheet →"
+      },
+      {
+        "href": "/studio",
+        "label": "Find Kodály Song Binder in Studio →"
+      },
+      {
+        "href": "/studio",
+        "label": "Find Master Copy Studio in Studio →"
+      }
+    ],
+    "home": [
+      {
+        "href": "mailto:info@rainbowheart.studio?subject=Lesson%20inquiry",
+        "label": "Ask about lessons →"
+      },
+      {
+        "href": "#lessons",
+        "label": "Explore lessons"
+      },
+      {
+        "href": "#team",
+        "label": "Meet the instructors →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio?subject=Lesson%20inquiry",
+        "label": "info@rainbowheart.studio →"
+      },
+      {
+        "href": "/tools",
+        "label": "Browse music tools →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio?subject=Education%20inquiry",
+        "label": "Ask about Education →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio",
+        "label": "Learn more →"
+      },
+      {
+        "href": "https://www.facebook.com/media/set/?set=a.996240916604165&type=3",
+        "label": "See Our Work →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio",
+        "label": "Learn more →"
+      },
+      {
+        "href": "#open-mic",
+        "label": "Sign Up or View Queue →"
+      },
+      {
+        "href": "https://bjrh.band",
+        "label": "Visit the Band →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio",
+        "label": "Learn more →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio",
+        "label": "Learn more →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio",
+        "label": "Learn more →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio",
+        "label": "Learn more →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio",
+        "label": "info@rainbowheart.studio"
+      },
+      {
+        "href": "https://maps.google.com/maps?q=303+S+Main+Street,Copperas+Cove,TX+76522",
+        "label": "📍303 S. Main StreetCopperas Cove, TX 76522Get Directions →"
+      },
+      {
+        "href": "mailto:info@rainbowheart.studio",
+        "label": "Email us →"
+      },
+      {
+        "href": "https://www.facebook.com/jowensrainbowheartstudio/",
+        "label": "Facebook"
+      },
+      {
+        "href": "https://www.facebook.com/jowensrainbowheartstudio/",
+        "label": "Visit our Facebook Page →"
+      },
+      {
+        "href": "https://open-mic-queue.netlify.app",
+        "label": "View Queue & Sign Up →"
+      }
+    ]
+  },
+  "developmentErrors": [
+    {
+      "level": "error",
+      "message": "Warning: You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.",
+      "timestamp": "2026-10-09T19:07:29.400Z",
+      "url": "http://127.0.0.1:5189/node_modules/.vite/deps/chunk-XPR23Y44.js?v=9baa273d"
+    }
+  ],
+  "recovery": "A development-only duplicate createRoot warning occurred after editing the harness. Added Vite hot-dispose root reuse and reloaded. Production source was not involved.",
+  "limitations": [
+    "200% is doubled computed text via the fixture, not native browser zoom.",
+    "Reduced-motion production rules were forced in the fixture, not OS preference emulation.",
+    "Tool destination routes are fixture stops; actual apps and login sessions were not exercised.",
+    "External links and email were captured; no messages were sent.",
+    "No physical device, cross-browser, or assistive technology tests."
+  ],
+  "finalCleanTabErrors": [],
+  "finalNavigation": {
+    "educationHash": "/#education",
+    "educationTop": 24.4375,
+    "toolsScrollTop": 0,
+    "loginCopyRendered": true,
+    "formsSubmitted": false
+  }
+}

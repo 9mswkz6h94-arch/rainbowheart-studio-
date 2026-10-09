@@ -76,6 +76,7 @@ export default function Login() {
       <div className="login-card">
         <div className="login-logo">🌈</div>
         <h1>Rainbow Heart Studio</h1>
+        <p className="login-tagline">Sign in for Studio tools and saved work. The tuner, metronome, and Chord &amp; Scale Explorer are free to use without signing in.</p>
 
         <div className="login-tabs">
           <button
@@ -126,7 +127,7 @@ export default function Login() {
           </form>
         ) : (
           <form onSubmit={handleSignUp} className="login-form">
-            <p className="login-tagline">For students, musicians, and collaborators.</p>
+            <p className="login-tagline">For students, musicians, and collaborators. Account access does not book lessons or enroll you in a program. Linked apps may have separate access requirements.</p>
             <label>
               Your Name
               <input

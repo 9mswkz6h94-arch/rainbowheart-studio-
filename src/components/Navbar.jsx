@@ -1,10 +1,13 @@
-import { useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useRef, useState } from 'react'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const isPublicPage = pathname === '/' || pathname === '/tools'
+  const menuButton = useRef(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
   function closeMenu() {
@@ -17,20 +20,30 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="navbar">
+    <nav className={'navbar' + (isPublicPage ? ' public-site-nav' : '')} aria-label="Main navigation" onKeyDown={e => {
+      if (isPublicPage && e.key === 'Escape' && menuOpen) {
+        closeMenu()
+        menuButton.current?.focus()
+      }
+    }}>
+      {isPublicPage && <a href="#public-main" className="public-skip-link">Skip to content</a>}
       <div className="navbar-inner">
         <Link to="/" className="nav-logo" onClick={closeMenu}>
-          🌈 Rainbow Heart Studio
+          {isPublicPage ? 'Rainbow Heart Studio' : '🌈 Rainbow Heart Studio'}
         </Link>
         <button
           className="nav-hamburger"
+          ref={menuButton}
+          type="button"
           onClick={() => setMenuOpen(o => !o)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={menuOpen}
+          aria-controls="site-nav-links"
         >
-          {menuOpen ? '✕' : '☰'}
+          {isPublicPage ? (menuOpen ? 'Close menu' : 'Menu') : (menuOpen ? '✕' : '☰')}
         </button>
-        <div className={'nav-links' + (menuOpen ? ' open' : '')} onClick={closeMenu}>
+        <div id="site-nav-links" className={'nav-links' + (menuOpen ? ' open' : '')} onClick={closeMenu}>
+          {isPublicPage && <a href="/#lessons">Lessons</a>}
           <a href="/#services">Services</a>
           <a href="/#about">About</a>
           <a href="/#team">Team</a>
