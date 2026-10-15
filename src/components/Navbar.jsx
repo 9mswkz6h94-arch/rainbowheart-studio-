@@ -6,7 +6,7 @@ export default function Navbar() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const isPublicPage = pathname === '/' || pathname === '/tools'
+  const isPublicPage = pathname === '/' || pathname === '/tools' || pathname === '/lessons'
   const menuButton = useRef(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -43,7 +43,7 @@ export default function Navbar() {
           {isPublicPage ? (menuOpen ? 'Close menu' : 'Menu') : (menuOpen ? '✕' : '☰')}
         </button>
         <div id="site-nav-links" className={'nav-links' + (menuOpen ? ' open' : '')} onClick={closeMenu}>
-          {isPublicPage && <a href="/#lessons">Lessons</a>}
+          {isPublicPage && <Link to="/lessons">Lessons</Link>}
           <a href="/#services">Services</a>
           <a href="/#about">About</a>
           <a href="/#team">Team</a>

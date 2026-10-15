@@ -2,7 +2,7 @@ import { useLocation } from 'react-router-dom'
 
 export default function Footer() {
   const { pathname } = useLocation()
-  const isPublicPage = pathname === '/' || pathname === '/tools'
+  const isPublicPage = pathname === '/' || pathname === '/tools' || pathname === '/lessons'
   return (
     <footer className={'footer' + (isPublicPage ? ' public-site-footer' : '')}>
       <div className="container footer-inner">

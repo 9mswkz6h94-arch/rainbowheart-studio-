@@ -5,6 +5,8 @@ import ScrollToTopButton from './components/ScrollToTopButton'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import Home from './pages/Home'
+import MusicLessons from './pages/MusicLessons'
+import PublicSearchMetadata from './components/PublicSearchMetadata'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ChordCharts from './pages/ChordCharts'
@@ -37,10 +39,12 @@ export default function App() {
 
   return (
     <>
+      <PublicSearchMetadata />
       {!isPresenting && !isBandPacket && <Navbar />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/lessons" element={<MusicLessons />} />
           <Route path="/login" element={<Login />} />
           <Route path="/studio" element={
             <ProtectedRoute><Dashboard /></ProtectedRoute>

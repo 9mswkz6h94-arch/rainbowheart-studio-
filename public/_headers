@@ -1,0 +1,12 @@
+/band/*
+  X-Robots-Tag: noindex, nofollow
+/present/*
+  X-Robots-Tag: noindex, nofollow
+/studio/*
+  X-Robots-Tag: noindex, nofollow
+/studio
+  X-Robots-Tag: noindex, nofollow
+/admin
+  X-Robots-Tag: noindex, nofollow
+/login
+  X-Robots-Tag: noindex, follow

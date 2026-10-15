@@ -161,7 +161,7 @@ export default function Home() {
             Music lessons.<br />Your place to begin.
           </h1>
           <p className="hero-sub">
-            Guitar, vocals, piano, songwriting, and more. One-on-one learning
+            Piano, voice, guitar, ukulele, guitalele, and tenor guitar. One-on-one learning
             for all ages and skill levels, right here in Copperas Cove.
           </p>
           <div className="hero-ctas">
@@ -177,8 +177,10 @@ export default function Home() {
         <div className="container public-intro-grid">
           <div>
             <p className="public-eyebrow">Private lessons</p>
-            <h2>A first note.<br />A next step.</h2>
+            <h2>Music lessons in Copperas Cove, TX 76522</h2>
             <p>Pick up an instrument, find your voice, or build on what you already know. Our instructors work with beginners and experienced musicians.</p>
+            <p>Explore private piano, voice, guitar, ukulele, guitalele (guitarlele), and tenor guitar lessons at Rainbow Heart Studio.</p>
+            <Link to="/lessons" className="public-text-link">Explore instruments and lesson information →</Link>
             <a href="#team" className="public-text-link">Meet the instructors →</a>
           </div>
           <div className="public-lesson-details">
